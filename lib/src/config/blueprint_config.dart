@@ -85,7 +85,14 @@ enum CIProvider {
 }
 
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
+///
+/// This class holds all project generation settings including app name,
+/// target platforms, state management choice, and optional features.
 class BlueprintConfig {
+  /// Creates a new blueprint configuration.
+  ///
+  /// All parameters except [ciProvider] are required. The [platforms] list
+  /// must contain at least one platform.
   const BlueprintConfig({
     required this.appName,
     required this.platforms,
@@ -98,14 +105,31 @@ class BlueprintConfig {
     this.ciProvider = CIProvider.none,
   });
 
+  /// The name of the Flutter application (must be valid Dart package name).
   final String appName;
+
+  /// List of target platforms (mobile, web, desktop).
   final List<TargetPlatform> platforms;
+
+  /// The state management solution to use.
   final StateManagement stateManagement;
+
+  /// Whether to include theme scaffolding (light/dark mode).
   final bool includeTheme;
+
+  /// Whether to include localization (i18n) setup.
   final bool includeLocalization;
+
+  /// Whether to include environment configuration (.env support).
   final bool includeEnv;
+
+  /// Whether to include API client with Dio and interceptors.
   final bool includeApi;
+
+  /// Whether to include test scaffolding.
   final bool includeTests;
+
+  /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
   /// Check if multiple platforms are selected
@@ -117,6 +141,9 @@ class BlueprintConfig {
   /// Check if all platforms are selected
   bool get isUniversal => platforms.length == TargetPlatform.values.length;
 
+  /// Creates a copy of this configuration with optionally updated values.
+  ///
+  /// Any parameter set to null will retain its current value.
   BlueprintConfig copyWith({
     String? appName,
     List<TargetPlatform>? platforms,
@@ -141,6 +168,7 @@ class BlueprintConfig {
     );
   }
 
+  /// Converts this configuration to a map for serialization to YAML.
   Map<String, dynamic> toMap() {
     return {
       'app_name': appName,
@@ -157,6 +185,10 @@ class BlueprintConfig {
     };
   }
 
+  /// Creates a configuration from a map loaded from YAML.
+  ///
+  /// Supports both old single-platform and new multi-platform formats
+  /// for backwards compatibility.
   static BlueprintConfig fromMap(Map<Object?, Object?> map) {
     final features = Map<Object?, Object?>.from(
       (map['features'] as Map?) ?? <Object?, Object?>{},

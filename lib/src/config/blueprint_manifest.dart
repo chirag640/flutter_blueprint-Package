@@ -16,6 +16,7 @@ class BlueprintManifest {
   final int version;
   final BlueprintConfig config;
 
+  /// Converts this manifest to a map for serialization.
   Map<String, dynamic> toMap() {
     final data = <String, dynamic>{
       'version': version,
@@ -24,6 +25,7 @@ class BlueprintManifest {
     return data;
   }
 
+  /// Serializes this manifest to YAML format for writing to `blueprint.yaml`.
   String toYaml() {
     final buffer = StringBuffer();
     void writeEntry(String key, Object? value, int indent) {
@@ -45,6 +47,9 @@ class BlueprintManifest {
     return buffer.toString().trimRight();
   }
 
+  /// Parses a blueprint manifest from YAML content.
+  ///
+  /// Throws [FormatException] if the YAML is malformed.
   static BlueprintManifest fromYaml(String yamlContent) {
     final node = loadYaml(yamlContent);
     if (node is! Map) {
@@ -69,10 +74,16 @@ String _scalar(Object? value) {
 
 /// Handles reading and writing blueprint manifests on disk.
 class BlueprintManifestStore {
+  /// Saves a manifest to the specified file.
+  ///
+  /// Creates the file if it doesn't exist, overwrites it if it does.
   Future<void> save(File file, BlueprintManifest manifest) async {
     await file.writeAsString('${manifest.toYaml()}\n');
   }
 
+  /// Reads and parses a manifest from the specified file.
+  ///
+  /// Throws [FileSystemException] if the file doesn't exist.
   Future<BlueprintManifest> read(File file) async {
     if (!await file.exists()) {
       throw FileSystemException('blueprint.yaml not found', file.path);

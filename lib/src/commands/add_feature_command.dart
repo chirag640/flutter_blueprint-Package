@@ -73,13 +73,18 @@ class AddFeatureCommand {
       _logger.info('🎯 Generating feature: $featureName');
       _logger.info('   State management: ${config.stateManagement.label}');
       _logger.info('   Layers:');
-      if (includeData) _logger.info('     ✅ Data layer (repositories, models)');
-      if (includeDomain)
+      if (includeData) {
+        _logger.info('     ✅ Data layer (repositories, models)');
+      }
+      if (includeDomain) {
         _logger.info('     ✅ Domain layer (entities, use cases)');
+      }
       if (includePresentation) {
         _logger.info('     ✅ Presentation layer (pages, widgets, state)');
       }
-      if (includeApi) _logger.info('     ✅ API integration');
+      if (includeApi) {
+        _logger.info('     ✅ API integration');
+      }
       _logger.info('');
 
       // Generate the feature

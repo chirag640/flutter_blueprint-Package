@@ -487,7 +487,7 @@ ${config.hasPlatform(TargetPlatform.desktop) ? '- ✅ Desktop (Windows, macOS, L
 
 ## Project Structure
 
-\`\`\`
+```
 lib/
 ├── main.dart                    # Universal entry point
 ${config.hasPlatform(TargetPlatform.mobile) ? '├── main_mobile.dart            # Mobile-specific initialization' : ''}
@@ -497,44 +497,44 @@ ${config.hasPlatform(TargetPlatform.desktop) ? '├── main_desktop.dart     
 │   ├── responsive/             # Responsive layout utilities
 │   └── utils/                  # Platform detection utilities
 └── features/                   # Feature modules
-\`\`\`
+```
 
 ## Getting Started
 
 ### Run on Mobile
-\`\`\`bash
+```bash
 flutter run -d <device-id>
-\`\`\`
+```
 
 ### Run on Web
-\`\`\`bash
+```bash
 flutter run -d chrome
-\`\`\`
+```
 
 ### Run on Desktop
-\`\`\`bash
+```bash
 flutter run -d windows  # or macos, linux
-\`\`\`
+```
 
 ## Building for Production
 
 ### Mobile
-\`\`\`bash
+```bash
 flutter build apk        # Android
 flutter build ios        # iOS
-\`\`\`
+```
 
 ### Web
-\`\`\`bash
+```bash
 flutter build web
-\`\`\`
+```
 
 ### Desktop
-\`\`\`bash
+```bash
 flutter build windows    # Windows
 flutter build macos      # macOS
 flutter build linux      # Linux
-\`\`\`
+```
 
 ## Responsive Design
 

@@ -265,7 +265,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/${featureName}_entity.dart';
 
-/// List item widget for displaying ${featureName} entity.
+/// List item widget for displaying $featureName entity.
 class ${pascalName}ListItem extends StatelessWidget {
   const ${pascalName}ListItem({
     required this.item,
@@ -323,7 +323,7 @@ class ${pascalName}Provider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  /// Loads ${featureName} items.
+  /// Loads $featureName items.
   Future<void> loadItems() async {
     _isLoading = true;
     _error = null;
@@ -410,7 +410,7 @@ class ${pascalName}Notifier extends StateNotifier<${pascalName}State> {
 
   final Get${pascalName}List _getList;
 
-  /// Loads ${featureName} items.
+  /// Loads $featureName items.
   Future<void> loadItems() async {
     state = const ${pascalName}LoadingState();
 
@@ -461,12 +461,12 @@ sealed class ${pascalName}Event extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event to load ${featureName} items.
+/// Event to load $featureName items.
 class Load${pascalName}Event extends ${pascalName}Event {
   const Load${pascalName}Event();
 }
 
-/// Event to refresh ${featureName} items.
+/// Event to refresh $featureName items.
 class Refresh${pascalName}Event extends ${pascalName}Event {
   const Refresh${pascalName}Event();
 }

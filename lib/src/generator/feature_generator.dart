@@ -190,9 +190,9 @@ class FeatureGenerator {
     final lastImportIndex = content.lastIndexOf("import '");
     if (lastImportIndex != -1) {
       final endOfImport = content.indexOf(';', lastImportIndex);
-      updatedContent = content.substring(0, endOfImport + 1) +
-          '\n$importLine' +
-          content.substring(endOfImport + 1);
+      updatedContent = '${content.substring(0, endOfImport + 1)}'
+          '\n$importLine'
+          '${content.substring(endOfImport + 1)}';
     }
 
     // Add route to RouteNames class
@@ -202,9 +202,9 @@ class FeatureGenerator {
         RegExp(r'class RouteNames\s*{([^}]+)}').firstMatch(updatedContent);
     if (routeNamesMatch != null) {
       final classEnd = routeNamesMatch.end - 1; // Before closing brace
-      updatedContent = updatedContent.substring(0, classEnd) +
-          '\n$routeNameConstant\n' +
-          updatedContent.substring(classEnd);
+      updatedContent = '${updatedContent.substring(0, classEnd)}'
+          '\n$routeNameConstant\n'
+          '${updatedContent.substring(classEnd)}';
     }
 
     // Add route to routes method
@@ -217,9 +217,9 @@ class FeatureGenerator {
 
     final defaultCaseIndex = updatedContent.lastIndexOf('default:');
     if (defaultCaseIndex != -1) {
-      updatedContent = updatedContent.substring(0, defaultCaseIndex) +
-          '$routeCase\n    ' +
-          updatedContent.substring(defaultCaseIndex);
+      updatedContent = '${updatedContent.substring(0, defaultCaseIndex)}'
+          '$routeCase\n    '
+          '${updatedContent.substring(defaultCaseIndex)}';
     }
 
     await routerFile.writeAsString(updatedContent);

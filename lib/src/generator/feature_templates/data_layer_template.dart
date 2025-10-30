@@ -88,19 +88,19 @@ import '../models/${featureName}_model.dart';
 
 /// Remote data source for $pascalName feature.
 abstract class ${pascalName}RemoteDataSource {
-  /// Fetches ${featureName} list from API.
+  /// Fetches $featureName list from API.
   Future<List<${pascalName}Model>> getAll();
 
-  /// Fetches a single ${featureName} by ID.
+  /// Fetches a single $featureName by ID.
   Future<${pascalName}Model> getById(String id);
 
-  /// Creates a new ${featureName}.
+  /// Creates a new $featureName.
   Future<${pascalName}Model> create(${pascalName}Model model);
 
-  /// Updates an existing ${featureName}.
+  /// Updates an existing $featureName.
   Future<${pascalName}Model> update(String id, ${pascalName}Model model);
 
-  /// Deletes a ${featureName}.
+  /// Deletes a $featureName.
   Future<void> delete(String id);
 }
 
@@ -117,7 +117,7 @@ class ${pascalName}RemoteDataSourceImpl implements ${pascalName}RemoteDataSource
       final data = response.data as List;
       return data.map((json) => ${pascalName}Model.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
-      throw Exception('Failed to fetch ${featureName} list: \$e');
+      throw Exception('Failed to fetch $featureName list: \$e');
     }
   }
 
@@ -127,7 +127,7 @@ class ${pascalName}RemoteDataSourceImpl implements ${pascalName}RemoteDataSource
       final response = await _dio.get('/$featureName/\$id');
       return ${pascalName}Model.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      throw Exception('Failed to fetch ${featureName}: \$e');
+      throw Exception('Failed to fetch $featureName: \$e');
     }
   }
 
@@ -137,7 +137,7 @@ class ${pascalName}RemoteDataSourceImpl implements ${pascalName}RemoteDataSource
       final response = await _dio.post('/$featureName', data: model.toJson());
       return ${pascalName}Model.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      throw Exception('Failed to create ${featureName}: \$e');
+      throw Exception('Failed to create $featureName: \$e');
     }
   }
 
@@ -147,7 +147,7 @@ class ${pascalName}RemoteDataSourceImpl implements ${pascalName}RemoteDataSource
       final response = await _dio.put('/$featureName/\$id', data: model.toJson());
       return ${pascalName}Model.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      throw Exception('Failed to update ${featureName}: \$e');
+      throw Exception('Failed to update $featureName: \$e');
     }
   }
 
@@ -156,7 +156,7 @@ class ${pascalName}RemoteDataSourceImpl implements ${pascalName}RemoteDataSource
     try {
       await _dio.delete('/$featureName/\$id');
     } catch (e) {
-      throw Exception('Failed to delete ${featureName}: \$e');
+      throw Exception('Failed to delete $featureName: \$e');
     }
   }
 }
@@ -170,10 +170,10 @@ import '../models/${featureName}_model.dart';
 
 /// Local data source for $pascalName feature.
 abstract class ${pascalName}LocalDataSource {
-  /// Fetches cached ${featureName} list.
+  /// Fetches cached $featureName list.
   Future<List<${pascalName}Model>> getCached();
 
-  /// Caches ${featureName} list.
+  /// Caches $featureName list.
   Future<void> cache(List<${pascalName}Model> items);
 
   /// Clears cache.
@@ -233,10 +233,10 @@ import '../../domain/repositories/${featureName}_repository.dart';
 /// Implementation of ${pascalName}Repository.
 class ${pascalName}RepositoryImpl implements ${pascalName}Repository {
   ${pascalName}RepositoryImpl({
-${remoteParam}    required ${pascalName}LocalDataSource localDataSource,
+$remoteParam    required ${pascalName}LocalDataSource localDataSource,
   })  : ${remoteInit}_localDataSource = localDataSource;
 
-${remoteField}  final ${pascalName}LocalDataSource _localDataSource;
+$remoteField  final ${pascalName}LocalDataSource _localDataSource;
 
 $implementation}
 ''';
@@ -260,7 +260,7 @@ $implementation}
       if (cachedItems.isNotEmpty) {
         return cachedItems;
       }
-      throw Exception('Failed to fetch ${featureName} list: \$e');
+      throw Exception('Failed to fetch $featureName list: \$e');
     }
   }
 
@@ -269,7 +269,7 @@ $implementation}
     try {
       return await _remoteDataSource.getById(id);
     } catch (e) {
-      throw Exception('Failed to fetch ${featureName}: \$e');
+      throw Exception('Failed to fetch $featureName: \$e');
     }
   }
 
@@ -279,7 +279,7 @@ $implementation}
       final model = entity as ${pascalName}Model;
       return await _remoteDataSource.create(model);
     } catch (e) {
-      throw Exception('Failed to create ${featureName}: \$e');
+      throw Exception('Failed to create $featureName: \$e');
     }
   }
 
@@ -289,7 +289,7 @@ $implementation}
       final model = entity as ${pascalName}Model;
       return await _remoteDataSource.update(id, model);
     } catch (e) {
-      throw Exception('Failed to update ${featureName}: \$e');
+      throw Exception('Failed to update $featureName: \$e');
     }
   }
 
@@ -298,7 +298,7 @@ $implementation}
     try {
       await _remoteDataSource.delete(id);
     } catch (e) {
-      throw Exception('Failed to delete ${featureName}: \$e');
+      throw Exception('Failed to delete $featureName: \$e');
     }
   }''';
   }
@@ -311,7 +311,7 @@ $implementation}
     try {
       return await _localDataSource.getCached();
     } catch (e) {
-      throw Exception('Failed to fetch ${featureName} list: \$e');
+      throw Exception('Failed to fetch $featureName list: \$e');
     }
   }
 

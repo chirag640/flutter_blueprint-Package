@@ -33,17 +33,17 @@ class DomainLayerTemplate {
     ));
 
     templates.add(FileTemplate(
-      relativePath: 'domain/usecases/create_${featureName}.dart',
+      relativePath: 'domain/usecases/create_$featureName.dart',
       content: _createUseCaseTemplate(featureName, pascalName),
     ));
 
     templates.add(FileTemplate(
-      relativePath: 'domain/usecases/update_${featureName}.dart',
+      relativePath: 'domain/usecases/update_$featureName.dart',
       content: _updateUseCaseTemplate(featureName, pascalName),
     ));
 
     templates.add(FileTemplate(
-      relativePath: 'domain/usecases/delete_${featureName}.dart',
+      relativePath: 'domain/usecases/delete_$featureName.dart',
       content: _deleteUseCaseTemplate(featureName, pascalName),
     ));
 
@@ -76,19 +76,19 @@ import '../entities/${featureName}_entity.dart';
 
 /// Repository contract for $pascalName feature.
 abstract class ${pascalName}Repository {
-  /// Fetches all ${featureName} items.
+  /// Fetches all $featureName items.
   Future<List<${pascalName}Entity>> getAll();
 
-  /// Fetches a single ${featureName} by ID.
+  /// Fetches a single $featureName by ID.
   Future<${pascalName}Entity> getById(String id);
 
-  /// Creates a new ${featureName}.
+  /// Creates a new $featureName.
   Future<${pascalName}Entity> create(${pascalName}Entity entity);
 
-  /// Updates an existing ${featureName}.
+  /// Updates an existing $featureName.
   Future<${pascalName}Entity> update(String id, ${pascalName}Entity entity);
 
-  /// Deletes a ${featureName}.
+  /// Deletes a $featureName.
   Future<void> delete(String id);
 }
 ''';
@@ -99,7 +99,7 @@ abstract class ${pascalName}Repository {
 import '../entities/${featureName}_entity.dart';
 import '../repositories/${featureName}_repository.dart';
 
-/// Use case for fetching ${featureName} list.
+/// Use case for fetching $featureName list.
 class Get${pascalName}List {
   Get${pascalName}List(this._repository);
 
@@ -118,7 +118,7 @@ class Get${pascalName}List {
 import '../entities/${featureName}_entity.dart';
 import '../repositories/${featureName}_repository.dart';
 
-/// Use case for fetching a single ${featureName}.
+/// Use case for fetching a single $featureName.
 class Get${pascalName}ById {
   Get${pascalName}ById(this._repository);
 
@@ -137,9 +137,9 @@ class Get${pascalName}ById {
 import '../entities/${featureName}_entity.dart';
 import '../repositories/${featureName}_repository.dart';
 
-/// Use case for creating a ${featureName}.
-class Create${pascalName} {
-  Create${pascalName}(this._repository);
+/// Use case for creating a $featureName.
+class Create$pascalName {
+  Create$pascalName(this._repository);
 
   final ${pascalName}Repository _repository;
 
@@ -156,9 +156,9 @@ class Create${pascalName} {
 import '../entities/${featureName}_entity.dart';
 import '../repositories/${featureName}_repository.dart';
 
-/// Use case for updating a ${featureName}.
-class Update${pascalName} {
-  Update${pascalName}(this._repository);
+/// Use case for updating a $featureName.
+class Update$pascalName {
+  Update$pascalName(this._repository);
 
   final ${pascalName}Repository _repository;
 
@@ -174,9 +174,9 @@ class Update${pascalName} {
     return '''
 import '../repositories/${featureName}_repository.dart';
 
-/// Use case for deleting a ${featureName}.
-class Delete${pascalName} {
-  Delete${pascalName}(this._repository);
+/// Use case for deleting a $featureName.
+class Delete$pascalName {
+  Delete$pascalName(this._repository);
 
   final ${pascalName}Repository _repository;
 

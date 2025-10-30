@@ -18,7 +18,15 @@ import '../utils/io_utils.dart';
 import '../utils/logger.dart';
 
 /// Orchestrates generation of a new Flutter project from a blueprint config.
+///
+/// This class is responsible for:
+/// - Selecting the appropriate template bundle based on configuration
+/// - Generating all project files from templates
+/// - Creating CI/CD configuration files
+/// - Writing the blueprint.yaml manifest
+/// - Running flutter pub get automatically after generation
 class BlueprintGenerator {
+  /// Creates a new generator with optional dependencies for testing.
   BlueprintGenerator({
     IoUtils? ioUtils,
     Logger? logger,
@@ -28,6 +36,14 @@ class BlueprintGenerator {
   final IoUtils _ioUtils;
   final Logger _logger;
 
+  /// Generates a complete Flutter project at [targetPath] using [config].
+  ///
+  /// This method will:
+  /// 1. Create the target directory structure
+  /// 2. Generate all template files
+  /// 3. Create CI/CD configuration if specified
+  /// 4. Write blueprint.yaml manifest
+  /// 5. Attempt to run `flutter pub get` automatically
   Future<void> generate(BlueprintConfig config, String targetPath) async {
     _logger.info('🚀 Generating project structure...');
 
