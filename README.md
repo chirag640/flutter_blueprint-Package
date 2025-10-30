@@ -874,6 +874,54 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 📦 Publishing to pub.dev
+
+This project is prepared to be published to pub.dev. Below are safe, recommended steps to publish a new release. The repository includes helper scripts in `scripts/`.
+
+Before you publish:
+
+1. Update `CHANGELOG.md` with the release notes for the new version.
+2. Bump the `version:` in `pubspec.yaml` to the new semver (e.g. `0.5.1`).
+3. Commit your changes and push to the `main` branch.
+
+Quick publish commands (dry-run first):
+
+PowerShell (Windows):
+```powershell
+cd <path-to-repo>
+git checkout main
+git pull
+dart pub get
+dart pub publish --dry-run
+# If dry-run is OK:
+# dart pub publish
+```
+
+Bash (macOS / Linux):
+```bash
+cd <path-to-repo>
+git checkout main
+git pull
+dart pub get
+dart pub publish --dry-run
+# If dry-run is OK:
+# dart pub publish
+```
+
+Recommended scripted flow (included):
+
+- `scripts/publish.ps1` — Powershell script that runs tests, does a `dry-run`, and prompts to continue with real publish.
+- `scripts/publish.sh` — Bash counterpart for Unix-like systems.
+
+Notes:
+
+- You must be logged in to pub.dev (`dart pub login`) with the account that will publish the package.
+- The package `pubspec.yaml` must have a unique `name:` that isn't already taken on pub.dev.
+- Verify the `version:` follows semantic versioning; pub.dev rejects duplicate versions.
+
+
+---
+
 ## 🌟 Show Your Support
 
 If this project helped you, please ⭐ the repository and share it with others!

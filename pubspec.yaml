@@ -1,6 +1,6 @@
 name: flutter_blueprint
 description: "Smart Flutter app scaffolding CLI with architecture, theming, routing, and environment handling built-in."
-version: 0.2.0-dev.2
+version: 0.5.0
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
 issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues
@@ -8,20 +8,10 @@ issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues
 environment:
   sdk: ">=3.3.0 <4.0.0"
 
-flutter:
-  plugin:
-    platforms:
-      android:
-        package: com.example.flutter_blueprint
-        pluginClass: MyPackagePlugin
-      ios:
-        pluginClass: MyPackagePlugin
-      # macos:
-      #   pluginClass: MyPackagePlugin
-      # linux:
-      #   pluginClass: MyPackagePlugin
-      # windows:
-      #   pluginClass: MyPackagePlugin
+# Note: This package is a CLI scaffolding tool. It exposes an executable entrypoint
+# (see `executables:` below). The package depends on Flutter for some templates
+# and code generation, but it is not a Flutter plugin. The previous `plugin:` block
+# was removed so the package isn't treated as a platform plugin.
 
 dependencies:
   flutter:
