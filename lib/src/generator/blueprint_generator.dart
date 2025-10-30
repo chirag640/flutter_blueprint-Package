@@ -7,6 +7,8 @@ import '../config/blueprint_manifest.dart';
 import '../templates/provider_mobile_template.dart';
 import '../templates/riverpod_mobile_template.dart';
 import '../templates/bloc_mobile_template.dart';
+import '../templates/web_template.dart';
+import '../templates/desktop_template.dart';
 import '../templates/template_bundle.dart';
 import '../templates/ci/github_actions_template.dart';
 import '../templates/ci/gitlab_ci_template.dart';
@@ -74,8 +76,8 @@ class BlueprintGenerator {
     BlueprintConfig config,
     String targetPath,
   ) async {
-    final includeAndroid = config.platform == 'mobile';
-    final includeIOS = config.platform == 'mobile';
+    final includeAndroid = config.platform == TargetPlatform.mobile;
+    final includeIOS = config.platform == TargetPlatform.mobile;
 
     switch (config.ciProvider) {
       case CIProvider.github:
@@ -146,8 +148,19 @@ class BlueprintGenerator {
   }
 
   TemplateBundle _selectBundle(BlueprintConfig config) {
-    // Select template based on state management and platform
-    switch (config.stateManagement) {
+    // Select template based on platform and state management
+    switch (config.platform) {
+      case TargetPlatform.mobile:
+        return _selectMobileBundle(config.stateManagement);
+      case TargetPlatform.web:
+        return _selectWebBundle(config.stateManagement);
+      case TargetPlatform.desktop:
+        return _selectDesktopBundle(config.stateManagement);
+    }
+  }
+
+  TemplateBundle _selectMobileBundle(StateManagement stateManagement) {
+    switch (stateManagement) {
       case StateManagement.provider:
         return buildProviderMobileBundle();
       case StateManagement.riverpod:
@@ -155,5 +168,13 @@ class BlueprintGenerator {
       case StateManagement.bloc:
         return buildBlocMobileBundle();
     }
+  }
+
+  TemplateBundle _selectWebBundle(StateManagement stateManagement) {
+    return buildWebTemplate(stateManagement);
+  }
+
+  TemplateBundle _selectDesktopBundle(StateManagement stateManagement) {
+    return buildDesktopTemplate(stateManagement);
   }
 }

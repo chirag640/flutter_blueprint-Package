@@ -19,6 +19,25 @@ enum StateManagement {
   }
 }
 
+/// Supported platform targets.
+enum TargetPlatform {
+  mobile,
+  web,
+  desktop;
+
+  String get label => name;
+
+  static TargetPlatform parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in TargetPlatform.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported platform: $value');
+  }
+}
+
 /// Supported CI/CD providers.
 enum CIProvider {
   none,
@@ -54,7 +73,7 @@ class BlueprintConfig {
   });
 
   final String appName;
-  final String platform;
+  final TargetPlatform platform;
   final StateManagement stateManagement;
   final bool includeTheme;
   final bool includeLocalization;
@@ -65,7 +84,7 @@ class BlueprintConfig {
 
   BlueprintConfig copyWith({
     String? appName,
-    String? platform,
+    TargetPlatform? platform,
     StateManagement? stateManagement,
     bool? includeTheme,
     bool? includeLocalization,
@@ -90,7 +109,7 @@ class BlueprintConfig {
   Map<String, dynamic> toMap() {
     return {
       'app_name': appName,
-      'platform': platform,
+      'platform': platform.label,
       'state_management': stateManagement.label,
       'ci_provider': ciProvider.label,
       'features': SplayTreeMap<String, dynamic>.from({
@@ -109,7 +128,9 @@ class BlueprintConfig {
     );
     return BlueprintConfig(
       appName: (map['app_name'] ?? '') as String,
-      platform: (map['platform'] ?? 'mobile') as String,
+      platform: TargetPlatform.parse(
+        (map['platform'] ?? 'mobile') as String,
+      ),
       stateManagement: StateManagement.parse(
         (map['state_management'] ?? 'provider') as String,
       ),

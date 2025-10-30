@@ -6,7 +6,7 @@ void main() {
     test('creates config with all parameters', () {
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: 'mobile',
+        platform: TargetPlatform.mobile,
         stateManagement: StateManagement.provider,
         includeTheme: true,
         includeLocalization: false,
@@ -16,7 +16,7 @@ void main() {
       );
 
       expect(config.appName, 'test_app');
-      expect(config.platform, 'mobile');
+      expect(config.platform, TargetPlatform.mobile);
       expect(config.stateManagement, StateManagement.provider);
       expect(config.includeTheme, true);
       expect(config.includeLocalization, false);
@@ -25,7 +25,7 @@ void main() {
     test('converts to and from map correctly', () {
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: 'mobile',
+        platform: TargetPlatform.mobile,
         stateManagement: StateManagement.riverpod,
         includeTheme: true,
         includeLocalization: true,
@@ -48,9 +48,22 @@ void main() {
       expect(StateManagement.parse('bloc'), StateManagement.bloc);
     });
 
+    test('parses target platform from string', () {
+      expect(TargetPlatform.parse('mobile'), TargetPlatform.mobile);
+      expect(TargetPlatform.parse('web'), TargetPlatform.web);
+      expect(TargetPlatform.parse('desktop'), TargetPlatform.desktop);
+    });
+
     test('throws on invalid state management', () {
       expect(
         () => StateManagement.parse('invalid'),
+        throwsArgumentError,
+      );
+    });
+
+    test('throws on invalid target platform', () {
+      expect(
+        () => TargetPlatform.parse('invalid'),
         throwsArgumentError,
       );
     });

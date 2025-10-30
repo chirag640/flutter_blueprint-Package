@@ -86,6 +86,12 @@ class CliRunner {
         allowed: ['provider', 'riverpod', 'bloc'],
       )
       ..addOption(
+        'platform',
+        abbr: 'p',
+        help: 'Target platform (mobile, web, desktop)',
+        allowed: ['mobile', 'web', 'desktop'],
+      )
+      ..addOption(
         'ci',
         help: 'CI/CD provider (github, gitlab, azure)',
         allowed: ['github', 'gitlab', 'azure'],
@@ -197,6 +203,15 @@ class CliRunner {
       break;
     }
 
+    // Platform selection
+    _logger.info('');
+    final platformChoice = await _prompter.choose(
+      '💻 Choose target platform',
+      ['mobile', 'web', 'desktop'],
+      defaultValue: 'mobile',
+    );
+    final targetPlatform = TargetPlatform.parse(platformChoice);
+
     // State management with arrow key selection
     _logger.info('');
     final stateChoice = await _prompter.choose(
@@ -244,6 +259,7 @@ class CliRunner {
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
     _logger.info('   App name: $appName');
+    _logger.info('   Platform: ${targetPlatform.label}');
     _logger.info('   State management: ${stateMgmt.label}');
     _logger.info('   CI/CD: ${ciProvider.label}');
     _logger.info('   Theme: ${includeTheme ? '✅' : '❌'}');
@@ -268,7 +284,7 @@ class CliRunner {
     final config = BlueprintConfig(
       appName: appName,
       stateManagement: stateMgmt,
-      platform: 'mobile',
+      platform: targetPlatform,
       ciProvider: ciProvider,
       includeTheme: includeTheme,
       includeLocalization: includeLocalization,
@@ -351,9 +367,18 @@ class CliRunner {
       defaultValue: true,
     );
 
+    // Platform
+    final platformArg = results['platform'] as String?;
+    final TargetPlatform targetPlatform;
+    if (platformArg != null) {
+      targetPlatform = TargetPlatform.parse(platformArg);
+    } else {
+      targetPlatform = TargetPlatform.mobile;
+    }
+
     return BlueprintConfig(
       appName: appName,
-      platform: 'mobile',
+      platform: targetPlatform,
       stateManagement: stateMgmt,
       ciProvider: ciProvider,
       includeTheme: includeTheme,
@@ -477,6 +502,19 @@ class CliRunner {
     _logger.info('  flutter_blueprint init my_app --ci github');
     _logger.info('  flutter_blueprint init my_app --state bloc --ci gitlab');
     _logger.info('  flutter_blueprint init my_app --ci azure --api --tests');
+    _logger.info('');
+    _logger.info('Platform-Specific Examples:');
+    _logger.info('  # Web application');
+    _logger.info(
+        '  flutter_blueprint init my_web_app --platform web --state bloc');
+    _logger.info('');
+    _logger.info('  # Desktop application (macOS/Windows/Linux)');
+    _logger.info(
+        '  flutter_blueprint init my_desktop_app --platform desktop --state riverpod');
+    _logger.info('');
+    _logger.info('  # Mobile application (default)');
+    _logger.info(
+        '  flutter_blueprint init my_mobile_app --platform mobile --state provider');
     _logger.info('');
     _logger.info('Add Feature Examples:');
     _logger.info('  # Generate full feature (all layers)');
