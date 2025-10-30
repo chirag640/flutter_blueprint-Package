@@ -8,6 +8,9 @@ import '../templates/provider_mobile_template.dart';
 import '../templates/riverpod_mobile_template.dart';
 import '../templates/bloc_mobile_template.dart';
 import '../templates/template_bundle.dart';
+import '../templates/ci/github_actions_template.dart';
+import '../templates/ci/gitlab_ci_template.dart';
+import '../templates/ci/azure_pipelines_template.dart';
 import '../utils/io_utils.dart';
 import '../utils/logger.dart';
 
@@ -43,17 +46,103 @@ class BlueprintGenerator {
       fileCount++;
     }
 
+    // Generate CI/CD configuration if specified
+    if (config.ciProvider != CIProvider.none) {
+      await _generateCIConfig(config, targetPath);
+      fileCount++; // Count the CI config file
+    }
+
     // Write blueprint manifest
     final manifest = BlueprintManifest(config: config);
     final manifestFile = File(p.join(targetPath, 'blueprint.yaml'));
     await BlueprintManifestStore().save(manifestFile, manifest);
 
     _logger.success('✅ Generated $fileCount files successfully!');
+    if (config.ciProvider != CIProvider.none) {
+      _logger.info('');
+      _logger.info('🚀 CI/CD configured for ${config.ciProvider.label}');
+      _printCISetupInstructions(config.ciProvider);
+    }
     _logger.info('');
     _logger.info('Next steps:');
     _logger.info('  cd ${config.appName}');
     _logger.info('  flutter pub get');
     _logger.info('  flutter run');
+  }
+
+  Future<void> _generateCIConfig(
+    BlueprintConfig config,
+    String targetPath,
+  ) async {
+    final includeAndroid = config.platform == 'mobile';
+    final includeIOS = config.platform == 'mobile';
+
+    switch (config.ciProvider) {
+      case CIProvider.github:
+        final content = GitHubActionsTemplate.generate(
+          appName: config.appName,
+          includeTests: config.includeTests,
+          includeAndroid: includeAndroid,
+          includeIOS: includeIOS,
+        );
+        await _ioUtils.writeFile(
+          targetPath,
+          '.github/workflows/ci.yml',
+          content,
+        );
+        _logger.info('📋 Generated GitHub Actions workflow');
+        break;
+
+      case CIProvider.gitlab:
+        final content = GitLabCITemplate.generate(
+          appName: config.appName,
+          includeTests: config.includeTests,
+          includeAndroid: includeAndroid,
+          includeIOS: includeIOS,
+        );
+        await _ioUtils.writeFile(targetPath, '.gitlab-ci.yml', content);
+        _logger.info('📋 Generated GitLab CI configuration');
+        break;
+
+      case CIProvider.azure:
+        final content = AzurePipelinesTemplate.generate(
+          appName: config.appName,
+          includeTests: config.includeTests,
+          includeAndroid: includeAndroid,
+          includeIOS: includeIOS,
+        );
+        await _ioUtils.writeFile(targetPath, 'azure-pipelines.yml', content);
+        _logger.info('📋 Generated Azure Pipelines configuration');
+        break;
+
+      case CIProvider.none:
+        break;
+    }
+  }
+
+  void _printCISetupInstructions(CIProvider provider) {
+    switch (provider) {
+      case CIProvider.github:
+        _logger.info('   • Push your code to GitHub');
+        _logger.info('   • Workflow will run automatically on push/PR');
+        _logger.info('   • For coverage: Add CODECOV_TOKEN secret');
+        break;
+
+      case CIProvider.gitlab:
+        _logger.info('   • Push your code to GitLab');
+        _logger.info('   • Pipeline will run automatically on push/MR');
+        _logger.info('   • For iOS builds: Configure macOS runner');
+        break;
+
+      case CIProvider.azure:
+        _logger.info('   • Push your code to Azure Repos');
+        _logger.info('   • Install Flutter extension for Azure Pipelines');
+        _logger.info('   • Pipeline will run automatically on push/PR');
+        break;
+
+      case CIProvider.none:
+        break;
+    }
   }
 
   TemplateBundle _selectBundle(BlueprintConfig config) {

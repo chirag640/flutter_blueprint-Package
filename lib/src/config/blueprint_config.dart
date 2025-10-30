@@ -19,6 +19,26 @@ enum StateManagement {
   }
 }
 
+/// Supported CI/CD providers.
+enum CIProvider {
+  none,
+  github,
+  gitlab,
+  azure;
+
+  String get label => name;
+
+  static CIProvider parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in CIProvider.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported CI provider: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 class BlueprintConfig {
   const BlueprintConfig({
@@ -30,6 +50,7 @@ class BlueprintConfig {
     required this.includeEnv,
     required this.includeApi,
     required this.includeTests,
+    this.ciProvider = CIProvider.none,
   });
 
   final String appName;
@@ -40,6 +61,7 @@ class BlueprintConfig {
   final bool includeEnv;
   final bool includeApi;
   final bool includeTests;
+  final CIProvider ciProvider;
 
   BlueprintConfig copyWith({
     String? appName,
@@ -50,6 +72,7 @@ class BlueprintConfig {
     bool? includeEnv,
     bool? includeApi,
     bool? includeTests,
+    CIProvider? ciProvider,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -60,6 +83,7 @@ class BlueprintConfig {
       includeEnv: includeEnv ?? this.includeEnv,
       includeApi: includeApi ?? this.includeApi,
       includeTests: includeTests ?? this.includeTests,
+      ciProvider: ciProvider ?? this.ciProvider,
     );
   }
 
@@ -68,6 +92,7 @@ class BlueprintConfig {
       'app_name': appName,
       'platform': platform,
       'state_management': stateManagement.label,
+      'ci_provider': ciProvider.label,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -87,6 +112,9 @@ class BlueprintConfig {
       platform: (map['platform'] ?? 'mobile') as String,
       stateManagement: StateManagement.parse(
         (map['state_management'] ?? 'provider') as String,
+      ),
+      ciProvider: CIProvider.parse(
+        (map['ci_provider'] ?? 'none') as String,
       ),
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),

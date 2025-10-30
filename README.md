@@ -51,6 +51,16 @@
 | 🧪 **Professional Tests**      | Validator tests, test helpers, widget tests                                  |
 | 📁 **Smart File Organization** | Constants (endpoints, app), Errors, Network, Utils, Widgets                  |
 
+### **DevOps Integration** (NEW in v0.5.0!)
+
+| Feature                          | What You Get                                                          |
+| -------------------------------- | --------------------------------------------------------------------- |
+| 🚀 **CI/CD Scaffold Generation** | GitHub Actions, GitLab CI, or Azure Pipelines - ready on first commit |
+| ✅ **Automated Quality Gates**   | Flutter analyze, dart format check, and automated tests               |
+| 📊 **Coverage Reporting**        | Code coverage tracking with Codecov/built-in reports                  |
+| 🏗️ **Multi-Platform Builds**     | Automated Android APK + iOS IPA generation                            |
+| 🔥 **Deployment Templates**      | Firebase App Distribution integration ready to use                    |
+
 ---
 
 ## 📦 Installation
@@ -156,6 +166,11 @@ flutter_blueprint init my_app \
   --api \
   --tests
   --no-localization
+
+# With CI/CD configuration (NEW in v0.5.0!)
+flutter_blueprint init my_app --ci github
+flutter_blueprint init my_app --state riverpod --ci gitlab
+flutter_blueprint init my_app --state bloc --ci azure
 ```
 
 ### Hybrid Mode (Mix Both)
@@ -164,6 +179,110 @@ flutter_blueprint init my_app \
 flutter_blueprint init my_app --state riverpod
 # Prompts for remaining options
 ```
+
+---
+
+## 🚀 CI/CD Integration (NEW in v0.5.0!)
+
+Generate production-ready CI/CD configurations with a single flag. Your project will be ready for automated testing and deployment from day one!
+
+### Quick Start
+
+```bash
+# GitHub Actions
+flutter_blueprint init my_app --ci github
+
+# GitLab CI
+flutter_blueprint init my_app --ci gitlab
+
+# Azure Pipelines
+flutter_blueprint init my_app --ci azure
+```
+
+### What Gets Generated
+
+| Provider   | File                       | Pipeline Stages                                          |
+| ---------- | -------------------------- | -------------------------------------------------------- |
+| **GitHub** | `.github/workflows/ci.yml` | Analyze → Test → Build Android → Build iOS               |
+| **GitLab** | `.gitlab-ci.yml`           | analyze → test → build:android → build:ios               |
+| **Azure**  | `azure-pipelines.yml`      | Analyze Stage → Test Stage → Build Stage (Android + iOS) |
+
+### Pipeline Features
+
+All generated CI/CD configurations include:
+
+- ✅ **Code Quality**: `flutter analyze` + `dart format` checks
+- 🧪 **Automated Testing**: Unit tests with coverage reporting
+- 📱 **Android Build**: APK generation with artifact upload
+- 🍎 **iOS Build**: IPA generation (with codesigning instructions)
+- 📊 **Coverage Reports**: Codecov integration (GitHub) / built-in reports
+- 🔄 **Auto-retry**: Failed requests handled automatically
+- 📦 **Artifact Storage**: Build outputs saved for 7 days
+
+### Example: GitHub Actions Workflow
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+      - run: flutter analyze
+      - run: dart format --set-exit-if-changed .
+
+  test:
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - run: flutter test --coverage
+      - uses: codecov/codecov-action@v4
+
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+```
+
+### Deployment Ready
+
+Generated workflows include commented templates for:
+
+- 🔥 **Firebase App Distribution** - Deploy to testers instantly
+- 🍎 **TestFlight** - iOS beta deployment
+- ✍️ **Code Signing** - Instructions for production builds
+
+### Setup Instructions
+
+After generating your project with CI/CD:
+
+**For GitHub Actions:**
+
+1. Push your code to GitHub
+2. Workflow runs automatically on push/PR
+3. (Optional) Add `CODECOV_TOKEN` secret for coverage reports
+
+**For GitLab CI:**
+
+1. Push your code to GitLab
+2. Pipeline runs automatically on push/MR
+3. For iOS builds: Configure macOS runner in `.gitlab-ci.yml`
+
+**For Azure Pipelines:**
+
+1. Push your code to Azure Repos
+2. Install Flutter extension for Azure Pipelines
+3. Pipeline runs automatically on push/PR
 
 ---
 

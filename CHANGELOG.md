@@ -1,4 +1,64 @@
-## 0.3.0-dev.1 (Current)
+## 0.5.0 (Current)
+
+### 🚀 NEW: CI/CD Scaffold Generation - Production-Ready from Day One!
+
+**What's New:**
+
+- ✅ **Automated CI/CD configuration** - Generate GitHub Actions, GitLab CI, or Azure Pipelines workflows
+- ✅ **Multi-platform builds** - Automated Android and iOS builds
+- ✅ **Code quality gates** - Automatic analyze, format check, and test execution
+- ✅ **Coverage reporting** - Built-in code coverage tracking and reporting
+- ✅ **Deployment ready** - Firebase App Distribution integration templates
+- ✅ **Interactive wizard support** - CI provider selection in wizard mode
+
+**Usage:**
+
+```bash
+# Create project with GitHub Actions
+flutter_blueprint init my_app --ci github
+
+# Create project with GitLab CI
+flutter_blueprint init my_app --state riverpod --ci gitlab
+
+# Create project with Azure Pipelines
+flutter_blueprint init my_app --state bloc --ci azure
+
+# Interactive mode (wizard includes CI selection)
+flutter_blueprint init
+```
+
+**Generated CI Configurations:**
+
+| Provider   | File                       | Features                                      |
+| ---------- | -------------------------- | --------------------------------------------- |
+| **GitHub** | `.github/workflows/ci.yml` | Multi-job pipeline, coverage, artifacts       |
+| **GitLab** | `.gitlab-ci.yml`           | Multi-stage pipeline, coverage reports        |
+| **Azure**  | `azure-pipelines.yml`      | Multi-stage pipeline, test results, artifacts |
+
+**Pipeline Stages:**
+
+1. **Analyze** - `flutter analyze` + `dart format` verification
+2. **Test** - Unit tests with coverage reporting
+3. **Build Android** - APK generation with artifact upload
+4. **Build iOS** - IPA generation (with codesign instructions)
+
+**Benefits:**
+
+- **Zero setup time** - CI/CD ready on first commit
+- **Best practices** - Industry-standard workflows included
+- **Extensible** - Easy to add deployment stages
+- **Professional** - Production-grade configurations
+
+**Impact:**
+
+- **Immediate CI/CD** for all new projects
+- **Consistent quality gates** across all features
+- **Faster feedback loops** with automated testing
+- **Deployment ready** with Firebase templates
+
+---
+
+## 0.3.0-dev.1
 
 ### 🔥 NEW: Incremental Feature Generation - The Killer Feature!
 

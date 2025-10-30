@@ -85,6 +85,11 @@ class CliRunner {
         help: 'State management solution (provider, riverpod, bloc)',
         allowed: ['provider', 'riverpod', 'bloc'],
       )
+      ..addOption(
+        'ci',
+        help: 'CI/CD provider (github, gitlab, azure)',
+        allowed: ['github', 'gitlab', 'azure'],
+      )
       ..addFlag(
         'theme',
         help: 'Include theme scaffolding',
@@ -201,6 +206,15 @@ class CliRunner {
     );
     final stateMgmt = StateManagement.parse(stateChoice);
 
+    // CI/CD provider selection
+    _logger.info('');
+    final ciChoice = await _prompter.choose(
+      '🚀 Choose CI/CD provider (optional)',
+      ['none', 'github', 'gitlab', 'azure'],
+      defaultValue: 'none',
+    );
+    final ciProvider = CIProvider.parse(ciChoice);
+
     // Multi-select for optional features
     _logger.info('');
     final selectedFeatures = await _prompter.multiSelect(
@@ -231,6 +245,7 @@ class CliRunner {
     _logger.info('📋 Configuration Summary:');
     _logger.info('   App name: $appName');
     _logger.info('   State management: ${stateMgmt.label}');
+    _logger.info('   CI/CD: ${ciProvider.label}');
     _logger.info('   Theme: ${includeTheme ? '✅' : '❌'}');
     _logger.info('   Localization: ${includeLocalization ? '✅' : '❌'}');
     _logger.info('   Environment: ${includeEnv ? '✅' : '❌'}');
@@ -254,6 +269,7 @@ class CliRunner {
       appName: appName,
       stateManagement: stateMgmt,
       platform: 'mobile',
+      ciProvider: ciProvider,
       includeTheme: includeTheme,
       includeLocalization: includeLocalization,
       includeEnv: includeEnv,
@@ -294,6 +310,15 @@ class CliRunner {
       stateMgmt = StateManagement.parse(choice);
     }
 
+    // CI/CD provider
+    final ciArg = results['ci'] as String?;
+    final CIProvider ciProvider;
+    if (ciArg != null) {
+      ciProvider = CIProvider.parse(ciArg);
+    } else {
+      ciProvider = CIProvider.none;
+    }
+
     // Feature flags
     final includeTheme = await _resolveBoolFlag(
       results,
@@ -330,6 +355,7 @@ class CliRunner {
       appName: appName,
       platform: 'mobile',
       stateManagement: stateMgmt,
+      ciProvider: ciProvider,
       includeTheme: includeTheme,
       includeLocalization: includeLocalization,
       includeEnv: includeEnv,
@@ -446,6 +472,11 @@ class CliRunner {
     _logger.info('  flutter_blueprint init my_app --state provider --theme');
     _logger.info(
         '  flutter_blueprint init my_app --state riverpod --no-localization');
+    _logger.info('');
+    _logger.info('  # With CI/CD configuration');
+    _logger.info('  flutter_blueprint init my_app --ci github');
+    _logger.info('  flutter_blueprint init my_app --state bloc --ci gitlab');
+    _logger.info('  flutter_blueprint init my_app --ci azure --api --tests');
     _logger.info('');
     _logger.info('Add Feature Examples:');
     _logger.info('  # Generate full feature (all layers)');
