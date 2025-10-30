@@ -1,4 +1,34 @@
-## 0.2.0-dev.1 (Current)
+## 0.2.0-dev.2 (Current)
+
+### ✨ NEW: Interactive Wizard Mode
+
+**Beautiful CLI Experience:**
+
+- ✅ Guided step-by-step project setup
+- ✅ Arrow key navigation for state management selection
+- ✅ Multi-select checkboxes for features (spacebar to toggle)
+- ✅ Configuration preview before generation
+- ✅ Smart validation (prevents Dart reserved words)
+- ✅ Package name validation (lowercase with underscores)
+- ✅ Emoji-rich, colorful UI powered by `interact` package
+
+**Usage:**
+
+```bash
+# Launch wizard
+flutter_blueprint init
+
+# Or use quick mode
+flutter_blueprint init my_app --state provider
+```
+
+**Dependencies Added:**
+
+- `interact: ^2.2.0` - Beautiful CLI interactions
+
+---
+
+## 0.2.0-dev.1
 
 ### 🚀 MAJOR UPGRADE: Enterprise-Grade Professional Template
 

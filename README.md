@@ -77,22 +77,64 @@ dart run flutter_blueprint init my_app
 
 ## 🎬 Quick Start
 
-### Interactive Mode (Recommended for Beginners)
+### ✨ Interactive Wizard Mode (Recommended)
+
+Just run without arguments for a beautiful guided experience:
+
+```bash
+flutter_blueprint init
+```
+
+**What happens:**
+
+```
+🎯 Welcome to flutter_blueprint!
+   Let's create your Flutter app with professional architecture.
+
+✔ 📱 App name · my_awesome_app
+
+✔ 🎯 Choose state management · provider
+   [Use ↑↓ arrow keys, Enter to select]
+
+✔ ✨ Select features to include (use space to select, enter to confirm)
+   ✓ Theme system (Light/Dark modes)
+   ✓ Localization (i18n support)
+   ✓ Environment config (.env)
+   ✓ API client (Dio + interceptors)
+   ✓ Test scaffolding
+
+📋 Configuration Summary:
+   App name: my_awesome_app
+   State management: provider
+   Theme: ✅
+   Localization: ✅
+   Environment: ✅
+   API client: ✅
+   Tests: ✅
+
+✔ 🚀 Ready to generate your app? · yes
+
+🚀 Generating project structure...
+✅ Generated 43 files successfully!
+```
+
+**Features:**
+
+- 🎨 **Beautiful UI** with emojis and colors
+- ⌨️ **Arrow key navigation** for selections
+- ☑️ **Multi-select checkboxes** for features (spacebar to toggle)
+- ✅ **Smart validation** (prevents reserved words, invalid names)
+- 📋 **Configuration preview** before generation
+
+### ⚡ Quick Mode (For Experienced Users)
+
+Skip the wizard by providing the app name:
 
 ```bash
 flutter_blueprint init my_app
 ```
 
-You'll be prompted for:
-
-- State management choice (Provider/Riverpod/Bloc)
-- Theme scaffolding (yes/no)
-- Localization setup (yes/no)
-- Environment config (yes/no)
-- API client (yes/no)
-- Test scaffolding (yes/no)
-
-### Flag-Based Mode (Fast for Pros)
+Add flags for full control:
 
 ```bash
 flutter_blueprint init my_app \
