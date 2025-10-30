@@ -1,0 +1,171 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lib/**"
+      - "bin/**"
+      - "pubspec.yaml"
+      - "CHANGELOG.md"
+
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+
+    # Skip if commit message contains [skip-version] or [no-version]
+    if: |
+      !contains(github.event.head_commit.message, '[skip-version]') &&
+      !contains(github.event.head_commit.message, '[no-version]') &&
+      !contains(github.event.head_commit.message, 'chore(release):')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine version bump type
+        id: bump_type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BUMP_TYPE="${{ github.event.inputs.bump_type }}"
+          else
+            COMMIT_MSG="${{ github.event.head_commit.message }}"
+            if echo "$COMMIT_MSG" | grep -qiE '^\s*(feat|feature)(\(.*\))?!:|BREAKING CHANGE:'; then
+              BUMP_TYPE="major"
+            elif echo "$COMMIT_MSG" | grep -qiE '^\s*(feat|feature)(\(.*\))?:'; then
+              BUMP_TYPE="minor"
+            else
+              BUMP_TYPE="patch"
+            fi
+          fi
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "🎯 Bump type: $BUMP_TYPE"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | tr -d '\r\n')
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Current version: $CURRENT_VERSION"
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT="${{ steps.current_version.outputs.version }}"
+          BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+
+          # Parse version (remove any pre-release/build metadata for calculation)
+          BASE_VERSION=$(echo "$CURRENT" | sed 's/[-+].*//')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+
+          case $BUMP_TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "🚀 New version: $NEW_VERSION"
+
+      - name: Update pubspec.yaml
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          echo "✅ Updated pubspec.yaml to version $NEW_VERSION"
+
+      - name: Update CHANGELOG.md
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          BUMP_TYPE="${{ steps.bump_type.outputs.bump_type }}"
+
+          # Create new changelog entry
+          cat > /tmp/new_entry.md << EOF
+          ## $NEW_VERSION ($CURRENT_DATE)
+
+          ### 🔄 Auto-generated Release
+
+          **Changes:**
+          - Automatic $BUMP_TYPE version bump
+          - Triggered by: ${{ github.event.head_commit.message }}
+          - Commit: ${{ github.sha }}
+
+          EOF
+
+          # Prepend to CHANGELOG.md after the first heading
+          if grep -q "^## " CHANGELOG.md; then
+            # Insert after the first "## " line
+            awk '/^## / && !found {print; system("cat /tmp/new_entry.md"); found=1; next} 1' CHANGELOG.md > /tmp/changelog_new.md
+            mv /tmp/changelog_new.md CHANGELOG.md
+          else
+            # No existing entries, prepend
+            cat /tmp/new_entry.md CHANGELOG.md > /tmp/changelog_new.md
+            mv /tmp/changelog_new.md CHANGELOG.md
+          fi
+
+          echo "✅ Updated CHANGELOG.md"
+
+      - name: Commit version bump
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          git add pubspec.yaml CHANGELOG.md
+          git commit -m "chore(release): $NEW_VERSION [skip-version]" || echo "No changes to commit"
+          git push origin main
+
+      - name: Create and push tag
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+          git push origin "v$NEW_VERSION"
+          echo "✅ Created and pushed tag v$NEW_VERSION"
+
+      - name: Summary
+        run: |
+          echo "### 🎉 Version Bump Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Old Version:** ${{ steps.current_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Version:** ${{ steps.new_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bump Type:** ${{ steps.bump_type.outputs.bump_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** v${{ steps.new_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The tag \`v${{ steps.new_version.outputs.version }}\` will trigger the publish workflow." >> $GITHUB_STEP_SUMMARY

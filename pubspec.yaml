@@ -1,6 +1,6 @@
 name: flutter_blueprint
 description: "Smart Flutter app scaffolding CLI with architecture, theming, routing, and environment handling built-in."
-version: 0.5.2
+version: 0.5.3
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
 issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues

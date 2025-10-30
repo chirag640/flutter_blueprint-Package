@@ -1,0 +1,83 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*" # Matches v1.2.3, v1.2.3-beta, etc.
+
+# Required for OIDC publishing
+permissions:
+  id-token: write # Required for OIDC token
+  contents: write # Required for creating releases
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: "stable"
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Verify package version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//')
+
+          echo "Tag version: $TAG_VERSION"
+          echo "Pubspec version: $PUBSPEC_VERSION"
+
+          if [ "$TAG_VERSION" != "$PUBSPEC_VERSION" ]; then
+            echo "❌ Error: Tag version ($TAG_VERSION) does not match pubspec.yaml version ($PUBSPEC_VERSION)"
+            exit 1
+          fi
+          echo "✅ Versions match!"
+
+      - name: Run tests
+        run: dart test
+
+      - name: Analyze code
+        run: dart analyze --fatal-infos
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Dry run publish
+        run: dart pub publish --dry-run
+
+      - name: Publish to pub.dev
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub publish --force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          body: |
+            ## 🚀 Published to pub.dev
+
+            This release has been automatically published to [pub.dev](https://pub.dev/packages/flutter_blueprint).
+
+            ### Installation
+            ```bash
+            dart pub global activate flutter_blueprint
+            ```
+
+            See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

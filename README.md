@@ -4,6 +4,8 @@
 
 [![Pub Version](https://img.shields.io/pub/v/flutter_blueprint)](https://pub.dev/packages/flutter_blueprint)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Publish](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/publish.yml/badge.svg)](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/publish.yml)
+[![Quality](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/quality.yml/badge.svg)](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/quality.yml)
 
 ## 🚀 Why flutter_blueprint?
 
@@ -874,52 +876,80 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📦 Publishing to pub.dev
+## 🤖 Automated Publishing & Versioning
 
-This project is prepared to be published to pub.dev. Below are safe, recommended steps to publish a new release. The repository includes helper scripts in `scripts/`.
+This package uses **fully automated CI/CD** with GitHub Actions. No manual version bumps or publishing needed!
 
-Before you publish:
+### How It Works
 
-1. Update `CHANGELOG.md` with the release notes for the new version.
-2. Bump the `version:` in `pubspec.yaml` to the new semver (e.g. `0.5.1`).
-3. Commit your changes and push to the `main` branch.
+1. **Make changes** to the code
+2. **Commit with conventional messages**:
+   - `feat:` → auto **minor** version bump (0.5.1 → 0.6.0)
+   - `fix:` or other → auto **patch** bump (0.5.1 → 0.5.2)
+   - `feat!:` or `BREAKING CHANGE:` → auto **major** bump (0.5.1 → 1.0.0)
+3. **Push to main** → automatic version bump, tag creation, and publish to pub.dev!
 
-Quick publish commands (dry-run first):
-
-PowerShell (Windows):
-
-```powershell
-cd <path-to-repo>
-git checkout main
-git pull
-dart pub get
-dart pub publish --dry-run
-# If dry-run is OK:
-# dart pub publish
-```
-
-Bash (macOS / Linux):
+### Example Workflow
 
 ```bash
-cd <path-to-repo>
-git checkout main
-git pull
-dart pub get
-dart pub publish --dry-run
-# If dry-run is OK:
-# dart pub publish
+# Make changes
+git add lib/src/generator/new_feature.dart
+
+# Commit with conventional message
+git commit -m "feat: add amazing new feature"
+
+# Push to main
+git push origin main
 ```
 
-Recommended scripted flow (included):
+**Result:** Version automatically bumps to `0.6.0`, tag `v0.6.0` is created, and package is published to pub.dev! 🎉
 
-- `scripts/publish.ps1` — Powershell script that runs tests, does a `dry-run`, and prompts to continue with real publish.
-- `scripts/publish.sh` — Bash counterpart for Unix-like systems.
+### Skip Auto-Versioning
 
-Notes:
+Add `[skip-version]` to your commit message when you don't want a release:
 
-- You must be logged in to pub.dev (`dart pub login`) with the account that will publish the package.
-- The package `pubspec.yaml` must have a unique `name:` that isn't already taken on pub.dev.
-- Verify the `version:` follows semantic versioning; pub.dev rejects duplicate versions.
+```bash
+git commit -m "docs: update README [skip-version]"
+```
+
+### Manual Version Control
+
+If you prefer manual control, use the helper scripts in `scripts/`:
+
+**PowerShell (Windows):**
+
+```powershell
+.\scripts\publish.ps1 -Version 0.5.2
+```
+
+**Bash (macOS / Linux):**
+
+```bash
+./scripts/publish.sh 0.5.2
+```
+
+### Setup Instructions
+
+For automated publishing to work, you need to:
+
+1. **Enable pub.dev OIDC** (one-time setup):
+
+   - Go to [pub.dev](https://pub.dev) → Your package → Admin → Automated publishing
+   - Enable GitHub Actions with:
+     - Repository: `chirag640/flutter_blueprint-Package`
+     - Tag pattern: `v{{version}}`
+     - ✅ Enable push events
+     - ✅ Enable workflow_dispatch
+
+2. **Configure GitHub permissions**:
+
+   - Go to Settings → Actions → General
+   - Set workflow permissions to "Read and write"
+   - ✅ Allow GitHub Actions to create and approve pull requests
+
+3. **Done!** Now every push to `main` will trigger auto-versioning and publishing.
+
+📖 **Full documentation:** See [docs/AUTOMATED_PUBLISHING.md](docs/AUTOMATED_PUBLISHING.md) for complete setup guide and troubleshooting.
 
 ---
 

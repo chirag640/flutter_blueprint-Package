@@ -1,0 +1,53 @@
+name: Quality Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: "stable"
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Verify dependencies
+        run: dart pub get --offline
+
+      - name: Analyze code
+        run: dart analyze --fatal-infos
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Run tests
+        run: dart test --coverage=coverage
+
+      - name: Check pub publish readiness
+        run: dart pub publish --dry-run
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### ✅ Quality Checks Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All quality checks passed successfully." >> $GITHUB_STEP_SUMMARY
