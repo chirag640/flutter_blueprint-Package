@@ -1,4 +1,61 @@
-## 0.2.0-dev.2 (Current)
+## 0.2.0-dev.3 (Current)
+
+### 🚀 NEW: Multi-Template State Management Support
+
+**What's New:**
+
+- ✅ **Riverpod Template** - Compile-time safe state management
+- ✅ Multi-template architecture (Provider + Riverpod, Bloc coming soon)
+- ✅ Template selection via `--state` flag
+- ✅ All templates share professional core modules
+
+**Riverpod-Specific Features:**
+
+- **ProviderScope** wrapper in main.dart for dependency injection
+- **ConsumerWidget** pattern for reactive UI
+- **StateNotifier** with immutable state classes and `copyWith()`
+- **Global providers** in `core/providers/app_providers.dart`
+- **Compile-time safety** - catch errors before runtime
+- **Better testability** - providers easily mocked with `ProviderContainer`
+- **Automatic disposal** - no memory leaks
+
+**Usage:**
+
+```bash
+# Generate Riverpod project
+flutter_blueprint init my_app --state riverpod --theme --api
+
+# Or use wizard (select Riverpod from menu)
+flutter_blueprint init
+```
+
+**Template Comparison:**
+
+| Feature                  | Provider              | Riverpod                    |
+| ------------------------ | --------------------- | --------------------------- |
+| **State Class**          | ChangeNotifier        | StateNotifier<State>        |
+| **UI Widget**            | Consumer<T>           | ConsumerWidget + WidgetRef  |
+| **State Updates**        | notifyListeners()     | state = state.copyWith(...) |
+| **Dependency Injection** | MultiProvider wrapper | ProviderScope + ref.watch() |
+| **Compile-Time Safety**  | ❌                    | ✅                          |
+| **Generated Files**      | 43 files              | 42 files                    |
+
+**Dependencies:**
+
+- `flutter_riverpod: ^2.5.1` - Riverpod state management
+
+**Validation:**
+
+- ✅ Generated 42 files with professional architecture
+- ✅ 0 analyzer errors
+- ✅ 9/9 tests passing
+- ✅ Same core modules as Provider (API, Logger, Storage, Validators, etc.)
+
+**What's Next:** Bloc template coming soon!
+
+---
+
+## 0.2.0-dev.2
 
 ### ✨ NEW: Interactive Wizard Mode
 

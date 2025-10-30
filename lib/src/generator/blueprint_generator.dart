@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import '../config/blueprint_config.dart';
 import '../config/blueprint_manifest.dart';
 import '../templates/provider_mobile_template.dart';
+import '../templates/riverpod_mobile_template.dart';
 import '../templates/template_bundle.dart';
 import '../utils/io_utils.dart';
 import '../utils/logger.dart';
@@ -55,8 +56,17 @@ class BlueprintGenerator {
   }
 
   TemplateBundle _selectBundle(BlueprintConfig config) {
-    // For now, we only support Provider + Mobile
-    // Future: switch based on config.stateManagement and config.platform
-    return buildProviderMobileBundle();
+    // Select template based on state management and platform
+    switch (config.stateManagement) {
+      case StateManagement.provider:
+        return buildProviderMobileBundle();
+      case StateManagement.riverpod:
+        return buildRiverpodMobileBundle();
+      case StateManagement.bloc:
+        // TODO: Implement Bloc template
+        _logger.info(
+            '⚠️ Bloc template not yet implemented, using Provider instead');
+        return buildProviderMobileBundle();
+    }
   }
 }

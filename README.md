@@ -28,11 +28,11 @@
 
 | Feature                     | Description                                     | Generated Files                 |
 | --------------------------- | ----------------------------------------------- | ------------------------------- |
-| ⚡ **One-command setup**    | `flutter_blueprint init my_app`                 | 43+ files in seconds            |
+| ⚡ **One-command setup**    | `flutter_blueprint init my_app`                 | 42-43 files in seconds          |
 | 🧱 **Clean architecture**   | Separation of concerns (core/, features/, app/) | Professional folder structure   |
-| 🎯 **State management**     | Provider with proper patterns (more coming)     | Providers with loading states   |
+| 🎯 **State management**     | **Provider OR Riverpod** (Bloc coming soon)     | Choose your preferred pattern   |
 | 🎨 **Theming system**       | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
-| � **Internationalization**  | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
+| 🌐 **Internationalization** | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
 | 🛠️ **Environment config**   | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
 | 🧭 **Professional routing** | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
 
@@ -94,6 +94,9 @@ flutter_blueprint init
 ✔ 📱 App name · my_awesome_app
 
 ✔ 🎯 Choose state management · provider
+   • Provider (ChangeNotifier, easy to learn)
+   • Riverpod (Compile-time safe, better testability) ← NEW!
+   • Bloc (Event-driven, coming soon)
    [Use ↑↓ arrow keys, Enter to select]
 
 ✔ ✨ Select features to include (use space to select, enter to confirm)
@@ -137,12 +140,21 @@ flutter_blueprint init my_app
 Add flags for full control:
 
 ```bash
+# Provider template (classic ChangeNotifier pattern)
 flutter_blueprint init my_app \
   --state provider \
   --theme \
   --env \
   --api \
-  --tests \
+  --tests
+
+# Riverpod template (compile-time safe with StateNotifier)
+flutter_blueprint init my_app \
+  --state riverpod \
+  --theme \
+  --env \
+  --api \
+  --tests
   --no-localization
 ```
 
@@ -152,6 +164,121 @@ flutter_blueprint init my_app \
 flutter_blueprint init my_app --state riverpod
 # Prompts for remaining options
 ```
+
+---
+
+## 🎯 State Management Templates
+
+flutter_blueprint supports **multiple state management patterns** — choose the one that fits your team and project best!
+
+### 📊 Comparison Table
+
+| Feature                  | **Provider** 🟢                      | **Riverpod** 🟦                      | **Bloc** 🟣 (Coming Soon)         |
+| ------------------------ | ------------------------------------ | ------------------------------------ | --------------------------------- |
+| **Package**              | `provider: ^6.1.2`                   | `flutter_riverpod: ^2.5.1`           | `flutter_bloc: ^8.1.0`            |
+| **Learning Curve**       | Easy - ChangeNotifier pattern        | Medium - New concepts                | Steep - Event-driven architecture |
+| **Compile-Time Safety**  | ❌ Runtime errors possible           | ✅ Catch errors at compile time      | ✅ Strong typing                  |
+| **Testability**          | Good - MockNotifier needed           | Excellent - ProviderContainer        | Excellent - Easy to mock          |
+| **State Class**          | `ChangeNotifier`                     | `StateNotifier<State>`               | `Cubit<State>` or `Bloc<E, S>`    |
+| **UI Update**            | `notifyListeners()`                  | `state = state.copyWith(...)`        | `emit(newState)`                  |
+| **Widget Pattern**       | `Consumer<T>` / `Provider.of`        | `ConsumerWidget` + `ref.watch()`     | `BlocBuilder` / `BlocConsumer`    |
+| **Dependency Injection** | `MultiProvider` wrapper              | `ProviderScope` + global providers   | `BlocProvider` tree               |
+| **Automatic Disposal**   | Manual `dispose()` required          | ✅ Automatic                         | ✅ Automatic                      |
+| **Generated Files**      | 43 files                             | 42 files                             | TBD                               |
+| **Best For**             | Small-medium apps, rapid prototyping | Large apps, enterprise, strong teams | Complex state, event-driven logic |
+
+### 🟢 Provider Template
+
+**When to use:** You want simplicity, familiarity, and quick onboarding for new Flutter developers.
+
+**Example State Management:**
+
+```dart
+// home_provider.dart
+class HomeProvider extends ChangeNotifier {
+  bool _isLoading = false;
+  int _counter = 0;
+
+  void incrementCounter() {
+    _counter++;
+    notifyListeners(); // Manual notification
+  }
+}
+
+// home_content.dart
+Consumer<HomeProvider>(
+  builder: (context, provider, child) {
+    return Text('Counter: ${provider.counter}');
+  },
+)
+```
+
+### 🟦 Riverpod Template (NEW!)
+
+**When to use:** You want compile-time safety, better testability, and you're building a large-scale app.
+
+**Example State Management:**
+
+```dart
+// home_provider.dart
+class HomeState {
+  final bool isLoading;
+  final int counter;
+
+  HomeState({required this.isLoading, required this.counter});
+
+  HomeState copyWith({bool? isLoading, int? counter}) {
+    return HomeState(
+      isLoading: isLoading ?? this.isLoading,
+      counter: counter ?? this.counter,
+    );
+  }
+}
+
+class HomeNotifier extends StateNotifier<HomeState> {
+  HomeNotifier() : super(HomeState(isLoading: false, counter: 0));
+
+  void incrementCounter() {
+    state = state.copyWith(counter: state.counter + 1); // Immutable update
+  }
+}
+
+final homeProvider = StateNotifierProvider<HomeNotifier, HomeState>((ref) {
+  return HomeNotifier();
+});
+
+// home_content.dart
+class HomeContent extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final homeState = ref.watch(homeProvider); // Auto-rebuild on changes
+    return Column(
+      children: [
+        Text('Counter: ${homeState.counter}'),
+        ElevatedButton(
+          onPressed: () => ref.read(homeProvider.notifier).incrementCounter(),
+          child: Text('Increment'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+**Riverpod Benefits:**
+
+- ✅ **No BuildContext needed** - access providers anywhere
+- ✅ **Compile-time errors** - typos caught immediately
+- ✅ **Immutable state** - easier debugging with state history
+- ✅ **Auto-disposal** - no memory leaks
+- ✅ **Better testing** - use `ProviderContainer` for isolated tests
+- ✅ **Family & AutoDispose** modifiers for advanced use cases
+
+### 🟣 Bloc Template (Coming Soon!)
+
+**When to use:** You need event-driven architecture, complex business logic, or team is familiar with BLoC pattern.
+
+Stay tuned for Bloc support!
 
 ---
 
