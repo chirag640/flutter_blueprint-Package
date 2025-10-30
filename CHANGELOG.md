@@ -1,4 +1,13 @@
 ## 0.5.3 (2025-10-30) - Automated Publishing & CI/CD
+## 0.6.0 (2025-10-30)
+
+### 🔄 Auto-generated Release
+
+**Changes:**
+- Automatic minor version bump
+- Triggered by: feat: Implement fully automated CI/CD with version bumping, publishing, and quality checks
+- Commit: d0f2de8cb067a561ddaeeedc35ccc62f2ffb5979
+
 
 ### 🤖 Fully Automated Release Pipeline
 
