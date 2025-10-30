@@ -26,15 +26,16 @@
 
 ### **Core Features**
 
-| Feature                     | Description                                     | Generated Files                 |
-| --------------------------- | ----------------------------------------------- | ------------------------------- |
-| ⚡ **One-command setup**    | `flutter_blueprint init my_app`                 | 42-43 files in seconds          |
-| 🧱 **Clean architecture**   | Separation of concerns (core/, features/, app/) | Professional folder structure   |
-| 🎯 **State management**     | **Provider OR Riverpod** (Bloc coming soon)     | Choose your preferred pattern   |
-| 🎨 **Theming system**       | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
-| 🌐 **Internationalization** | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
-| 🛠️ **Environment config**   | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
-| 🧭 **Professional routing** | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
+| Feature                       | Description                                     | Generated Files                 |
+| ----------------------------- | ----------------------------------------------- | ------------------------------- |
+| ⚡ **One-command setup**      | `flutter_blueprint init my_app`                 | 42-43 files in seconds          |
+| 🧱 **Clean architecture**     | Separation of concerns (core/, features/, app/) | Professional folder structure   |
+| 🎯 **State management**       | **Provider, Riverpod, OR Bloc**                 | Choose your preferred pattern   |
+| 🎨 **Theming system**         | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
+| 🌐 **Internationalization**   | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
+| 🛠️ **Environment config**     | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
+| 🧭 **Professional routing**   | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
+| 📱 **Multi-platform support** | Mobile, Web, Desktop - all in one project       | Universal or single-platform    |
 
 ### **Professional Add-ons** (What Makes It Pro)
 
@@ -164,13 +165,18 @@ flutter_blueprint init my_app \
   --theme \
   --env \
   --api \
-  --tests
+  --tests \
   --no-localization
 
-# With CI/CD configuration (NEW in v0.5.0!)
+# With CI/CD configuration
 flutter_blueprint init my_app --ci github
 flutter_blueprint init my_app --state riverpod --ci gitlab
 flutter_blueprint init my_app --state bloc --ci azure
+
+# Multi-platform support (NEW!)
+flutter_blueprint init my_app --platforms mobile,web
+flutter_blueprint init my_app --platforms all --state bloc
+flutter_blueprint init my_desktop_app --platforms desktop --state riverpod
 ```
 
 ### Hybrid Mode (Mix Both)
@@ -182,7 +188,184 @@ flutter_blueprint init my_app --state riverpod
 
 ---
 
-## 🚀 CI/CD Integration (NEW in v0.5.0!)
+## � Multi-Platform Support (NEW in v0.4.0!)
+
+Build apps that run on **mobile, web, AND desktop** from a single codebase! flutter_blueprint now generates **universal multi-platform projects** with responsive layouts, adaptive navigation, and platform-specific optimizations.
+
+### Quick Start
+
+```bash
+# Mobile + Web
+flutter_blueprint init my_app --platforms mobile,web --state bloc
+
+# All platforms (universal app)
+flutter_blueprint init my_app --platforms all --state riverpod
+
+# Desktop only
+flutter_blueprint init my_desktop_app --platforms desktop --state provider
+```
+
+### Platform Options
+
+| Option                   | Description                            | Generated Files                              |
+| ------------------------ | -------------------------------------- | -------------------------------------------- |
+| `--platforms mobile`     | iOS & Android only (default)           | Standard mobile project                      |
+| `--platforms web`        | Web application only                   | `web/index.html`, PWA manifest, URL strategy |
+| `--platforms desktop`    | Windows, macOS, Linux                  | Window management, desktop optimizations     |
+| `--platforms mobile,web` | Multi-platform project (mobile + web)  | Responsive layouts, adaptive UI              |
+| `--platforms all`        | Universal app (mobile + web + desktop) | Complete multi-platform solution             |
+
+### Interactive Multi-Select
+
+In wizard mode, select multiple platforms with checkboxes:
+
+```
+💻 Choose target platforms (space to select, enter to confirm):
+[x] Mobile (iOS & Android)
+[x] Web
+[x] Desktop (Windows, macOS, Linux)
+```
+
+### What Gets Generated for Multi-Platform
+
+**Universal Entry Points:**
+
+```
+lib/
+├── main.dart              # Universal router (detects platform)
+├── main_mobile.dart       # Mobile-specific initialization
+├── main_web.dart          # Web-specific initialization (URL strategy)
+└── main_desktop.dart      # Desktop-specific initialization (window manager)
+```
+
+**Responsive & Adaptive Components:**
+
+```
+lib/core/responsive/
+├── breakpoints.dart           # Mobile/Tablet/Desktop breakpoints
+├── responsive_layout.dart     # Responsive widget (adapts to screen size)
+├── adaptive_scaffold.dart     # Adaptive navigation (bottom nav → rail → drawer)
+└── responsive_spacing.dart    # Responsive padding & spacing helpers
+
+lib/core/utils/
+└── platform_info.dart         # Platform detection utilities
+```
+
+**Platform-Specific Files:**
+
+- **Web**: `web/index.html`, `web/manifest.json` (PWA-ready)
+- **Desktop**: Window configuration, title bar customization
+
+### Smart Dependency Management
+
+Dependencies are automatically added based on selected platforms:
+
+```yaml
+# Common (all platforms)
+dependencies:
+  # Responsive & sizing (recommended)
+  flutter_screenutil: ^5.7.1
+
+  # Web-specific
+  url_strategy: ^0.3.0
+
+  # Desktop-specific
+  window_manager: ^0.4.3
+  path_provider: ^2.1.5
+```
+
+### Responsive Features
+
+**Breakpoints:**
+
+```dart
+// The generated responsive utilities use flutter_screenutil and LayoutBuilder.
+// Example breakpoint helpers are provided in `core/config/responsive_config.dart`.
+if (Breakpoints.isMobile(context)) {
+  // Show mobile layout
+} else if (Breakpoints.isTablet(context)) {
+  // Show tablet layout
+} else {
+  // Show desktop layout
+}
+```
+
+**Responsive Layouts:**
+
+```dart
+ResponsiveLayout(
+  mobile: MobileView(),    // < 768px
+  tablet: TabletView(),    // 768px - 1280px
+  desktop: DesktopView(),  // >= 1280px
+)
+```
+
+**Adaptive Navigation:**
+
+- **Mobile**: Bottom navigation bar
+- **Tablet**: Navigation rail
+- **Desktop**: Side drawer/rail
+
+### Platform Detection
+
+```dart
+if (PlatformInfo.isWeb) {
+  // Web-specific code
+} else if (PlatformInfo.isDesktop) {
+  // Desktop-specific code
+} else if (PlatformInfo.isMobile) {
+  // Mobile-specific code
+}
+```
+
+### Running Multi-Platform Projects
+
+```bash
+# Mobile
+flutter run -d <device-id>
+
+# Web
+flutter run -d chrome
+
+# Desktop
+flutter run -d windows  # or macos, linux
+```
+
+### Building for Production
+
+```bash
+# Mobile
+flutter build apk        # Android
+flutter build ios        # iOS
+
+# Web
+flutter build web
+
+# Desktop
+flutter build windows    # Windows
+flutter build macos      # macOS
+flutter build linux      # Linux
+```
+
+### When to Use Multi-Platform
+
+✅ **Use multi-platform when:**
+
+- Building web + mobile versions of the same app
+- Need desktop companion app for your mobile app
+- Want to maximize code reuse across platforms
+- Building internal tools that need to run everywhere
+
+❌ **Use single-platform when:**
+
+- Platform-specific features are critical (AR, NFC, etc.)
+- Performance is absolutely critical
+- Simple mobile-only app
+- Heavy platform-specific UI requirements
+
+---
+
+## 🚀 CI/CD Integration
 
 Generate production-ready CI/CD configurations with a single flag. Your project will be ready for automated testing and deployment from day one!
 
@@ -521,16 +704,18 @@ flutter_blueprint init <app_name> [options]
 
 **Options:**
 
-| Flag               | Description                               | Default            |
-| ------------------ | ----------------------------------------- | ------------------ |
-| `--state <choice>` | State management (provider/riverpod/bloc) | Interactive prompt |
-| `--theme`          | Include theme scaffolding                 | Interactive prompt |
-| `--localization`   | Include l10n setup                        | Interactive prompt |
-| `--env`            | Include environment config                | Interactive prompt |
-| `--api`            | Include API client                        | Interactive prompt |
-| `--tests`          | Include test scaffolding                  | Interactive prompt |
-| `-h, --help`       | Show help                                 | -                  |
-| `-v, --version`    | Show version                              | -                  |
+| Flag                 | Description                                                       | Default            |
+| -------------------- | ----------------------------------------------------------------- | ------------------ |
+| `--state <choice>`   | State management (provider/riverpod/bloc)                         | Interactive prompt |
+| `--platforms <list>` | Target platforms (mobile/web/desktop or comma-separated or "all") | mobile             |
+| `--ci <provider>`    | CI/CD provider (github/gitlab/azure)                              | none               |
+| `--theme`            | Include theme scaffolding                                         | Interactive prompt |
+| `--localization`     | Include l10n setup                                                | Interactive prompt |
+| `--env`              | Include environment config                                        | Interactive prompt |
+| `--api`              | Include API client                                                | Interactive prompt |
+| `--tests`            | Include test scaffolding                                          | Interactive prompt |
+| `-h, --help`         | Show help                                                         | -                  |
+| `-v, --version`      | Show version                                                      | -                  |
 
 ---
 
@@ -588,8 +773,11 @@ Every generated project includes a `blueprint.yaml` manifest:
 ```yaml
 version: 1
 app_name: my_app
-platform: mobile
+platforms:
+  - mobile
+  - web
 state_management: provider
+ci_provider: github
 features:
   api: true
   env: true
@@ -612,32 +800,51 @@ features:
 
 ## 🚧 Roadmap
 
-### Phase 1: MVP ✅ (Current)
+### Phase 1: MVP ✅
 
 - [x] CLI tool setup
 - [x] Basic project generator
 - [x] Provider template
 - [x] Theme + routing boilerplate
 
-### Phase 2: Multi-Template Support
+### Phase 2: Multi-Template Support ✅
 
-- [ ] Riverpod template
-- [ ] Bloc template
-- [ ] Localization integration
-- [ ] API client scaffolding
+- [x] Riverpod template
+- [x] Bloc template
+- [x] Localization integration
+- [x] API client scaffolding
 
-### Phase 3: Feature Generation
+### Phase 3: Platform Expansion ✅ (v0.4.0)
 
-- [ ] `flutter_blueprint add feature <name>`
+- [x] Multi-platform support (mobile, web, desktop)
+- [x] Responsive layout system
+- [x] Adaptive navigation
+- [x] Universal project generation
+- [x] Platform-specific optimizations
+
+### Phase 4: Feature Generation ✅ (v0.3.0)
+
+- [x] `flutter_blueprint add feature <name>`
+- [x] Clean architecture layers
+- [x] Auto-router integration
+- [x] State management detection
+
+### Phase 5: DevOps Integration ✅ (v0.5.0)
+
+- [x] GitHub Actions CI/CD scaffold
+- [x] GitLab CI pipelines
+- [x] Azure Pipelines support
+- [x] Automated testing & builds
+- [x] Firebase deployment templates
+
+### Phase 6: Future Enhancements 🚀
+
 - [ ] Interactive upgrades via `blueprint.yaml`
-- [ ] Unit + widget test templates
-
-### Phase 4: Advanced Features
-
 - [ ] Plugin ecosystem (auth, firebase, analytics)
-- [ ] GitHub Actions CI scaffold
-- [ ] Web/desktop platform support
+- [ ] VSCode/IntelliJ extensions
 - [ ] Blueprint dashboard (web-based config UI)
+- [ ] Project migration tools
+- [ ] Custom template support
 
 ---
 

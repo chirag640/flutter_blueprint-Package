@@ -263,7 +263,7 @@ String _gitignore(BlueprintConfig config) {
 }
 
 String _readme(BlueprintConfig config) {
-  return '# ${_titleCase(config.appName)}\n\nGenerated with flutter_blueprint using **BLoC** (Business Logic Component) pattern.\n\n## Getting Started\n\n```bash\nflutter pub get\nflutter run\n```\n\n- State management: ${config.stateManagement.label}\n- Platform target: ${config.platform}\n\n## BLoC Features\n\n- ✅ Event-driven architecture\n- ✅ Clear separation of business logic and UI\n- ✅ Reactive state management with streams\n- ✅ Easy to test with bloc_test\n- ✅ Predictable state transitions\n- ✅ Great for complex apps and enterprise teams\n';
+  return '# ${_titleCase(config.appName)}\n\nGenerated with flutter_blueprint using **BLoC** (Business Logic Component) pattern.\n\n## Getting Started\n\n```bash\nflutter pub get\nflutter run\n```\n\n- State management: ${config.stateManagement.label}\n- Platform target: ${config.platforms.map((p) => p.label).join(", ")}\n\n## BLoC Features\n\n- ✅ Event-driven architecture\n- ✅ Clear separation of business logic and UI\n- ✅ Reactive state management with streams\n- ✅ Easy to test with bloc_test\n- ✅ Predictable state transitions\n- ✅ Great for complex apps and enterprise teams\n';
 }
 
 String _mainDart(BlueprintConfig config) {

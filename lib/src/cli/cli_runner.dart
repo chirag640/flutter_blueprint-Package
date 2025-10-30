@@ -86,10 +86,9 @@ class CliRunner {
         allowed: ['provider', 'riverpod', 'bloc'],
       )
       ..addOption(
-        'platform',
+        'platforms',
         abbr: 'p',
-        help: 'Target platform (mobile, web, desktop)',
-        allowed: ['mobile', 'web', 'desktop'],
+        help: 'Target platforms (comma-separated: mobile,web,desktop or "all")',
       )
       ..addOption(
         'ci',
@@ -203,14 +202,30 @@ class CliRunner {
       break;
     }
 
-    // Platform selection
+    // Platform selection (multi-select)
     _logger.info('');
-    final platformChoice = await _prompter.choose(
-      '💻 Choose target platform',
-      ['mobile', 'web', 'desktop'],
-      defaultValue: 'mobile',
+    final platformSelections = await _prompter.multiSelect(
+      '💻 Choose target platforms (space to select, enter to confirm)',
+      ['Mobile (iOS & Android)', 'Web', 'Desktop (Windows, macOS, Linux)'],
+      defaultValues: ['Mobile (iOS & Android)'],
     );
-    final targetPlatform = TargetPlatform.parse(platformChoice);
+
+    // Map selections to TargetPlatform enum
+    final targetPlatforms = <TargetPlatform>[];
+    if (platformSelections.any((s) => s.contains('Mobile'))) {
+      targetPlatforms.add(TargetPlatform.mobile);
+    }
+    if (platformSelections.any((s) => s.contains('Web'))) {
+      targetPlatforms.add(TargetPlatform.web);
+    }
+    if (platformSelections.any((s) => s.contains('Desktop'))) {
+      targetPlatforms.add(TargetPlatform.desktop);
+    }
+
+    // Ensure at least one platform is selected
+    if (targetPlatforms.isEmpty) {
+      targetPlatforms.add(TargetPlatform.mobile);
+    }
 
     // State management with arrow key selection
     _logger.info('');
@@ -259,7 +274,8 @@ class CliRunner {
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
     _logger.info('   App name: $appName');
-    _logger.info('   Platform: ${targetPlatform.label}');
+    _logger.info(
+        '   Platforms: ${targetPlatforms.map((p) => p.label).join(', ')}');
     _logger.info('   State management: ${stateMgmt.label}');
     _logger.info('   CI/CD: ${ciProvider.label}');
     _logger.info('   Theme: ${includeTheme ? '✅' : '❌'}');
@@ -284,7 +300,7 @@ class CliRunner {
     final config = BlueprintConfig(
       appName: appName,
       stateManagement: stateMgmt,
-      platform: targetPlatform,
+      platforms: targetPlatforms,
       ciProvider: ciProvider,
       includeTheme: includeTheme,
       includeLocalization: includeLocalization,
@@ -367,18 +383,18 @@ class CliRunner {
       defaultValue: true,
     );
 
-    // Platform
-    final platformArg = results['platform'] as String?;
-    final TargetPlatform targetPlatform;
-    if (platformArg != null) {
-      targetPlatform = TargetPlatform.parse(platformArg);
+    // Platforms (support comma-separated values or "all")
+    final platformsArg = results['platforms'] as String?;
+    final List<TargetPlatform> targetPlatforms;
+    if (platformsArg != null) {
+      targetPlatforms = TargetPlatform.parseMultiple(platformsArg);
     } else {
-      targetPlatform = TargetPlatform.mobile;
+      targetPlatforms = [TargetPlatform.mobile];
     }
 
     return BlueprintConfig(
       appName: appName,
-      platform: targetPlatform,
+      platforms: targetPlatforms,
       stateManagement: stateMgmt,
       ciProvider: ciProvider,
       includeTheme: includeTheme,
@@ -503,18 +519,28 @@ class CliRunner {
     _logger.info('  flutter_blueprint init my_app --state bloc --ci gitlab');
     _logger.info('  flutter_blueprint init my_app --ci azure --api --tests');
     _logger.info('');
-    _logger.info('Platform-Specific Examples:');
-    _logger.info('  # Web application');
+    _logger.info('Platform Examples:');
+    _logger.info('  # Single platform');
     _logger.info(
-        '  flutter_blueprint init my_web_app --platform web --state bloc');
+        '  flutter_blueprint init my_app --platforms mobile --state bloc');
     _logger.info('');
-    _logger.info('  # Desktop application (macOS/Windows/Linux)');
+    _logger.info('  # Multiple platforms (multi-platform project)');
     _logger.info(
-        '  flutter_blueprint init my_desktop_app --platform desktop --state riverpod');
+        '  flutter_blueprint init my_app --platforms mobile,web --state bloc');
+    _logger.info(
+        '  flutter_blueprint init my_app --platforms mobile,web,desktop --state riverpod');
     _logger.info('');
-    _logger.info('  # Mobile application (default)');
+    _logger.info('  # All platforms (universal app)');
     _logger.info(
-        '  flutter_blueprint init my_mobile_app --platform mobile --state provider');
+        '  flutter_blueprint init my_app --platforms all --state provider');
+    _logger.info('');
+    _logger.info('  # Desktop-only application');
+    _logger.info(
+        '  flutter_blueprint init my_desktop_app --platforms desktop --state riverpod');
+    _logger.info('');
+    _logger.info('  # Mobile-only application');
+    _logger.info(
+        '  flutter_blueprint init my_mobile_app --platforms mobile --state provider');
     _logger.info('');
     _logger.info('Add Feature Examples:');
     _logger.info('  # Generate full feature (all layers)');

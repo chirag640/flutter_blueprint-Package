@@ -248,7 +248,7 @@ String _gitignore(BlueprintConfig config) {
 }
 
 String _readme(BlueprintConfig config) {
-  return '# ${_titleCase(config.appName)}\n\nGenerated with flutter_blueprint.\n\n## Getting Started\n\n```bash\nflutter pub get\nflutter run\n```\n\n- State management: ${config.stateManagement.label}\n- Platform target: ${config.platform}\n';
+  return '# ${_titleCase(config.appName)}\n\nGenerated with flutter_blueprint.\n\n## Getting Started\n\n```bash\nflutter pub get\nflutter run\n```\n\n- State management: ${config.stateManagement.label}\n- Platform target: ${config.platforms.map((p) => p.label).join(", ")}\n';
 }
 
 String _mainDart(BlueprintConfig config) {

@@ -256,7 +256,7 @@ String _gitignore(BlueprintConfig config) {
 }
 
 String _readme(BlueprintConfig config) {
-  return '# ${_titleCase(config.appName)}\n\nGenerated with flutter_blueprint using **Riverpod** state management.\n\n## Getting Started\n\n```bash\nflutter pub get\nflutter run\n```\n\n- State management: ${config.stateManagement.label}\n- Platform target: ${config.platform}\n\n## Riverpod Features\n\n- ✅ Compile-time safety\n- ✅ Better testability (no BuildContext required)\n- ✅ StateNotifier pattern for complex state\n- ✅ Automatic disposal and memory management\n';
+  return '# ${_titleCase(config.appName)}\n\nGenerated with flutter_blueprint using **Riverpod** state management.\n\n## Getting Started\n\n```bash\nflutter pub get\nflutter run\n```\n\n- State management: ${config.stateManagement.label}\n- Platform target: ${config.platforms.map((p) => p.label).join(", ")}\n\n## Riverpod Features\n\n- ✅ Compile-time safety\n- ✅ Better testability (no BuildContext required)\n- ✅ StateNotifier pattern for complex state\n- ✅ Automatic disposal and memory management\n';
 }
 
 String _mainDart(BlueprintConfig config) {

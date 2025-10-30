@@ -36,6 +36,32 @@ enum TargetPlatform {
     }
     throw ArgumentError('Unsupported platform: $value');
   }
+
+  /// Parse comma-separated list of platforms (e.g., "mobile,web,desktop")
+  /// Also supports "all" to include all platforms
+  static List<TargetPlatform> parseMultiple(String value) {
+    final normalized = value.trim().toLowerCase();
+
+    // Handle "all" shorthand
+    if (normalized == 'all') {
+      return TargetPlatform.values;
+    }
+
+    // Handle comma-separated values
+    final parts =
+        normalized.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty);
+    final platforms = <TargetPlatform>[];
+
+    for (final part in parts) {
+      platforms.add(parse(part));
+    }
+
+    if (platforms.isEmpty) {
+      throw ArgumentError('At least one platform must be specified');
+    }
+
+    return platforms;
+  }
 }
 
 /// Supported CI/CD providers.
@@ -62,7 +88,7 @@ enum CIProvider {
 class BlueprintConfig {
   const BlueprintConfig({
     required this.appName,
-    required this.platform,
+    required this.platforms,
     required this.stateManagement,
     required this.includeTheme,
     required this.includeLocalization,
@@ -73,7 +99,7 @@ class BlueprintConfig {
   });
 
   final String appName;
-  final TargetPlatform platform;
+  final List<TargetPlatform> platforms;
   final StateManagement stateManagement;
   final bool includeTheme;
   final bool includeLocalization;
@@ -82,9 +108,18 @@ class BlueprintConfig {
   final bool includeTests;
   final CIProvider ciProvider;
 
+  /// Check if multiple platforms are selected
+  bool get isMultiPlatform => platforms.length > 1;
+
+  /// Check if specific platform is included
+  bool hasPlatform(TargetPlatform platform) => platforms.contains(platform);
+
+  /// Check if all platforms are selected
+  bool get isUniversal => platforms.length == TargetPlatform.values.length;
+
   BlueprintConfig copyWith({
     String? appName,
-    TargetPlatform? platform,
+    List<TargetPlatform>? platforms,
     StateManagement? stateManagement,
     bool? includeTheme,
     bool? includeLocalization,
@@ -95,7 +130,7 @@ class BlueprintConfig {
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
-      platform: platform ?? this.platform,
+      platforms: platforms ?? this.platforms,
       stateManagement: stateManagement ?? this.stateManagement,
       includeTheme: includeTheme ?? this.includeTheme,
       includeLocalization: includeLocalization ?? this.includeLocalization,
@@ -109,7 +144,7 @@ class BlueprintConfig {
   Map<String, dynamic> toMap() {
     return {
       'app_name': appName,
-      'platform': platform.label,
+      'platforms': platforms.map((p) => p.label).toList(),
       'state_management': stateManagement.label,
       'ci_provider': ciProvider.label,
       'features': SplayTreeMap<String, dynamic>.from({
@@ -126,11 +161,30 @@ class BlueprintConfig {
     final features = Map<Object?, Object?>.from(
       (map['features'] as Map?) ?? <Object?, Object?>{},
     );
+
+    // Handle both old single platform and new multiple platforms format
+    List<TargetPlatform> platforms;
+    if (map.containsKey('platforms')) {
+      final platformsData = map['platforms'];
+      if (platformsData is List) {
+        platforms = platformsData
+            .map((p) => TargetPlatform.parse(p.toString()))
+            .toList();
+      } else {
+        platforms = [TargetPlatform.parse(platformsData.toString())];
+      }
+    } else if (map.containsKey('platform')) {
+      // Backwards compatibility
+      platforms = [
+        TargetPlatform.parse((map['platform'] ?? 'mobile') as String)
+      ];
+    } else {
+      platforms = [TargetPlatform.mobile];
+    }
+
     return BlueprintConfig(
       appName: (map['app_name'] ?? '') as String,
-      platform: TargetPlatform.parse(
-        (map['platform'] ?? 'mobile') as String,
-      ),
+      platforms: platforms,
       stateManagement: StateManagement.parse(
         (map['state_management'] ?? 'provider') as String,
       ),

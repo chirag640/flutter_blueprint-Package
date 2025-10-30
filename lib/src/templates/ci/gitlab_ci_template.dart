@@ -5,13 +5,15 @@ class GitLabCITemplate {
   /// Includes:
   /// - Flutter analyze stage
   /// - Unit test stage with coverage
-  /// - Build iOS/Android stages
+  /// - Build iOS/Android/Web/Desktop stages
   /// - Code coverage reporting
   static String generate({
     required String appName,
     required bool includeTests,
     required bool includeAndroid,
     required bool includeIOS,
+    required bool includeWeb,
+    required bool includeDesktop,
   }) {
     final buffer = StringBuffer();
 
@@ -107,6 +109,95 @@ class GitLabCITemplate {
           .writeln('  #   - security import cert.p12 -P "\$IOS_CERT_PASSWORD"');
       buffer.writeln('  # script:');
       buffer.writeln('  #   - flutter build ipa --release');
+      buffer.writeln();
+    }
+
+    // Web build job
+    if (includeWeb) {
+      buffer.writeln('build:web:');
+      buffer.writeln('  stage: build');
+      buffer.writeln('  script:');
+      buffer.writeln('    - flutter build web --release');
+      buffer.writeln('  artifacts:');
+      buffer.writeln('    paths:');
+      buffer.writeln('      - build/web/');
+      buffer.writeln('    expire_in: 7 days');
+      buffer.writeln('  only:');
+      buffer.writeln('    - main');
+      buffer.writeln('    - tags');
+      buffer.writeln();
+      buffer.writeln('  # Optional: Deploy to GitLab Pages');
+      buffer.writeln('  # pages:');
+      buffer.writeln('  #   stage: deploy');
+      buffer.writeln('  #   dependencies:');
+      buffer.writeln('  #     - build:web');
+      buffer.writeln('  #   script:');
+      buffer.writeln('  #     - mkdir .public');
+      buffer.writeln('  #     - cp -r build/web/* .public');
+      buffer.writeln('  #     - mv .public public');
+      buffer.writeln('  #   artifacts:');
+      buffer.writeln('  #     paths:');
+      buffer.writeln('  #       - public');
+      buffer.writeln('  #   only:');
+      buffer.writeln('  #     - main');
+      buffer.writeln();
+    }
+
+    // Desktop build jobs
+    if (includeDesktop) {
+      buffer.writeln('build:linux:');
+      buffer.writeln('  stage: build');
+      buffer.writeln('  image: cirrusci/flutter:3.24.0');
+      buffer.writeln('  before_script:');
+      buffer.writeln('    - apt-get update -y');
+      buffer.writeln('    - apt-get install -y ninja-build libgtk-3-dev');
+      buffer.writeln('    - flutter config --enable-linux-desktop');
+      buffer.writeln('    - flutter pub get');
+      buffer.writeln('  script:');
+      buffer.writeln('    - flutter build linux --release');
+      buffer.writeln('  artifacts:');
+      buffer.writeln('    paths:');
+      buffer.writeln('      - build/linux/x64/release/bundle/');
+      buffer.writeln('    expire_in: 7 days');
+      buffer.writeln('  only:');
+      buffer.writeln('    - main');
+      buffer.writeln('    - tags');
+      buffer.writeln();
+
+      buffer.writeln('build:windows:');
+      buffer.writeln('  stage: build');
+      buffer.writeln('  tags:');
+      buffer.writeln('    - windows  # Requires Windows runner');
+      buffer.writeln('  before_script:');
+      buffer.writeln('    - flutter config --enable-windows-desktop');
+      buffer.writeln('    - flutter pub get');
+      buffer.writeln('  script:');
+      buffer.writeln('    - flutter build windows --release');
+      buffer.writeln('  artifacts:');
+      buffer.writeln('    paths:');
+      buffer.writeln('      - build/windows/x64/runner/Release/');
+      buffer.writeln('    expire_in: 7 days');
+      buffer.writeln('  only:');
+      buffer.writeln('    - main');
+      buffer.writeln('    - tags');
+      buffer.writeln();
+
+      buffer.writeln('build:macos:');
+      buffer.writeln('  stage: build');
+      buffer.writeln('  tags:');
+      buffer.writeln('    - macos  # Requires macOS runner');
+      buffer.writeln('  before_script:');
+      buffer.writeln('    - flutter config --enable-macos-desktop');
+      buffer.writeln('    - flutter pub get');
+      buffer.writeln('  script:');
+      buffer.writeln('    - flutter build macos --release');
+      buffer.writeln('  artifacts:');
+      buffer.writeln('    paths:');
+      buffer.writeln('      - build/macos/Build/Products/Release/');
+      buffer.writeln('    expire_in: 7 days');
+      buffer.writeln('  only:');
+      buffer.writeln('    - main');
+      buffer.writeln('    - tags');
       buffer.writeln();
     }
 

@@ -9,6 +9,7 @@ import '../templates/riverpod_mobile_template.dart';
 import '../templates/bloc_mobile_template.dart';
 import '../templates/web_template.dart';
 import '../templates/desktop_template.dart';
+import '../templates/universal_template.dart';
 import '../templates/template_bundle.dart';
 import '../templates/ci/github_actions_template.dart';
 import '../templates/ci/gitlab_ci_template.dart';
@@ -65,10 +66,35 @@ class BlueprintGenerator {
       _logger.info('🚀 CI/CD configured for ${config.ciProvider.label}');
       _printCISetupInstructions(config.ciProvider);
     }
+
+    // Auto-install dependencies
+    _logger.info('');
+    _logger.info('📦 Installing dependencies...');
+    try {
+      final pubGetResult = await Process.run(
+        'flutter',
+        ['pub', 'get'],
+        workingDirectory: targetPath,
+        runInShell: true,
+      );
+
+      if (pubGetResult.exitCode == 0) {
+        _logger.success('✅ Dependencies installed successfully!');
+      } else {
+        _logger.warning(
+            '⚠️  Failed to install dependencies automatically. Please run "flutter pub get" manually.');
+        _logger.warning('   Error: ${pubGetResult.stderr}');
+      }
+    } catch (e) {
+      _logger.warning(
+          '⚠️  Failed to install dependencies automatically. Please run "flutter pub get" manually.');
+    }
+
+    _logger.info('');
+    _logger.info('🎉 Project created successfully!');
     _logger.info('');
     _logger.info('Next steps:');
     _logger.info('  cd ${config.appName}');
-    _logger.info('  flutter pub get');
     _logger.info('  flutter run');
   }
 
@@ -76,8 +102,10 @@ class BlueprintGenerator {
     BlueprintConfig config,
     String targetPath,
   ) async {
-    final includeAndroid = config.platform == TargetPlatform.mobile;
-    final includeIOS = config.platform == TargetPlatform.mobile;
+    final includeAndroid = config.hasPlatform(TargetPlatform.mobile);
+    final includeIOS = config.hasPlatform(TargetPlatform.mobile);
+    final includeWeb = config.hasPlatform(TargetPlatform.web);
+    final includeDesktop = config.hasPlatform(TargetPlatform.desktop);
 
     switch (config.ciProvider) {
       case CIProvider.github:
@@ -86,6 +114,8 @@ class BlueprintGenerator {
           includeTests: config.includeTests,
           includeAndroid: includeAndroid,
           includeIOS: includeIOS,
+          includeWeb: includeWeb,
+          includeDesktop: includeDesktop,
         );
         await _ioUtils.writeFile(
           targetPath,
@@ -101,6 +131,8 @@ class BlueprintGenerator {
           includeTests: config.includeTests,
           includeAndroid: includeAndroid,
           includeIOS: includeIOS,
+          includeWeb: includeWeb,
+          includeDesktop: includeDesktop,
         );
         await _ioUtils.writeFile(targetPath, '.gitlab-ci.yml', content);
         _logger.info('📋 Generated GitLab CI configuration');
@@ -112,6 +144,8 @@ class BlueprintGenerator {
           includeTests: config.includeTests,
           includeAndroid: includeAndroid,
           includeIOS: includeIOS,
+          includeWeb: includeWeb,
+          includeDesktop: includeDesktop,
         );
         await _ioUtils.writeFile(targetPath, 'azure-pipelines.yml', content);
         _logger.info('📋 Generated Azure Pipelines configuration');
@@ -148,8 +182,14 @@ class BlueprintGenerator {
   }
 
   TemplateBundle _selectBundle(BlueprintConfig config) {
-    // Select template based on platform and state management
-    switch (config.platform) {
+    // Multi-platform project
+    if (config.isMultiPlatform) {
+      return _buildUniversalTemplate(config);
+    }
+
+    // Single platform project
+    final platform = config.platforms.first;
+    switch (platform) {
       case TargetPlatform.mobile:
         return _selectMobileBundle(config.stateManagement);
       case TargetPlatform.web:
@@ -157,6 +197,12 @@ class BlueprintGenerator {
       case TargetPlatform.desktop:
         return _selectDesktopBundle(config.stateManagement);
     }
+  }
+
+  TemplateBundle _buildUniversalTemplate(BlueprintConfig config) {
+    // Import the universal template builder
+    final universalTemplate = buildUniversalTemplate(config);
+    return universalTemplate;
   }
 
   TemplateBundle _selectMobileBundle(StateManagement stateManagement) {

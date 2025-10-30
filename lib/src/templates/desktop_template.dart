@@ -309,7 +309,7 @@ flutter build linux --release
 - ✅ Window management (resize, minimize, maximize)
 - ✅ BLoC state management
 - ✅ File system integration
-- ✅ Platform: ${config.platform.label}
+- ✅ Platform: ${config.platforms.map((p) => p.label).join(", ")}
 - ✅ State management: ${config.stateManagement.label}
 
 ## Desktop Requirements

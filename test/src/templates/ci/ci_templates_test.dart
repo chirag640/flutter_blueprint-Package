@@ -11,6 +11,8 @@ void main() {
         includeTests: false,
         includeAndroid: false,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('name: CI/CD Pipeline'));
@@ -28,6 +30,8 @@ void main() {
         includeTests: true,
         includeAndroid: false,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('test:'));
@@ -43,6 +47,8 @@ void main() {
         includeTests: false,
         includeAndroid: true,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('build-android:'));
@@ -59,6 +65,8 @@ void main() {
         includeTests: false,
         includeAndroid: false,
         includeIOS: true,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('build-ios:'));
@@ -73,12 +81,18 @@ void main() {
         includeTests: true,
         includeAndroid: true,
         includeIOS: true,
+        includeWeb: true,
+        includeDesktop: true,
       );
 
       expect(content, contains('analyze:'));
       expect(content, contains('test:'));
       expect(content, contains('build-android:'));
       expect(content, contains('build-ios:'));
+      expect(content, contains('build-web:'));
+      expect(content, contains('build-windows:'));
+      expect(content, contains('build-macos:'));
+      expect(content, contains('build-linux:'));
       expect(content, contains('needs: test'));
     });
 
@@ -103,6 +117,8 @@ void main() {
         includeTests: false,
         includeAndroid: false,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('image: cirrusci/flutter'));
@@ -119,6 +135,8 @@ void main() {
         includeTests: true,
         includeAndroid: false,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('- test'));
@@ -134,6 +152,8 @@ void main() {
         includeTests: false,
         includeAndroid: true,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('- build'));
@@ -148,6 +168,8 @@ void main() {
         includeTests: false,
         includeAndroid: false,
         includeIOS: true,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('build:ios:'));
@@ -176,6 +198,8 @@ void main() {
         includeTests: false,
         includeAndroid: false,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('# Azure Pipelines for test_app'));
@@ -193,6 +217,8 @@ void main() {
         includeTests: true,
         includeAndroid: false,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('- stage: Test'));
@@ -209,6 +235,8 @@ void main() {
         includeTests: false,
         includeAndroid: true,
         includeIOS: false,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('- stage: Build'));
@@ -224,6 +252,8 @@ void main() {
         includeTests: false,
         includeAndroid: false,
         includeIOS: true,
+        includeWeb: false,
+        includeDesktop: false,
       );
 
       expect(content, contains('BuildIOS'));
@@ -237,6 +267,8 @@ void main() {
         includeTests: true,
         includeAndroid: true,
         includeIOS: true,
+        includeWeb: true,
+        includeDesktop: true,
       );
 
       expect(content, contains('- stage: Analyze'));
@@ -244,6 +276,10 @@ void main() {
       expect(content, contains('- stage: Build'));
       expect(content, contains('BuildAndroid'));
       expect(content, contains('BuildIOS'));
+      expect(content, contains('BuildWeb'));
+      expect(content, contains('BuildWindows'));
+      expect(content, contains('BuildMacOS'));
+      expect(content, contains('BuildLinux'));
       expect(content, contains('dependsOn: Test'));
     });
 

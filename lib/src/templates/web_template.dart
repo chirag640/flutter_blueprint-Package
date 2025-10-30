@@ -288,7 +288,7 @@ The output will be in `build/web/` directory.
 - ✅ URL-based routing with clean URLs
 - ✅ BLoC state management
 - ✅ Progressive Web App (PWA) ready
-- ✅ Platform: ${config.platform.label}
+- ✅ Platform: ${config.platforms.map((p) => p.label).join(", ")}
 - ✅ State management: ${config.stateManagement.label}
 ''';
 }

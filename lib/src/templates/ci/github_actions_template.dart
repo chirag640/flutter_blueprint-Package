@@ -5,13 +5,15 @@ class GitHubActionsTemplate {
   /// Includes:
   /// - Flutter analyze job
   /// - Unit test job with coverage
-  /// - Build iOS/Android jobs
+  /// - Build iOS/Android/Web/Desktop jobs
   /// - Code coverage reporting
   static String generate({
     required String appName,
     required bool includeTests,
     required bool includeAndroid,
     required bool includeIOS,
+    required bool includeWeb,
+    required bool includeDesktop,
   }) {
     final buffer = StringBuffer();
 
@@ -158,6 +160,149 @@ class GitHubActionsTemplate {
           '      #     xcrun altool --upload-app -f build/ios/ipa/*.ipa \\');
       buffer.writeln('      #       -u \${{ secrets.APPLE_ID }} \\');
       buffer.writeln('      #       -p \${{ secrets.APPLE_APP_PASSWORD }}');
+      buffer.writeln();
+    }
+
+    // Web build job
+    if (includeWeb) {
+      buffer.writeln('  build-web:');
+      buffer.writeln('    name: Build Web');
+      buffer.writeln('    runs-on: ubuntu-latest');
+      buffer.writeln('    needs: ${includeTests ? 'test' : 'analyze'}');
+      buffer.writeln('    steps:');
+      buffer.writeln('      - uses: actions/checkout@v4');
+      buffer.writeln();
+      buffer.writeln('      - name: Setup Flutter');
+      buffer.writeln('        uses: subosito/flutter-action@v2');
+      buffer.writeln('        with:');
+      buffer.writeln('          flutter-version: \'3.24.0\'');
+      buffer.writeln('          channel: \'stable\'');
+      buffer.writeln('          cache: true');
+      buffer.writeln();
+      buffer.writeln('      - name: Get dependencies');
+      buffer.writeln('        run: flutter pub get');
+      buffer.writeln();
+      buffer.writeln('      - name: Build Web');
+      buffer.writeln('        run: flutter build web --release');
+      buffer.writeln();
+      buffer.writeln('      - name: Upload Web artifact');
+      buffer.writeln('        uses: actions/upload-artifact@v4');
+      buffer.writeln('        with:');
+      buffer.writeln('          name: web-build');
+      buffer.writeln('          path: build/web/');
+      buffer.writeln('          retention-days: 7');
+      buffer.writeln();
+      buffer.writeln('      # Optional: Deploy to GitHub Pages');
+      buffer.writeln('      # - name: Deploy to GitHub Pages');
+      buffer.writeln('      #   uses: peaceiris/actions-gh-pages@v3');
+      buffer.writeln('      #   with:');
+      buffer.writeln('      #     github_token: \${{ secrets.GITHUB_TOKEN }}');
+      buffer.writeln('      #     publish_dir: ./build/web');
+      buffer.writeln();
+    }
+
+    // Desktop build jobs
+    if (includeDesktop) {
+      // Windows
+      buffer.writeln('  build-windows:');
+      buffer.writeln('    name: Build Windows');
+      buffer.writeln('    runs-on: windows-latest');
+      buffer.writeln('    needs: ${includeTests ? 'test' : 'analyze'}');
+      buffer.writeln('    steps:');
+      buffer.writeln('      - uses: actions/checkout@v4');
+      buffer.writeln();
+      buffer.writeln('      - name: Setup Flutter');
+      buffer.writeln('        uses: subosito/flutter-action@v2');
+      buffer.writeln('        with:');
+      buffer.writeln('          flutter-version: \'3.24.0\'');
+      buffer.writeln('          channel: \'stable\'');
+      buffer.writeln('          cache: true');
+      buffer.writeln();
+      buffer.writeln('      - name: Enable Windows desktop');
+      buffer.writeln('        run: flutter config --enable-windows-desktop');
+      buffer.writeln();
+      buffer.writeln('      - name: Get dependencies');
+      buffer.writeln('        run: flutter pub get');
+      buffer.writeln();
+      buffer.writeln('      - name: Build Windows');
+      buffer.writeln('        run: flutter build windows --release');
+      buffer.writeln();
+      buffer.writeln('      - name: Upload Windows artifact');
+      buffer.writeln('        uses: actions/upload-artifact@v4');
+      buffer.writeln('        with:');
+      buffer.writeln('          name: windows-build');
+      buffer.writeln('          path: build/windows/x64/runner/Release/');
+      buffer.writeln('          retention-days: 7');
+      buffer.writeln();
+
+      // macOS
+      buffer.writeln('  build-macos:');
+      buffer.writeln('    name: Build macOS');
+      buffer.writeln('    runs-on: macos-latest');
+      buffer.writeln('    needs: ${includeTests ? 'test' : 'analyze'}');
+      buffer.writeln('    steps:');
+      buffer.writeln('      - uses: actions/checkout@v4');
+      buffer.writeln();
+      buffer.writeln('      - name: Setup Flutter');
+      buffer.writeln('        uses: subosito/flutter-action@v2');
+      buffer.writeln('        with:');
+      buffer.writeln('          flutter-version: \'3.24.0\'');
+      buffer.writeln('          channel: \'stable\'');
+      buffer.writeln('          cache: true');
+      buffer.writeln();
+      buffer.writeln('      - name: Enable macOS desktop');
+      buffer.writeln('        run: flutter config --enable-macos-desktop');
+      buffer.writeln();
+      buffer.writeln('      - name: Get dependencies');
+      buffer.writeln('        run: flutter pub get');
+      buffer.writeln();
+      buffer.writeln('      - name: Build macOS');
+      buffer.writeln('        run: flutter build macos --release');
+      buffer.writeln();
+      buffer.writeln('      - name: Upload macOS artifact');
+      buffer.writeln('        uses: actions/upload-artifact@v4');
+      buffer.writeln('        with:');
+      buffer.writeln('          name: macos-build');
+      buffer.writeln('          path: build/macos/Build/Products/Release/');
+      buffer.writeln('          retention-days: 7');
+      buffer.writeln();
+
+      // Linux
+      buffer.writeln('  build-linux:');
+      buffer.writeln('    name: Build Linux');
+      buffer.writeln('    runs-on: ubuntu-latest');
+      buffer.writeln('    needs: ${includeTests ? 'test' : 'analyze'}');
+      buffer.writeln('    steps:');
+      buffer.writeln('      - uses: actions/checkout@v4');
+      buffer.writeln();
+      buffer.writeln('      - name: Setup Flutter');
+      buffer.writeln('        uses: subosito/flutter-action@v2');
+      buffer.writeln('        with:');
+      buffer.writeln('          flutter-version: \'3.24.0\'');
+      buffer.writeln('          channel: \'stable\'');
+      buffer.writeln('          cache: true');
+      buffer.writeln();
+      buffer.writeln('      - name: Install Linux dependencies');
+      buffer.writeln('        run: |');
+      buffer.writeln('          sudo apt-get update -y');
+      buffer.writeln(
+          '          sudo apt-get install -y ninja-build libgtk-3-dev');
+      buffer.writeln();
+      buffer.writeln('      - name: Enable Linux desktop');
+      buffer.writeln('        run: flutter config --enable-linux-desktop');
+      buffer.writeln();
+      buffer.writeln('      - name: Get dependencies');
+      buffer.writeln('        run: flutter pub get');
+      buffer.writeln();
+      buffer.writeln('      - name: Build Linux');
+      buffer.writeln('        run: flutter build linux --release');
+      buffer.writeln();
+      buffer.writeln('      - name: Upload Linux artifact');
+      buffer.writeln('        uses: actions/upload-artifact@v4');
+      buffer.writeln('        with:');
+      buffer.writeln('          name: linux-build');
+      buffer.writeln('          path: build/linux/x64/release/bundle/');
+      buffer.writeln('          retention-days: 7');
       buffer.writeln();
     }
 

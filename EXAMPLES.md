@@ -10,18 +10,33 @@ This document provides practical examples of using flutter_blueprint in differen
 flutter_blueprint init my_app
 ```
 
-Follow the interactive prompts to configure your project.
+Follow the interactive prompts to configure your project, including multi-platform selection.
+
+### Create Multi-Platform App
+
+```bash
+# All platforms (mobile, web, desktop)
+flutter_blueprint init my_app --platforms all
+
+# Specific platforms (comma-separated)
+flutter_blueprint init my_app --platforms mobile,web
+
+# Web and Desktop only
+flutter_blueprint init my_app --platforms web,desktop
+```
 
 ### Create with All Features Enabled
 
 ```bash
 flutter_blueprint init my_app \
   --state provider \
+  --platforms mobile,web \
   --theme \
   --localization \
   --env \
   --api \
-  --tests
+  --tests \
+  --ci github
 ```
 
 ### Create Minimal App
@@ -29,6 +44,7 @@ flutter_blueprint init my_app \
 ```bash
 flutter_blueprint init my_app \
   --state provider \
+  --platforms mobile \
   --no-theme \
   --no-localization \
   --no-env \
@@ -43,11 +59,13 @@ flutter_blueprint init my_app \
 ```bash
 flutter_blueprint init shop_app \
   --state riverpod \
+  --platforms mobile \
   --theme \
   --localization \
   --env \
   --api \
-  --tests
+  --tests \
+  --ci github
 
 cd shop_app
 flutter pub get
@@ -61,12 +79,45 @@ flutter run
 - API client ready for backend integration
 - Theme system for brand consistency
 - Test scaffolding for quality assurance
+- CI/CD pipeline with GitHub Actions
 
-### Internal Business Tool
+### Multi-Platform SaaS Application
 
 ```bash
-flutter_blueprint init internal_tool \
-  --state provider \
+flutter_blueprint init saas_platform \
+  --state bloc \
+  --platforms mobile,web,desktop \
+  --theme \
+  --localization \
+  --env \
+  --api \
+  --tests \
+  --ci gitlab
+
+cd saas_platform
+flutter pub get
+
+# Run on different platforms
+flutter run -d chrome          # Web
+flutter run -d windows         # Desktop
+flutter run -d <device-id>     # Mobile
+```
+
+**What you get:**
+
+- Universal app running on all platforms
+- Responsive layouts that adapt to screen size
+- Adaptive navigation (bottom nav → rail → drawer)
+- Platform-specific optimizations
+- Single codebase for all platforms
+- CI/CD for all platforms
+
+### Internal Dashboard (Desktop + Web)
+
+```bash
+flutter_blueprint init admin_dashboard \
+  --state riverpod \
+  --platforms web,desktop \
   --theme \
   --no-localization \
   --env \
@@ -76,17 +127,40 @@ flutter_blueprint init internal_tool \
 
 **What you get:**
 
-- Simple Provider state management
-- API integration for internal services
-- Environment switching (dev/prod)
-- No localization overhead
-- Testing infrastructure
+- Desktop app for power users
+- Web app for remote access
+- Shared business logic
+- Professional window management
+- API integration for backend
+- No mobile overhead
+
+### Progressive Web App (PWA)
+
+```bash
+flutter_blueprint init pwa_app \
+  --state provider \
+  --platforms web \
+  --theme \
+  --localization \
+  --env \
+  --api \
+  --tests
+```
+
+**What you get:**
+
+- Web-optimized project
+- PWA-ready with manifest.json
+- Clean URLs with url_strategy
+- Responsive web layouts
+- Installable web app
 
 ### MVP Prototype
 
 ```bash
 flutter_blueprint init mvp_prototype \
   --state provider \
+  --platforms mobile \
   --theme \
   --no-localization \
   --no-env \
@@ -108,11 +182,26 @@ flutter_blueprint init mvp_prototype \
 ```bash
 cd my_app
 
-# Install dependencies
+# Dependencies are installed automatically by the generator.
+# If automatic installation fails, run the following manually:
 flutter pub get
 
-# Run the app
+# Run the app (mobile)
 flutter run
+
+# Run on specific platform
+flutter run -d chrome          # Web
+flutter run -d windows         # Desktop
+flutter run -d macos           # macOS
+flutter run -d linux           # Linux
+
+# Build for release
+flutter build apk              # Android
+flutter build ios              # iOS
+flutter build web              # Web
+flutter build windows          # Windows
+flutter build macos            # macOS
+flutter build linux            # Linux
 
 # Run tests
 flutter test
@@ -122,6 +211,116 @@ flutter analyze
 
 # Format code
 flutter format .
+```
+
+### Multi-Platform Project Structure
+
+For projects created with `--platforms all` or multiple platforms:
+
+```
+lib/
+├── main.dart                 # Routes to platform-specific main
+├── main_mobile.dart          # Mobile entry point
+├── main_web.dart             # Web entry point (with URL strategy)
+├── main_desktop.dart         # Desktop entry point (with window setup)
+├── core/
+│   ├── config/
+│   │   └── responsive_config.dart  # Breakpoints & layouts (generated with flutter_screenutil helpers)
+│   └── utils/
+│       └── platform_info.dart      # Runtime platform detection
+└── features/
+    └── home/
+        └── presentation/
+            ├── pages/
+            │   └── home_page.dart  # Uses responsive layouts
+            └── widgets/
+                └── responsive_layout.dart
+```
+
+## Multi-Platform Development
+
+### Using Responsive Layouts
+
+For multi-platform projects, use the generated responsive utilities:
+
+```dart
+import 'package:my_app/core/config/responsive_config.dart';
+
+class MyPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ResponsiveLayout(
+      mobile: MobilePage(),        // Width < 768
+      tablet: TabletPage(),        // 768 <= Width < 1280
+      desktop: DesktopPage(),      // Width >= 1280
+    );
+  }
+}
+```
+
+### Adaptive Navigation
+
+Generated multi-platform projects include adaptive navigation:
+
+```dart
+import 'package:my_app/core/config/responsive_config.dart';
+
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveScaffold(
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+        NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
+        NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+      ],
+      body: _currentPage,
+    );
+    // Mobile: Bottom Navigation Bar
+    // Tablet: Navigation Rail
+    // Desktop: Navigation Drawer
+  }
+}
+```
+
+### Platform Detection
+
+Detect platform at runtime:
+
+```dart
+import 'package:my_app/core/utils/platform_info.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    if (PlatformInfo.isDesktop) {
+      return DesktopWidget();
+    } else if (PlatformInfo.isWeb) {
+      return WebWidget();
+    } else {
+      return MobileWidget();
+    }
+  }
+}
+```
+
+### Responsive Padding
+
+Use responsive spacing utilities:
+
+```dart
+import 'package:my_app/core/config/responsive_config.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: ResponsivePadding.all(context),
+      // Mobile: 16px, Tablet: 24px, Desktop: 32px
+      child: Text('Responsive Padding'),
+    );
+  }
+}
 ```
 
 ### Customizing the Generated Project

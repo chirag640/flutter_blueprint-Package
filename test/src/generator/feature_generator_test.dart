@@ -31,7 +31,7 @@ void main() {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.provider,
         includeTheme: true,
         includeLocalization: false,
@@ -124,7 +124,7 @@ void main() {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.riverpod,
         includeTheme: true,
         includeLocalization: false,
@@ -167,7 +167,7 @@ void main() {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.bloc,
         includeTheme: true,
         includeLocalization: false,
@@ -215,7 +215,7 @@ void main() {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.provider,
         includeTheme: true,
         includeLocalization: false,
@@ -257,7 +257,7 @@ void main() {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.provider,
         includeTheme: true,
         includeLocalization: false,
@@ -307,7 +307,7 @@ void main() {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.provider,
         includeTheme: true,
         includeLocalization: false,
@@ -393,7 +393,7 @@ class AppRouter {
       // Arrange
       final config = BlueprintConfig(
         appName: 'test_app',
-        platform: TargetPlatform.mobile,
+        platforms: [TargetPlatform.mobile],
         stateManagement: StateManagement.provider,
         includeTheme: true,
         includeLocalization: false,
