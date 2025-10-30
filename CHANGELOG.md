@@ -1,3 +1,7 @@
+## 0.5.2 (2025-10-30)
+### Email Support Update
+- Updated email support to use the new support email address: chaudharychirag640@gmail.com
+
 ## 0.5.1 (2025-10-30) - Pub.dev Quality Improvements
 
 ### 🎯 Pub.dev Score Improvements (140 → 160 points expected)
