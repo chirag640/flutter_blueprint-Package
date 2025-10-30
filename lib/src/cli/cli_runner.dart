@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
+import '../commands/add_feature_command.dart';
 import '../config/blueprint_config.dart';
 import '../generator/blueprint_generator.dart';
 import '../prompts/interactive_prompter.dart';
@@ -22,6 +23,12 @@ class CliRunner {
   final BlueprintGenerator _generator;
 
   Future<void> run(List<String> arguments) async {
+    // Handle add command separately to avoid flag conflicts
+    if (arguments.isNotEmpty && arguments.first == 'add') {
+      await _runAddDirect(arguments.skip(1).toList());
+      return;
+    }
+
     final parser = _buildParser();
 
     try {
@@ -121,6 +128,32 @@ class CliRunner {
     final targetPath =
         Directory.current.path + Platform.pathSeparator + config.appName;
     await _generator.generate(config, targetPath);
+  }
+
+  Future<void> _runAddDirect(List<String> arguments) async {
+    if (arguments.isEmpty) {
+      _logger.error('Error: Subcommand required for "add"');
+      _logger.info('Usage: flutter_blueprint add <subcommand> [arguments]');
+      _logger.info('Available subcommands:');
+      _logger.info('  feature <name>    Add a new feature to the project');
+      exit(1);
+    }
+
+    final subcommand = arguments.first;
+
+    switch (subcommand) {
+      case 'feature':
+        // Pass remaining arguments (including feature name and flags)
+        final featureArgs = arguments.skip(1).toList();
+        final featureCommand = AddFeatureCommand(logger: _logger);
+        await featureCommand.execute(featureArgs);
+        break;
+      default:
+        _logger.error('Error: Unknown subcommand "$subcommand"');
+        _logger.info('Available subcommands:');
+        _logger.info('  feature <name>    Add a new feature to the project');
+        exit(1);
+    }
   }
 
   /// Beautiful interactive wizard mode
@@ -397,12 +430,14 @@ class CliRunner {
     _logger.info('flutter_blueprint - Smart Flutter scaffolding CLI\n');
     _logger.info('Usage: flutter_blueprint <command> [arguments]\n');
     _logger.info('Commands:');
-    _logger.info('  init [app_name]    Create a new Flutter project');
+    _logger.info('  init [app_name]        Create a new Flutter project');
     _logger.info(
-        '                     If app_name is omitted, launches interactive wizard\n');
+        '                         If app_name is omitted, launches interactive wizard');
+    _logger.info(
+        '  add feature <name>     Add a new feature to existing project\n');
     _logger.info('Global options:');
     _logger.info(parser.usage);
-    _logger.info('\nExamples:');
+    _logger.info('\nInit Examples:');
     _logger.info('  # Interactive wizard mode (recommended for beginners)');
     _logger.info('  flutter_blueprint init');
     _logger.info('');
@@ -411,5 +446,16 @@ class CliRunner {
     _logger.info('  flutter_blueprint init my_app --state provider --theme');
     _logger.info(
         '  flutter_blueprint init my_app --state riverpod --no-localization');
+    _logger.info('');
+    _logger.info('Add Feature Examples:');
+    _logger.info('  # Generate full feature (all layers)');
+    _logger.info('  flutter_blueprint add feature auth');
+    _logger.info('');
+    _logger.info('  # Generate with API integration');
+    _logger.info('  flutter_blueprint add feature products --api');
+    _logger.info('');
+    _logger.info('  # Generate only presentation layer');
+    _logger.info(
+        '  flutter_blueprint add feature settings --presentation --no-data --no-domain');
   }
 }

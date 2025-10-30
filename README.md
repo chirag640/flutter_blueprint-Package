@@ -415,6 +415,53 @@ flutter_blueprint init <app_name> [options]
 
 ---
 
+### `add feature` - Incremental feature generation (killer feature)
+
+Add a new feature to an existing project without touching the rest of your app. The command scaffolds clean-architecture folders (data/domain/presentation), generates state-management boilerplate that matches the project's `blueprint.yaml` (Provider, Riverpod or BLoC), and injects a new route into `app_router.dart`.
+
+Usage:
+
+```bash
+# Full feature with all layers
+flutter_blueprint add feature <feature_name>
+
+# Only presentation layer
+flutter_blueprint add feature settings --presentation --no-data --no-domain
+
+# Add feature with remote API integration
+flutter_blueprint add feature products --api
+```
+
+Flags:
+
+| Flag                                   | Description                                                      |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| `--data` / `--no-data`                 | Generate data layer (models, data sources, repository)           |
+| `--domain` / `--no-domain`             | Generate domain layer (entities, repository contract, use cases) |
+| `--presentation` / `--no-presentation` | Generate presentation layer (pages, widgets, state)              |
+| `--api`                                | Include remote data source (Dio) in the data layer               |
+
+Behavior & notes:
+
+- The command must be run from the root of a previously generated flutter_blueprint project (it reads `blueprint.yaml`).
+- It detects the project's state-management setting from `blueprint.yaml` and emits matching files for Provider, Riverpod, or Bloc.
+- If `app_router.dart` exists, the generator will add the page import, a route constant to `RouteNames`, and a `case` in the router switch to return the new page.
+- The generator is idempotent for route insertion: it will not duplicate imports or constants if they already exist.
+- For Riverpod/Bloc the generated state files follow the project's Dart version (uses sealed classes / StateNotifier / Bloc patterns as appropriate).
+
+Examples:
+
+```bash
+# Generate a full "auth" feature using the project's state-management
+flutter_blueprint add feature auth
+
+# Generate only presentation for "settings"
+flutter_blueprint add feature settings --presentation --no-data --no-domain
+
+# Generate products feature and include remote API data source
+flutter_blueprint add feature products --api
+```
+
 ## 📋 blueprint.yaml
 
 Every generated project includes a `blueprint.yaml` manifest:

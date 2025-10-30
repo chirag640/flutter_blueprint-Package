@@ -8,6 +8,8 @@ class Logger {
 
   void warn(String message) => _write('WARNING: $message');
 
+  void warning(String message) => _write('WARNING: $message');
+
   void error(String message) => _write('ERROR: $message');
 
   void _write(String message) {
