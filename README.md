@@ -887,6 +887,7 @@ Before you publish:
 Quick publish commands (dry-run first):
 
 PowerShell (Windows):
+
 ```powershell
 cd <path-to-repo>
 git checkout main
@@ -898,6 +899,7 @@ dart pub publish --dry-run
 ```
 
 Bash (macOS / Linux):
+
 ```bash
 cd <path-to-repo>
 git checkout main
@@ -918,7 +920,6 @@ Notes:
 - You must be logged in to pub.dev (`dart pub login`) with the account that will publish the package.
 - The package `pubspec.yaml` must have a unique `name:` that isn't already taken on pub.dev.
 - Verify the `version:` follows semantic versioning; pub.dev rejects duplicate versions.
-
 
 ---
 
