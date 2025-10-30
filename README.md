@@ -662,8 +662,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 💬 Support
 
 - 📧 Email: support@flutter-blueprint.dev
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/flutter_blueprint/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/flutter_blueprint/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/chirag640/flutter_blueprint-Package-Package/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/chirag640/flutter_blueprint-Package-Package/discussions)
 
 ---
 

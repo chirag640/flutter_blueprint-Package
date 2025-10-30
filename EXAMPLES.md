@@ -304,5 +304,5 @@ If issues persist, check:
 ## Getting Help
 
 - 📖 Read the [README](README.md)
-- 🐛 Report issues on [GitHub](https://github.com/yourusername/flutter_blueprint/issues)
-- 💬 Ask questions in [Discussions](https://github.com/yourusername/flutter_blueprint/discussions)
+- 🐛 Report issues on [GitHub](https://github.com/chirag640/flutter_blueprint-Package/issues)
+- 💬 Ask questions in [Discussions](https://github.com/chirag640/flutter_blueprint-Package/discussions)

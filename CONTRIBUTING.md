@@ -41,7 +41,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ```bash
 # Clone your fork
-git clone https://github.com/chirag640/flutter_blueprint.git
+git clone https://github.com/chirag640/flutter_blueprint-Package.git
 cd flutter_blueprint
 
 # Install dependencies
@@ -158,7 +158,7 @@ Releases are managed by maintainers:
 
 Feel free to ask questions by:
 
-- Opening a [GitHub Discussion](https://github.com/chirag640/flutter_blueprint/discussions)
+- Opening a [GitHub Discussion](https://github.com/chirag640/flutter_blueprint-Package/discussions)
 - Opening an issue with the `question` label
 
 Thank you for contributing! 🚀
