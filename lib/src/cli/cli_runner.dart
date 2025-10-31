@@ -7,6 +7,7 @@ import '../config/blueprint_config.dart';
 import '../generator/blueprint_generator.dart';
 import '../prompts/interactive_prompter.dart';
 import '../utils/logger.dart';
+import '../utils/input_validator.dart';
 
 /// Main CLI entry point that parses arguments and delegates to commands.
 class CliRunner {
@@ -123,7 +124,20 @@ class CliRunner {
   }
 
   Future<void> _runInit(ArgResults results) async {
-    final appName = results.rest.length > 1 ? results.rest[1] : '';
+    String appName = results.rest.length > 1 ? results.rest[1] : '';
+
+    // Validate app name if provided
+    if (appName.isNotEmpty) {
+      try {
+        appName = InputValidator.validatePackageName(
+          appName,
+          fieldName: 'app name',
+        );
+      } on ArgumentError catch (e) {
+        _logger.error('❌ Invalid app name: ${e.message}');
+        exit(1);
+      }
+    }
 
     // If no app name provided and interactive, show wizard
     if (appName.isEmpty && _prompter.isInteractive) {
@@ -174,7 +188,7 @@ class CliRunner {
         '   Let\'s create your Flutter app with professional architecture.');
     _logger.info('');
 
-    // App name with validation
+    // App name with comprehensive validation
     String appName;
     while (true) {
       appName = await _prompter.prompt(
@@ -182,24 +196,17 @@ class CliRunner {
         defaultValue: 'my_app',
       );
 
-      if (appName.isEmpty) {
-        _logger.error('App name cannot be empty');
+      try {
+        appName = InputValidator.validatePackageName(
+          appName,
+          fieldName: 'app name',
+        );
+        break; // Validation passed
+      } on ArgumentError catch (e) {
+        _logger.error('❌ ${e.message}');
+        _logger.info('💡 Example: my_app, user_profile, shopping_cart');
         continue;
       }
-
-      if (_isDartReservedWord(appName)) {
-        _logger.error(
-            '"$appName" is a Dart reserved word. Please choose another name.');
-        continue;
-      }
-
-      if (!_isValidPackageName(appName)) {
-        _logger.error(
-            'App name must be lowercase with underscores (e.g., my_app)');
-        continue;
-      }
-
-      break;
     }
 
     // Platform selection (multi-select)
@@ -319,13 +326,26 @@ class CliRunner {
     ArgResults results,
     String providedAppName,
   ) async {
-    // App name
+    // App name with validation
     String appName = providedAppName;
     if (appName.isEmpty) {
-      appName = await _prompter.prompt(
-        'Enter app name',
-        defaultValue: 'my_app',
-      );
+      while (true) {
+        appName = await _prompter.prompt(
+          'Enter app name',
+          defaultValue: 'my_app',
+        );
+
+        try {
+          appName = InputValidator.validatePackageName(
+            appName,
+            fieldName: 'app name',
+          );
+          break;
+        } on ArgumentError catch (e) {
+          _logger.error('❌ ${e.message}');
+          continue;
+        }
+      }
     }
 
     // State management
@@ -416,81 +436,6 @@ class CliRunner {
       return flagValue;
     }
     return _prompter.confirm(promptText, defaultValue: defaultValue);
-  }
-
-  bool _isDartReservedWord(String name) {
-    const reservedWords = {
-      'abstract',
-      'as',
-      'assert',
-      'async',
-      'await',
-      'break',
-      'case',
-      'catch',
-      'class',
-      'const',
-      'continue',
-      'covariant',
-      'default',
-      'deferred',
-      'do',
-      'dynamic',
-      'else',
-      'enum',
-      'export',
-      'extends',
-      'extension',
-      'external',
-      'factory',
-      'false',
-      'final',
-      'finally',
-      'for',
-      'Function',
-      'get',
-      'hide',
-      'if',
-      'implements',
-      'import',
-      'in',
-      'interface',
-      'is',
-      'late',
-      'library',
-      'mixin',
-      'new',
-      'null',
-      'on',
-      'operator',
-      'part',
-      'required',
-      'rethrow',
-      'return',
-      'set',
-      'show',
-      'static',
-      'super',
-      'switch',
-      'sync',
-      'this',
-      'throw',
-      'true',
-      'try',
-      'typedef',
-      'var',
-      'void',
-      'while',
-      'with',
-      'yield',
-    };
-    return reservedWords.contains(name.toLowerCase());
-  }
-
-  bool _isValidPackageName(String name) {
-    // Package names must be lowercase with underscores
-    final regex = RegExp(r'^[a-z][a-z0-9_]*$');
-    return regex.hasMatch(name);
   }
 
   void _printUsage(ArgParser parser) {

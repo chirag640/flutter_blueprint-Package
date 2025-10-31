@@ -417,20 +417,46 @@ String _buildUniversalPubspec(BlueprintConfig config) {
   // State management dependencies
   switch (config.stateManagement) {
     case StateManagement.bloc:
-      dependencies.add('  flutter_bloc: ^8.1.3');
-      dependencies.add('  bloc: ^8.1.2');
+      dependencies.add('  flutter_bloc: ^8.1.5');
+      dependencies.add('  bloc: ^8.1.4');
+      dependencies
+          .add('  equatable: ^2.0.5'); // Used with BLoC for state comparison
       break;
     case StateManagement.provider:
-      dependencies.add('  provider: ^6.1.1');
+      dependencies.add('  provider: ^6.1.2');
+      dependencies.add('  equatable: ^2.0.5'); // Used for value equality
       break;
     case StateManagement.riverpod:
-      dependencies.add('  flutter_riverpod: ^2.4.9');
+      dependencies.add('  flutter_riverpod: ^2.5.1');
       dependencies.add('  riverpod_annotation: ^2.3.3');
+      dependencies.add('  equatable: ^2.0.5'); // Used for value equality
       break;
   }
 
   // Responsive UI with flutter_screenutil
   dependencies.add('  flutter_screenutil: ^5.9.3');
+
+  // Common utilities (used in generated core utilities)
+  dependencies.add('  shared_preferences: ^2.2.3');
+  dependencies.add('  flutter_secure_storage: ^9.2.2');
+
+  // Localization (if enabled)
+  if (config.includeLocalization) {
+    dependencies.add('  flutter_localizations:\n    sdk: flutter');
+    dependencies.add('  intl: ^0.20.2');
+  }
+
+  // Environment variables (if enabled)
+  if (config.includeEnv) {
+    dependencies.add('  flutter_dotenv: ^5.1.0');
+  }
+
+  // API & networking (if enabled)
+  if (config.includeApi) {
+    dependencies.add('  dio: ^5.5.0');
+    dependencies.add('  connectivity_plus: ^6.0.5');
+    dependencies.add('  pretty_dio_logger: ^1.4.0');
+  }
 
   // Platform-specific dependencies
   if (config.hasPlatform(TargetPlatform.web)) {
@@ -442,8 +468,24 @@ String _buildUniversalPubspec(BlueprintConfig config) {
     dependencies.add('  path_provider: ^2.1.5');
   }
 
-  // Common utilities
-  dependencies.add('  shared_preferences: ^2.2.3');
+  // Dev dependencies
+  final devDependencies = <String>[];
+  devDependencies.add('  flutter_test:\n    sdk: flutter');
+  devDependencies.add('  flutter_lints: ^5.0.0');
+
+  if (config.includeTests) {
+    devDependencies.add('  mocktail: ^1.0.3');
+    if (config.stateManagement == StateManagement.bloc) {
+      devDependencies.add('  bloc_test: ^9.1.7');
+    }
+  }
+
+  // Assets configuration
+  final assetsConfig = config.includeLocalization
+      ? '''
+  assets:
+    - assets/l10n/'''
+      : '';
 
   return '''
 name: ${config.appName}
@@ -452,17 +494,16 @@ version: 1.0.0+1
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.24.0"
 
 dependencies:
 ${dependencies.join('\n')}
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^3.0.0
+${devDependencies.join('\n')}
 
 flutter:
-  uses-material-design: true
+  uses-material-design: true$assetsConfig
 ''';
 }
 

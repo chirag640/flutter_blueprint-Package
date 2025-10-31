@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -16,6 +17,7 @@ import '../templates/ci/gitlab_ci_template.dart';
 import '../templates/ci/azure_pipelines_template.dart';
 import '../utils/io_utils.dart';
 import '../utils/logger.dart';
+import '../utils/input_validator.dart';
 
 /// Orchestrates generation of a new Flutter project from a blueprint config.
 ///
@@ -39,16 +41,20 @@ class BlueprintGenerator {
   /// Generates a complete Flutter project at [targetPath] using [config].
   ///
   /// This method will:
-  /// 1. Create the target directory structure
-  /// 2. Generate all template files
-  /// 3. Create CI/CD configuration if specified
-  /// 4. Write blueprint.yaml manifest
-  /// 5. Attempt to run `flutter pub get` automatically
+  /// 1. Validate all inputs for security
+  /// 2. Create the target directory structure
+  /// 3. Generate all template files
+  /// 4. Create CI/CD configuration if specified
+  /// 5. Write blueprint.yaml manifest
+  /// 6. Attempt to run `flutter create .` and `flutter pub get` automatically
   Future<void> generate(BlueprintConfig config, String targetPath) async {
+    // Validate target path first for security
+    final validatedPath = InputValidator.validateTargetDirectory(targetPath);
+
     _logger.info('🚀 Generating project structure...');
 
     // Prepare target directory
-    await _ioUtils.prepareTargetDirectory(targetPath);
+    await _ioUtils.prepareTargetDirectory(validatedPath);
 
     // Select template bundle based on config
     final bundle = _selectBundle(config);
@@ -61,19 +67,19 @@ class BlueprintGenerator {
       }
 
       final content = templateFile.build(config);
-      await _ioUtils.writeFile(targetPath, templateFile.path, content);
+      await _ioUtils.writeFile(validatedPath, templateFile.path, content);
       fileCount++;
     }
 
     // Generate CI/CD configuration if specified
     if (config.ciProvider != CIProvider.none) {
-      await _generateCIConfig(config, targetPath);
+      await _generateCIConfig(config, validatedPath);
       fileCount++; // Count the CI config file
     }
 
     // Write blueprint manifest
     final manifest = BlueprintManifest(config: config);
-    final manifestFile = File(p.join(targetPath, 'blueprint.yaml'));
+    final manifestFile = File(p.join(validatedPath, 'blueprint.yaml'));
     await BlueprintManifestStore().save(manifestFile, manifest);
 
     _logger.success('✅ Generated $fileCount files successfully!');
@@ -83,59 +89,98 @@ class BlueprintGenerator {
       _printCISetupInstructions(config.ciProvider);
     }
 
-    // Ensure Flutter platform files are created (adds platform folders)
+    // Auto-run flutter create (secure execution with timeout)
     _logger.info('');
-    _logger.info('🛠️ Initializing Flutter project files...');
+    _logger.info('� Initializing Flutter project...');
     try {
       final createResult = await Process.run(
         'flutter',
         ['create', '.'],
-        workingDirectory: targetPath,
-        runInShell: true,
+        workingDirectory: validatedPath,
+        runInShell: false, // Security: prevent shell injection
+      ).timeout(
+        const Duration(minutes: 3),
+        onTimeout: () {
+          throw TimeoutException(
+            'Flutter create timed out after 3 minutes',
+          );
+        },
       );
 
       if (createResult.exitCode == 0) {
-        _logger.success('✅ Flutter project files initialized successfully!');
+        _logger.success('✅ Flutter project initialized successfully!');
       } else {
         _logger.warning(
-            '⚠️  Failed to run "flutter create ." automatically. Please run "flutter create ." manually if you need platform folders.');
-        _logger.warning('   Error: ${createResult.stderr}');
+          '⚠️  Failed to initialize Flutter project. Exit code: ${createResult.exitCode}',
+        );
+        if (createResult.stderr.toString().isNotEmpty) {
+          _logger.debug('stderr: ${createResult.stderr}');
+        }
       }
-    } catch (e) {
-      _logger.warning(
-          '⚠️  Failed to run "flutter create ." automatically. Please run "flutter create ." manually if you need platform folders.');
+    } on TimeoutException catch (e) {
+      _logger.warning('⚠️  ${e.message}');
+      _logger.warning('   Please run "flutter create ." manually.');
+    } on ProcessException catch (e) {
+      _logger.warning('⚠️  Failed to run flutter create: ${e.message}');
+      _logger.warning('   Please ensure Flutter is installed and in PATH.');
+    } catch (e, stack) {
+      _logger.warning('⚠️  Unexpected error during flutter create: $e');
+      _logger.debug('Stack trace: $stack');
     }
 
-    // Auto-install dependencies
+    // Auto-install dependencies (secure execution with timeout)
     _logger.info('');
     _logger.info('📦 Installing dependencies...');
     try {
       final pubGetResult = await Process.run(
         'flutter',
         ['pub', 'get'],
-        workingDirectory: targetPath,
-        runInShell: true,
+        workingDirectory: validatedPath,
+        runInShell: false, // Security: prevent shell injection
+      ).timeout(
+        const Duration(minutes: 5),
+        onTimeout: () {
+          throw TimeoutException(
+            'Dependency installation timed out after 5 minutes',
+          );
+        },
       );
 
       if (pubGetResult.exitCode == 0) {
         _logger.success('✅ Dependencies installed successfully!');
       } else {
         _logger.warning(
-            '⚠️  Failed to install dependencies automatically. Please run "flutter pub get" manually.');
-        _logger.warning('   Error: ${pubGetResult.stderr}');
+          '⚠️  Failed to install dependencies. Exit code: ${pubGetResult.exitCode}',
+        );
+        if (pubGetResult.stderr.toString().isNotEmpty) {
+          _logger.debug('stderr: ${pubGetResult.stderr}');
+        }
+        _logger.warning('   Please run "flutter pub get" manually.');
       }
-    } catch (e) {
-      _logger.warning(
-          '⚠️  Failed to install dependencies automatically. Please run "flutter pub get" manually.');
+    } on TimeoutException catch (e) {
+      _logger.warning('⚠️  ${e.message}');
+      _logger.warning('   Please run "flutter pub get" manually.');
+    } on ProcessException catch (e) {
+      _logger.warning('⚠️  Failed to run flutter pub get: ${e.message}');
+      _logger.warning('   Please ensure Flutter is installed and in PATH.');
+    } catch (e, stack) {
+      _logger
+          .warning('⚠️  Unexpected error during dependency installation: $e');
+      _logger.debug('Stack trace: $stack');
     }
 
     _logger.info('');
-    _logger.info('🎉 Project created successfully!');
+    _logger.success('🎉 Project created successfully!');
     _logger.info('');
-    _logger.info('Next steps:');
+    _logger.info('📍 Next steps:');
     _logger.info('  cd ${config.appName}');
-    _logger.info('  flutter create .');
     _logger.info('  flutter run');
+    _logger.info('');
+    _logger.info('💡 Tips:');
+    _logger.info('  • Run "flutter doctor" to verify your setup');
+    _logger.info('  • Check README.md for project structure details');
+    _logger
+        .info('  • Use "flutter_blueprint add feature <name>" to add features');
   }
 
   Future<void> _generateCIConfig(

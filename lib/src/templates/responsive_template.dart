@@ -39,11 +39,11 @@ class AppScreen {
   }
   
   /// Get current device type
-  static DeviceType getDeviceType(BuildContext context) {
+  static AppDeviceType getDeviceType(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (width >= desktopBreakpoint) return DeviceType.desktop;
-    if (width >= mobileBreakpoint) return DeviceType.tablet;
-    return DeviceType.mobile;
+    if (width >= desktopBreakpoint) return AppDeviceType.desktop;
+    if (width >= mobileBreakpoint) return AppDeviceType.tablet;
+    return AppDeviceType.mobile;
   }
   
   /// Get responsive value based on device type
@@ -59,32 +59,12 @@ class AppScreen {
   }
 }
 
-/// Device type enumeration
-enum DeviceType {
+/// Custom device type enumeration for app-specific logic
+/// Note: flutter_screenutil also has a DeviceType enum, but this is for breakpoint detection
+enum AppDeviceType {
   mobile,
   tablet,
   desktop;
-}
-
-/// Extension for easy responsive sizing
-extension ResponsiveSizing on num {
-  /// Responsive width (based on design width 375)
-  double get w => ScreenUtil().setWidth(this);
-  
-  /// Responsive height (based on design height 812)
-  double get h => ScreenUtil().setHeight(this);
-  
-  /// Responsive font size
-  double get sp => ScreenUtil().setSp(this);
-  
-  /// Responsive radius
-  double get r => ScreenUtil().radius(this);
-  
-  /// Screen width percentage (0.0 - 1.0)
-  double get sw => ScreenUtil().screenWidth * this;
-  
-  /// Screen height percentage (0.0 - 1.0)
-  double get sh => ScreenUtil().screenHeight * this;
 }
 ''';
   }
@@ -225,11 +205,11 @@ class AdaptiveNavigationScaffold extends StatelessWidget {
     final deviceType = AppScreen.getDeviceType(context);
     
     switch (deviceType) {
-      case DeviceType.desktop:
+      case AppDeviceType.desktop:
         return _buildDesktopLayout(context);
-      case DeviceType.tablet:
+      case AppDeviceType.tablet:
         return _buildTabletLayout(context);
-      case DeviceType.mobile:
+      case AppDeviceType.mobile:
         return _buildMobileLayout(context);
     }
   }
