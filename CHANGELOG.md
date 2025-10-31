@@ -1,4 +1,13 @@
 ## 0.6.1 (2025-10-31) - Platform Support & Auto-Publish Fixes
+## 0.7.0 (2025-10-31)
+
+### 🔄 Auto-generated Release
+
+**Changes:**
+- Automatic minor version bump
+- Triggered by: feat: Update CHANGELOG, README, and pubspec.yaml for platform support and auto-publishing improvements
+- Commit: c12fa177ca25ab9afa038400463870f7bfd47f17
+
 
 ### 🔧 Bug Fixes
 
