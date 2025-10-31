@@ -339,7 +339,8 @@ void main() {
       });
 
       test('path exceeding maximum length', () {
-        final tooLong = 'a/' * (InputValidator.maxPathLength ~/ 2);
+        // Create a path longer than maxPathLength (4096 chars)
+        final tooLong = 'a/' * (InputValidator.maxPathLength ~/ 2) + 'x';
         expect(
           () => InputValidator.validateFilePath(tooLong),
           throwsA(

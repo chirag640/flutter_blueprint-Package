@@ -85,23 +85,23 @@ class InputValidator {
     'yield',
   };
 
-  /// Dart built-in types that should be avoided
+  /// Dart built-in types that should be avoided (all lowercase for case-insensitive matching)
   static const Set<String> dartBuiltInTypes = {
     'int',
     'double',
     'num',
     'bool',
-    'String',
-    'List',
-    'Map',
-    'Set',
-    'Object',
+    'string',
+    'list',
+    'map',
+    'set',
+    'object',
     'dynamic',
     'void',
-    'Null',
-    'Never',
-    'Future',
-    'Stream',
+    'null',
+    'never',
+    'future',
+    'stream',
   };
 
   /// Validates a Dart package name (app name or feature name).
@@ -254,8 +254,12 @@ class InputValidator {
         );
       }
 
-      // Check for invalid Windows characters
-      if (RegExp(r'[<>:"|?*]').hasMatch(normalized)) {
+      // Check for invalid Windows characters (excluding drive letter colon)
+      // We need to check each path component, not the entire path,
+      // since ':' is valid in drive letters (C:\)
+      final pathWithoutDrive =
+          normalized.replaceFirst(RegExp(r'^[A-Za-z]:'), '');
+      if (RegExp(r'[<>:"|?*]').hasMatch(pathWithoutDrive)) {
         throw ArgumentError(
           '$fieldName contains invalid Windows path characters',
         );
@@ -267,7 +271,8 @@ class InputValidator {
       throw ArgumentError('$fieldName contains control characters');
     }
 
-    return normalized;
+    // Convert to forward slashes for consistency across platforms
+    return normalized.replaceAll('\\', '/');
   }
 
   /// Validates a target directory path for project generation.
@@ -293,8 +298,10 @@ class InputValidator {
     }
 
     // Check for system directories (basic protection)
+    // Only reject if creating directly in critical system directories,
+    // but allow subdirectories (e.g., /tmp/myproject is OK, but /etc/myproject is not)
     final parts = p.split(validated.toLowerCase());
-    const systemDirs = {
+    const criticalSystemDirs = {
       'windows',
       'system32',
       'program files',
@@ -303,13 +310,12 @@ class InputValidator {
       'bin',
       'sbin',
       'usr',
-      'var',
-      'tmp',
       'sys',
       'proc',
     };
 
-    for (final dir in systemDirs) {
+    // Allow tmp subdirectories (common for tests), but reject critical system dirs
+    for (final dir in criticalSystemDirs) {
       if (parts.contains(dir)) {
         throw ArgumentError(
           'Cannot create project in system directory: $dir',

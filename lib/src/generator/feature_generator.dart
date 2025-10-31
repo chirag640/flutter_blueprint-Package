@@ -92,11 +92,15 @@ class FeatureGenerator {
     );
 
     var count = 0;
+    final rootPath = Directory(featurePath).parent.parent.parent.path;
     for (final template in templates) {
-      final filePath = p.join(featurePath, template.relativePath);
+      final relativePath = p.join(
+        p.relative(featurePath, from: rootPath),
+        template.relativePath,
+      );
       await _ioUtils.writeFile(
-        Directory(featurePath).parent.parent.parent.path,
-        filePath,
+        rootPath,
+        relativePath,
         template.content,
       );
       count++;
@@ -115,11 +119,15 @@ class FeatureGenerator {
     );
 
     var count = 0;
+    final rootPath = Directory(featurePath).parent.parent.parent.path;
     for (final template in templates) {
-      final filePath = p.join(featurePath, template.relativePath);
+      final relativePath = p.join(
+        p.relative(featurePath, from: rootPath),
+        template.relativePath,
+      );
       await _ioUtils.writeFile(
-        Directory(featurePath).parent.parent.parent.path,
-        filePath,
+        rootPath,
+        relativePath,
         template.content,
       );
       count++;
@@ -139,11 +147,15 @@ class FeatureGenerator {
     );
 
     var count = 0;
+    final rootPath = Directory(featurePath).parent.parent.parent.path;
     for (final template in templates) {
-      final filePath = p.join(featurePath, template.relativePath);
+      final relativePath = p.join(
+        p.relative(featurePath, from: rootPath),
+        template.relativePath,
+      );
       await _ioUtils.writeFile(
-        Directory(featurePath).parent.parent.parent.path,
-        filePath,
+        rootPath,
+        relativePath,
         template.content,
       );
       count++;

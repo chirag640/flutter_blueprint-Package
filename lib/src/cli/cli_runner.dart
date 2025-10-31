@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
+import '../analyzer/code_quality_analyzer.dart';
+import '../analyzer/quality_issue.dart';
 import '../commands/add_feature_command.dart';
 import '../config/blueprint_config.dart';
 import '../generator/blueprint_generator.dart';
 import '../prompts/interactive_prompter.dart';
+import '../refactoring/auto_refactoring_tool.dart';
+import '../refactoring/refactoring_types.dart';
 import '../templates/template_library.dart';
 import '../utils/logger.dart';
 import '../utils/input_validator.dart';
@@ -53,6 +57,12 @@ class CliRunner {
       switch (command) {
         case 'init':
           await _runInit(results);
+          break;
+        case 'analyze':
+          await _runAnalyze(results);
+          break;
+        case 'refactor':
+          await _runRefactor(results);
           break;
         default:
           _logger.error('Unknown command: $command');
@@ -148,6 +158,83 @@ class CliRunner {
         'tests',
         help: 'Include test scaffolding',
         defaultsTo: null,
+      )
+      // Analyze command flags
+      ..addFlag(
+        'strict',
+        help: 'Enable strict mode for analysis (all checks are errors)',
+        defaultsTo: false,
+      )
+      ..addFlag(
+        'performance',
+        help: 'Enable performance-related checks',
+        defaultsTo: false,
+      )
+      ..addFlag(
+        'accessibility',
+        help: 'Enable accessibility checks',
+        defaultsTo: false,
+      )
+      // Refactor command flags
+      ..addFlag(
+        'add-caching',
+        help: 'Add caching layer',
+        negatable: false,
+      )
+      ..addFlag(
+        'add-offline-support',
+        help: 'Add offline support',
+        negatable: false,
+      )
+      ..addFlag(
+        'migrate-to-riverpod',
+        help: 'Migrate to Riverpod',
+        negatable: false,
+      )
+      ..addFlag(
+        'migrate-to-bloc',
+        help: 'Migrate to BLoC',
+        negatable: false,
+      )
+      ..addFlag(
+        'add-error-handling',
+        help: 'Add error handling',
+        negatable: false,
+      )
+      ..addFlag(
+        'add-logging',
+        help: 'Add logging',
+        negatable: false,
+      )
+      ..addFlag(
+        'optimize-performance',
+        help: 'Optimize performance',
+        negatable: false,
+      )
+      ..addFlag(
+        'add-testing',
+        help: 'Add testing infrastructure',
+        negatable: false,
+      )
+      ..addFlag(
+        'dry-run',
+        help: 'Show what would be changed without modifying files',
+        defaultsTo: false,
+      )
+      ..addFlag(
+        'backup',
+        help: 'Create backup before refactoring',
+        defaultsTo: true,
+      )
+      ..addFlag(
+        'run-tests',
+        help: 'Run tests after refactoring',
+        defaultsTo: true,
+      )
+      ..addFlag(
+        'format',
+        help: 'Format code after refactoring',
+        defaultsTo: true,
       );
   }
 
@@ -634,6 +721,189 @@ class CliRunner {
     return _prompter.confirm(promptText, defaultValue: defaultValue);
   }
 
+  /// Runs code quality analysis on the project.
+  Future<void> _runAnalyze(ArgResults results) async {
+    _logger.info('🔍 Running code quality analysis...\n');
+
+    // Get project path from arguments or use current directory
+    final projectPath =
+        results.rest.length > 1 ? results.rest[1] : Directory.current.path;
+
+    // Check if project exists
+    if (!await Directory(projectPath).exists()) {
+      _logger.error('Project directory does not exist: $projectPath');
+      exit(1);
+    }
+
+    // Parse analyze options
+    final strictMode = results['strict'] as bool? ?? false;
+    final checkPerformance = results['performance'] as bool? ?? false;
+    final checkAccessibility = results['accessibility'] as bool? ?? false;
+
+    // Create analyzer
+    final analyzer = CodeQualityAnalyzer(
+      logger: _logger,
+      strictMode: strictMode,
+      checkPerformance: checkPerformance,
+      checkAccessibility: checkAccessibility,
+    );
+
+    // Run analysis
+    final report = await analyzer.analyze(projectPath);
+
+    // Print summary
+    _logger.info('');
+    _logger.info(report.summary);
+
+    // Print issues by type
+    if (report.issues.isNotEmpty) {
+      _logger.info('');
+      _logger.info('📋 Issues by type:');
+      _logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      for (final type in IssueType.values) {
+        final issuesOfType = report.getByType(type);
+        if (issuesOfType.isNotEmpty) {
+          _logger.info('');
+          _logger.info('${type.label}: ${issuesOfType.length}');
+          for (final issue in issuesOfType.take(3)) {
+            _logger.info(issue.toString());
+          }
+          if (issuesOfType.length > 3) {
+            _logger.info('   ... and ${issuesOfType.length - 3} more');
+          }
+        }
+      }
+    }
+
+    // Exit with appropriate code
+    if (!report.passed()) {
+      _logger.info('');
+      _logger.warning('⚠️  Analysis found issues that need attention.');
+      exit(1);
+    } else {
+      _logger.info('');
+      _logger.success('✅ All checks passed! Your code looks great.');
+    }
+  }
+
+  /// Runs refactoring on the project.
+  Future<void> _runRefactor(ArgResults results) async {
+    _logger.info('🔧 Running refactoring...\n');
+
+    // Get project path from arguments or use current directory
+    final projectPath =
+        results.rest.length > 1 ? results.rest[1] : Directory.current.path;
+
+    // Check if project exists
+    if (!await Directory(projectPath).exists()) {
+      _logger.error('Project directory does not exist: $projectPath');
+      exit(1);
+    }
+
+    // Determine refactoring type from flags
+    RefactoringType? refactoringType;
+
+    if (results['add-caching'] as bool? ?? false) {
+      refactoringType = RefactoringType.addCaching;
+    } else if (results['add-offline-support'] as bool? ?? false) {
+      refactoringType = RefactoringType.addOfflineSupport;
+    } else if (results['migrate-to-riverpod'] as bool? ?? false) {
+      refactoringType = RefactoringType.migrateToRiverpod;
+    } else if (results['migrate-to-bloc'] as bool? ?? false) {
+      refactoringType = RefactoringType.migrateToBloc;
+    } else if (results['add-error-handling'] as bool? ?? false) {
+      refactoringType = RefactoringType.addErrorHandling;
+    } else if (results['add-logging'] as bool? ?? false) {
+      refactoringType = RefactoringType.addLogging;
+    } else if (results['optimize-performance'] as bool? ?? false) {
+      refactoringType = RefactoringType.optimizePerformance;
+    } else if (results['add-testing'] as bool? ?? false) {
+      refactoringType = RefactoringType.addTesting;
+    }
+
+    if (refactoringType == null) {
+      _logger.error('No refactoring type specified. Use one of:');
+      _logger.info('  --add-caching');
+      _logger.info('  --add-offline-support');
+      _logger.info('  --migrate-to-riverpod');
+      _logger.info('  --migrate-to-bloc');
+      _logger.info('  --add-error-handling');
+      _logger.info('  --add-logging');
+      _logger.info('  --optimize-performance');
+      _logger.info('  --add-testing');
+      exit(1);
+    }
+
+    // Create refactoring config
+    final config = RefactoringConfig(
+      dryRun: results['dry-run'] as bool? ?? false,
+      createBackup: results['backup'] as bool? ?? true,
+      runTests: results['run-tests'] as bool? ?? true,
+      formatCode: results['format'] as bool? ?? true,
+    );
+
+    _logger.info('Refactoring: ${refactoringType.label}');
+    _logger.info('Description: ${refactoringType.description}');
+    _logger.info('');
+
+    if (config.dryRun) {
+      _logger.info('🔍 Running in DRY RUN mode - no files will be modified');
+      _logger.info('');
+    }
+
+    // Create refactoring tool
+    final tool = AutoRefactoringTool(
+      logger: _logger,
+      config: config,
+    );
+
+    // Run refactoring
+    final result = await tool.refactor(projectPath, refactoringType);
+
+    // Print results
+    _logger.info('');
+    _logger.info(result.summary);
+
+    if (result.success) {
+      _logger.info('');
+      _logger.info('📝 Modified files:');
+      for (final file in result.filesModified) {
+        _logger.info('  • $file');
+      }
+
+      if (result.filesCreated.isNotEmpty) {
+        _logger.info('');
+        _logger.info('➕ Created files:');
+        for (final file in result.filesCreated) {
+          _logger.info('  • $file');
+        }
+      }
+
+      if (result.changes.isNotEmpty) {
+        _logger.info('');
+        _logger.info('🔧 Changes applied:');
+        for (final change in result.changes.take(10)) {
+          _logger.info(change.toString());
+        }
+        if (result.changes.length > 10) {
+          _logger.info('  ... and ${result.changes.length - 10} more changes');
+        }
+      }
+
+      if (!config.dryRun) {
+        _logger.info('');
+        _logger.info('💡 Next steps:');
+        _logger.info('  1. Review the changes');
+        _logger.info('  2. Run: flutter pub get');
+        _logger.info('  3. Run: flutter test');
+        _logger.info('  4. Commit the changes');
+      }
+    } else {
+      exit(1);
+    }
+  }
+
   void _printUsage(ArgParser parser) {
     _logger.info('flutter_blueprint - Smart Flutter scaffolding CLI\n');
     _logger.info('Usage: flutter_blueprint <command> [arguments]\n');
@@ -641,8 +911,11 @@ class CliRunner {
     _logger.info('  init [app_name]        Create a new Flutter project');
     _logger.info(
         '                         If app_name is omitted, launches interactive wizard');
+    _logger
+        .info('  add feature <name>     Add a new feature to existing project');
+    _logger.info('  analyze [path]         Analyze code quality in project');
     _logger.info(
-        '  add feature <name>     Add a new feature to existing project\n');
+        '  refactor [path]        Refactor project with automatic improvements\n');
     _logger.info('Global options:');
     _logger.info(parser.usage);
     _logger.info('\nInit Examples:');
@@ -711,5 +984,47 @@ class CliRunner {
     _logger.info('  # Generate only presentation layer');
     _logger.info(
         '  flutter_blueprint add feature settings --presentation --no-data --no-domain');
+    _logger.info('');
+    _logger.info('Analyze Examples:');
+    _logger.info('  # Basic analysis');
+    _logger.info('  flutter_blueprint analyze');
+    _logger.info('  flutter_blueprint analyze ./my_project');
+    _logger.info('');
+    _logger.info('  # Strict mode (all warnings become errors)');
+    _logger.info('  flutter_blueprint analyze --strict');
+    _logger.info('');
+    _logger.info('  # Performance analysis');
+    _logger.info('  flutter_blueprint analyze --performance');
+    _logger.info('');
+    _logger.info('  # Accessibility checks');
+    _logger.info('  flutter_blueprint analyze --accessibility');
+    _logger.info('');
+    _logger.info('  # All checks');
+    _logger.info(
+        '  flutter_blueprint analyze --strict --performance --accessibility');
+    _logger.info('');
+    _logger.info('Refactor Examples:');
+    _logger.info('  # Add caching layer');
+    _logger.info('  flutter_blueprint refactor --add-caching');
+    _logger.info('');
+    _logger.info('  # Add offline support');
+    _logger.info('  flutter_blueprint refactor --add-offline-support');
+    _logger.info('');
+    _logger.info('  # Migrate state management');
+    _logger.info('  flutter_blueprint refactor --migrate-to-riverpod');
+    _logger.info('  flutter_blueprint refactor --migrate-to-bloc');
+    _logger.info('');
+    _logger.info('  # Add error handling and logging');
+    _logger.info('  flutter_blueprint refactor --add-error-handling');
+    _logger.info('  flutter_blueprint refactor --add-logging');
+    _logger.info('');
+    _logger.info('  # Performance optimization');
+    _logger.info('  flutter_blueprint refactor --optimize-performance');
+    _logger.info('');
+    _logger.info('  # Add testing infrastructure');
+    _logger.info('  flutter_blueprint refactor --add-testing');
+    _logger.info('');
+    _logger.info('  # Dry run (preview changes)');
+    _logger.info('  flutter_blueprint refactor --add-caching --dry-run');
   }
 }

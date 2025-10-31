@@ -8,9 +8,13 @@ library flutter_blueprint;
 // This library exports only the programmatic APIs that can be used
 // on all platforms if needed.
 
+export 'src/analyzer/code_quality_analyzer.dart';
+export 'src/analyzer/quality_issue.dart';
 export 'src/config/blueprint_config.dart';
 export 'src/config/blueprint_manifest.dart';
 export 'src/generator/blueprint_generator.dart';
+export 'src/refactoring/auto_refactoring_tool.dart';
+export 'src/refactoring/refactoring_types.dart';
 export 'src/templates/template_library.dart';
 export 'src/utils/dependency_manager.dart';
 export 'src/utils/project_preview.dart';
