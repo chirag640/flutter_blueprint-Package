@@ -134,6 +134,7 @@ class BlueprintGenerator {
     _logger.info('');
     _logger.info('Next steps:');
     _logger.info('  cd ${config.appName}');
+    _logger.info('  flutter create .');
     _logger.info('  flutter run');
   }
 
