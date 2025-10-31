@@ -1,0 +1,39 @@
+name: company_standard
+version: 1.0.0
+author: Engineering Team
+description: Standard configuration for enterprise Flutter projects with best practices
+defaults:
+  state_management: riverpod
+  platforms:
+    - mobile
+    - web
+  include_theme: true
+  include_api: true
+  include_tests: true
+  include_localization: true
+  include_env: true
+  ci_provider: github
+required_packages:
+  - dio
+  - shared_preferences
+  - flutter_secure_storage
+  - cached_network_image
+  - intl
+  - go_router
+code_style:
+  line_length: 80
+  prefer_const: true
+  require_documentation: false
+  sort_imports: true
+  avoid_print: true
+  prefer_final_fields: true
+architecture:
+  feature_structure: clean_architecture
+  naming_convention: snake_case
+  enforce_layer_separation: true
+  require_tests: true
+metadata:
+  organization: My Company Inc
+  team: Mobile Development
+  support_email: mobile-dev@company.com
+  documentation_url: "https://wiki.company.com/mobile-standards"

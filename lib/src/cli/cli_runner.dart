@@ -7,7 +7,9 @@ import '../analyzer/quality_issue.dart';
 import '../commands/add_feature_command.dart';
 import '../commands/analyze_command.dart';
 import '../commands/optimize_command.dart';
+import '../commands/share_command.dart';
 import '../config/blueprint_config.dart';
+import '../config/config_repository.dart';
 import '../generator/blueprint_generator.dart';
 import '../prompts/interactive_prompter.dart';
 import '../refactoring/auto_refactoring_tool.dart';
@@ -69,6 +71,9 @@ class CliRunner {
         case 'refactor':
           await _runRefactor(results);
           break;
+        case 'share':
+          await _runShare(results);
+          break;
         default:
           _logger.error('Unknown command: $command');
           _printUsage(parser);
@@ -128,6 +133,10 @@ class CliRunner {
           'food-delivery',
           'chat-app'
         ],
+      )
+      ..addOption(
+        'from-config',
+        help: 'Load project settings from a shared configuration',
       )
       ..addFlag(
         'preview',
@@ -266,7 +275,8 @@ class CliRunner {
     }
 
     // Gather configuration
-    final config = await _gatherConfig(results, appName);
+    final config = await _gatherConfig(results, appName,
+        loadFromShared: results['from-config'] as String?);
 
     // Parse template if provided
     final templateArg = results['template'] as String?;
@@ -612,8 +622,36 @@ class CliRunner {
 
   Future<BlueprintConfig> _gatherConfig(
     ArgResults results,
-    String providedAppName,
-  ) async {
+    String providedAppName, {
+    String? loadFromShared,
+  }) async {
+    // If loading from shared config, load and use it
+    if (loadFromShared != null) {
+      _logger.info('📖 Loading configuration from: $loadFromShared\n');
+
+      final repository = ConfigRepository(logger: _logger);
+      try {
+        final sharedConfig = await repository.load(loadFromShared);
+
+        // Show what's being loaded
+        _logger.info('✅ Loaded configuration: ${sharedConfig.name}');
+        _logger.info('   Version: ${sharedConfig.version}');
+        _logger.info('   Author: ${sharedConfig.author}');
+        _logger.info('');
+
+        // Convert to BlueprintConfig
+        return sharedConfig.toBlueprintConfig(providedAppName);
+      } catch (e) {
+        _logger.error('❌ Failed to load shared configuration: $e');
+        _logger.info('Available configurations:');
+        final configs = await repository.listConfigs();
+        for (final info in configs) {
+          _logger.info('  • ${info.name}');
+        }
+        exit(1);
+      }
+    }
+
     // App name with validation
     String appName = providedAppName;
     if (appName.isEmpty) {
@@ -829,6 +867,193 @@ class CliRunner {
     }
   }
 
+  /// Runs the share command for managing shared configurations
+  Future<void> _runShare(ArgResults results) async {
+    // Get subcommand and arguments
+    final args = results.rest.skip(1).toList(); // Skip 'share' itself
+
+    if (args.isEmpty) {
+      // No subcommand provided, show help
+      final command = ShareCommand(logger: _logger);
+      command.printUsage();
+      return;
+    }
+
+    final subcommand = args[0];
+    final subArgs = args.skip(1).toList();
+
+    try {
+      final repository = ConfigRepository(logger: _logger);
+
+      switch (subcommand) {
+        case 'list':
+          await _handleShareList(repository);
+          break;
+        case 'config':
+          await _handleShareConfig(repository, subArgs);
+          break;
+        case 'export':
+          await _handleShareExport(repository, subArgs);
+          break;
+        case 'import':
+          await _handleShareImport(repository, subArgs);
+          break;
+        case 'delete':
+          await _handleShareDelete(repository, subArgs);
+          break;
+        case 'validate':
+          await _handleShareValidate(repository, subArgs);
+          break;
+        default:
+          _logger.error('Unknown subcommand: $subcommand');
+          final command = ShareCommand(logger: _logger);
+          command.printUsage();
+          exit(1);
+      }
+    } catch (e) {
+      _logger.error('Error running share command: $e');
+      exit(1);
+    }
+  }
+
+  Future<void> _handleShareList(ConfigRepository repository) async {
+    _logger.info('📋 Available configurations:\n');
+
+    final configs = await repository.listConfigs();
+
+    if (configs.isEmpty) {
+      _logger.info('No configurations found.');
+      _logger.info(
+        '\nCreate a configuration with: flutter_blueprint share config <name>',
+      );
+      return;
+    }
+
+    for (final info in configs) {
+      _logger.info('  • ${info.name}');
+      _logger.info('    Version: ${info.config.version}');
+      _logger.info('    Author: ${info.config.author}');
+      _logger.info('    Description: ${info.config.description}');
+      _logger.info('    Path: ${info.filePath}');
+      _logger.info('');
+    }
+
+    _logger.info(
+      'Use with: flutter_blueprint init my_app --from-config <name>',
+    );
+  }
+
+  Future<void> _handleShareConfig(
+    ConfigRepository repository,
+    List<String> args,
+  ) async {
+    if (args.isEmpty) {
+      _logger.error('Usage: flutter_blueprint share config <name>');
+      exit(1);
+    }
+
+    _logger.info(
+        'This command requires a blueprint_manifest.yaml in the current directory.');
+    _logger.info('Run this from a project created with flutter_blueprint.');
+    _logger.error('\n❌ Not implemented yet for direct CLI use.');
+    _logger.info('You can manually create a configuration file instead.');
+  }
+
+  Future<void> _handleShareExport(
+    ConfigRepository repository,
+    List<String> args,
+  ) async {
+    if (args.length < 2) {
+      _logger.error(
+        'Usage: flutter_blueprint share export <config-name> <output-path>',
+      );
+      exit(1);
+    }
+
+    final configName = args[0];
+    final outputPath = args[1];
+
+    await repository.export(configName, outputPath);
+    _logger.success('✅ Configuration exported successfully!');
+  }
+
+  Future<void> _handleShareImport(
+    ConfigRepository repository,
+    List<String> args,
+  ) async {
+    if (args.isEmpty) {
+      _logger.error(
+        'Usage: flutter_blueprint share import <file-path> [config-name]',
+      );
+      exit(1);
+    }
+
+    final filePath = args[0];
+    final configName = args.length > 1 ? args[1] : null;
+
+    // Validate before importing
+    final validation = await repository.validate(filePath);
+
+    if (!validation.isValid) {
+      _logger.error('❌ Configuration file is invalid:\n');
+      _logger.error(validation.format());
+      exit(1);
+    }
+
+    if (validation.hasWarnings) {
+      _logger.warning('\n⚠️  Warnings:\n');
+      _logger.warning(validation.format());
+    }
+
+    await repository.import(filePath, configName);
+    _logger.success('✅ Configuration imported successfully!');
+  }
+
+  Future<void> _handleShareDelete(
+    ConfigRepository repository,
+    List<String> args,
+  ) async {
+    if (args.isEmpty) {
+      _logger.error('Usage: flutter_blueprint share delete <config-name>');
+      exit(1);
+    }
+
+    final configName = args[0];
+
+    // Confirm deletion
+    stdout.write('Delete configuration "$configName"? (y/N): ');
+    final confirm = stdin.readLineSync()?.trim().toLowerCase();
+
+    if (confirm != 'y' && confirm != 'yes') {
+      _logger.info('Cancelled.');
+      return;
+    }
+
+    await repository.delete(configName);
+  }
+
+  Future<void> _handleShareValidate(
+    ConfigRepository repository,
+    List<String> args,
+  ) async {
+    if (args.isEmpty) {
+      _logger.error('Usage: flutter_blueprint share validate <file-path>');
+      exit(1);
+    }
+
+    final filePath = args[0];
+
+    _logger.info('🔍 Validating configuration...\n');
+
+    final validation = await repository.validate(filePath);
+
+    _logger.info(validation.format());
+
+    if (!validation.isValid) {
+      exit(1);
+    }
+  }
+
   /// Runs refactoring on the project.
   Future<void> _runRefactor(ArgResults results) async {
     _logger.info('🔧 Running refactoring...\n');
@@ -959,7 +1184,9 @@ class CliRunner {
         '  analyze [path]         Analyze code quality, bundle size, or performance');
     _logger.info('  optimize [path]        Optimize bundle size and assets');
     _logger.info(
-        '  refactor [path]        Refactor project with automatic improvements\n');
+        '  refactor [path]        Refactor project with automatic improvements');
+    _logger
+        .info('  share <subcommand>     Manage shared team configurations\n');
     _logger.info('Global options:');
     _logger.info(parser.usage);
     _logger.info('\nInit Examples:');
@@ -1086,5 +1313,25 @@ class CliRunner {
     _logger.info('');
     _logger.info('  # Dry run (preview changes)');
     _logger.info('  flutter_blueprint refactor --add-caching --dry-run');
+    _logger.info('');
+    _logger.info('Share Command Examples:');
+    _logger.info('  # List available shared configurations');
+    _logger.info('  flutter_blueprint share list');
+    _logger.info('');
+    _logger.info('  # Create a shared configuration from current project');
+    _logger.info('  flutter_blueprint share config company_standard');
+    _logger.info('');
+    _logger.info('  # Use a shared configuration');
+    _logger
+        .info('  flutter_blueprint init my_app --from-config company_standard');
+    _logger.info('');
+    _logger.info('  # Export/import configurations');
+    _logger.info(
+        '  flutter_blueprint share export company_standard ./configs/standard.yaml');
+    _logger.info(
+        '  flutter_blueprint share import ./configs/standard.yaml my_config');
+    _logger.info('');
+    _logger.info('  # Validate a configuration file');
+    _logger.info('  flutter_blueprint share validate company_standard.yaml');
   }
 }

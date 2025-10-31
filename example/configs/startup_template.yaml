@@ -1,0 +1,34 @@
+# Startup Template Configuration
+# Lean and fast configuration for startups and small teams
+
+name: startup_template
+version: 1.0.0
+author: Startup Team
+description: Lightweight configuration for rapid MVP development
+
+defaults:
+  state_management: provider
+  platforms:
+    - mobile
+  ci_provider: github
+  include_theme: true
+  include_localization: false
+  include_env: true
+  include_api: true
+  include_tests: true
+
+required_packages:
+  - http
+  - shared_preferences
+  - flutter_svg
+
+code_style:
+  line_length: 100
+  prefer_const: true
+
+architecture:
+  naming_convention: camelCase
+
+metadata:
+  philosophy: "Move fast, iterate quickly"
+  focus: "MVP features first, optimization later"
