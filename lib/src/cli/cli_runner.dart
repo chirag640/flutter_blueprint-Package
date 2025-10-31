@@ -6,8 +6,11 @@ import '../commands/add_feature_command.dart';
 import '../config/blueprint_config.dart';
 import '../generator/blueprint_generator.dart';
 import '../prompts/interactive_prompter.dart';
+import '../templates/template_library.dart';
 import '../utils/logger.dart';
 import '../utils/input_validator.dart';
+import '../utils/project_preview.dart';
+import '../utils/dependency_manager.dart';
 
 /// Main CLI entry point that parses arguments and delegates to commands.
 class CliRunner {
@@ -96,6 +99,31 @@ class CliRunner {
         help: 'CI/CD provider (github, gitlab, azure)',
         allowed: ['github', 'gitlab', 'azure'],
       )
+      ..addOption(
+        'template',
+        abbr: 't',
+        help:
+            'Project template (blank, ecommerce, social-media, fitness-tracker, finance-app, food-delivery, chat-app)',
+        allowed: [
+          'blank',
+          'ecommerce',
+          'social-media',
+          'fitness-tracker',
+          'finance-app',
+          'food-delivery',
+          'chat-app'
+        ],
+      )
+      ..addFlag(
+        'preview',
+        help: 'Show project structure preview before generation',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'latest-deps',
+        help: 'Fetch latest dependency versions from pub.dev',
+        defaultsTo: null,
+      )
       ..addFlag(
         'theme',
         help: 'Include theme scaffolding',
@@ -148,10 +176,77 @@ class CliRunner {
     // Gather configuration
     final config = await _gatherConfig(results, appName);
 
+    // Parse template if provided
+    final templateArg = results['template'] as String?;
+    final template = templateArg != null
+        ? ProjectTemplate.parse(templateArg)
+        : ProjectTemplate.blank;
+
+    // Show template info if not blank
+    if (template != ProjectTemplate.blank) {
+      _logger.info('');
+      _logger.info('📦 Using template: ${template.label}');
+      _logger.info('   ${template.description}');
+      _logger.info('');
+      _logger.info('   Features included:');
+      for (final feature in template.features) {
+        _logger.info('     • $feature');
+      }
+      _logger.info('');
+    }
+
+    // Show preview if requested
+    final showPreview = results['preview'] as bool? ?? false;
+    if (showPreview) {
+      final previewer = ProjectPreview(logger: _logger);
+      previewer.show(config);
+
+      // Ask for confirmation
+      final confirmed = await _prompter.confirm(
+        '🚀 Proceed with generation?',
+        defaultValue: true,
+      );
+
+      if (!confirmed) {
+        _logger.info('❌ Cancelled. No files were created.');
+        return;
+      }
+      _logger.info('');
+    }
+
+    // Fetch latest dependency versions if requested
+    final fetchLatestDeps = results['latest-deps'] as bool? ?? false;
+    if (fetchLatestDeps) {
+      final depManager = DependencyManager(logger: _logger);
+      try {
+        await depManager.getRecommendedDependencies(
+          stateManagement: config.stateManagement.label,
+          includeApi: config.includeApi,
+          includeLocalization: config.includeLocalization,
+        );
+      } finally {
+        depManager.close();
+      }
+      _logger.info('');
+    }
+
     // Generate project
     final targetPath =
         Directory.current.path + Platform.pathSeparator + config.appName;
     await _generator.generate(config, targetPath);
+
+    // Generate template-specific features if not blank
+    if (template != ProjectTemplate.blank) {
+      final templateBundle = TemplateLibrary.getTemplate(template, config);
+      if (templateBundle.requiredFeatures.isNotEmpty) {
+        _logger.info('');
+        _logger.info('🎯 Generating template features...');
+        // TODO: Implement feature generation for template
+        // This would require integrating with FeatureGenerator
+        _logger.info(
+            '   Note: Template feature generation will be available in a future update');
+      }
+    }
   }
 
   Future<void> _runAddDirect(List<String> arguments) async {
@@ -187,6 +282,40 @@ class CliRunner {
     _logger.info(
         '   Let\'s create your Flutter app with professional architecture.');
     _logger.info('');
+
+    // Template selection
+    _logger.info('');
+    final templateChoice = await _prompter.choose(
+      '📦 Choose a project template',
+      [
+        'Blank - Basic architecture',
+        'E-Commerce - Product catalog & checkout',
+        'Social Media - Posts, comments & likes',
+        'Fitness Tracker - Workout logging & progress',
+        'Finance App - Transaction management',
+        'Food Delivery - Restaurant & order tracking',
+        'Chat App - Real-time messaging',
+      ],
+      defaultValue: 'Blank - Basic architecture',
+    );
+
+    final template = _parseTemplateChoice(templateChoice);
+
+    // Show template details
+    if (template != ProjectTemplate.blank) {
+      _logger.info('');
+      _logger.info('📦 ${template.label}');
+      _logger.info('   ${template.description}');
+      _logger.info('');
+      _logger.info('   Features included:');
+      for (final feature in template.features.take(5)) {
+        _logger.info('     • $feature');
+      }
+      if (template.features.length > 5) {
+        _logger.info('     ... and ${template.features.length - 5} more');
+      }
+      _logger.info('');
+    }
 
     // App name with comprehensive validation
     String appName;
@@ -280,6 +409,9 @@ class CliRunner {
     // Show summary
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
+    if (template != ProjectTemplate.blank) {
+      _logger.info('   Template: ${template.label}');
+    }
     _logger.info('   App name: $appName');
     _logger.info(
         '   Platforms: ${targetPlatforms.map((p) => p.label).join(', ')}');
@@ -291,17 +423,6 @@ class CliRunner {
     _logger.info('   API client: ${includeApi ? '✅' : '❌'}');
     _logger.info('   Tests: ${includeTests ? '✅' : '❌'}');
     _logger.info('');
-
-    // Confirm
-    final confirmed = await _prompter.confirm(
-      '🚀 Ready to generate your app?',
-      defaultValue: true,
-    );
-
-    if (!confirmed) {
-      _logger.info('❌ Cancelled. No files were created.');
-      return;
-    }
 
     // Create config
     final config = BlueprintConfig(
@@ -316,10 +437,85 @@ class CliRunner {
       includeTests: includeTests,
     );
 
+    // Ask if they want to see preview
+    final wantPreview = await _prompter.confirm(
+      '�️  Show project structure preview?',
+      defaultValue: true,
+    );
+
+    if (wantPreview) {
+      final previewer = ProjectPreview(logger: _logger);
+      previewer.show(config);
+    }
+
+    // Ask about fetching latest dependency versions
+    final fetchLatest = await _prompter.confirm(
+      '🔍 Fetch latest dependency versions from pub.dev?',
+      defaultValue: false,
+    );
+
+    if (fetchLatest) {
+      _logger.info('');
+      final depManager = DependencyManager(logger: _logger);
+      try {
+        await depManager.getRecommendedDependencies(
+          stateManagement: stateMgmt.label,
+          includeApi: includeApi,
+          includeLocalization: includeLocalization,
+        );
+      } finally {
+        depManager.close();
+      }
+    }
+
+    // Final confirm
+    _logger.info('');
+    final confirmed = await _prompter.confirm(
+      '🚀 Ready to generate your app?',
+      defaultValue: true,
+    );
+
+    if (!confirmed) {
+      _logger.info('❌ Cancelled. No files were created.');
+      return;
+    }
+
     // Generate project
     final targetPath =
         Directory.current.path + Platform.pathSeparator + config.appName;
     await _generator.generate(config, targetPath);
+
+    // Generate template-specific features if not blank
+    if (template != ProjectTemplate.blank) {
+      final templateBundle = TemplateLibrary.getTemplate(template, config);
+      if (templateBundle.requiredFeatures.isNotEmpty) {
+        _logger.info('');
+        _logger.info('🎯 Generating template features...');
+        // TODO: Implement feature generation for template
+        _logger.info(
+            '   Note: Template feature generation will be available in a future update');
+      }
+    }
+  }
+
+  /// Parse template choice from interactive wizard
+  ProjectTemplate _parseTemplateChoice(String choice) {
+    if (choice.startsWith('Blank')) {
+      return ProjectTemplate.blank;
+    } else if (choice.startsWith('E-Commerce')) {
+      return ProjectTemplate.ecommerce;
+    } else if (choice.startsWith('Social Media')) {
+      return ProjectTemplate.socialMedia;
+    } else if (choice.startsWith('Fitness Tracker')) {
+      return ProjectTemplate.fitnessTracker;
+    } else if (choice.startsWith('Finance App')) {
+      return ProjectTemplate.financeApp;
+    } else if (choice.startsWith('Food Delivery')) {
+      return ProjectTemplate.foodDelivery;
+    } else if (choice.startsWith('Chat App')) {
+      return ProjectTemplate.chatApp;
+    }
+    return ProjectTemplate.blank;
   }
 
   Future<BlueprintConfig> _gatherConfig(
@@ -458,6 +654,24 @@ class CliRunner {
     _logger.info('  flutter_blueprint init my_app --state provider --theme');
     _logger.info(
         '  flutter_blueprint init my_app --state riverpod --no-localization');
+    _logger.info('');
+    _logger.info('  # With project preview (see structure before generation)');
+    _logger.info('  flutter_blueprint init my_app --preview');
+    _logger.info('  flutter_blueprint init my_app --state bloc --preview');
+    _logger.info('');
+    _logger.info('  # With latest dependency versions from pub.dev');
+    _logger.info('  flutter_blueprint init my_app --latest-deps');
+    _logger
+        .info('  flutter_blueprint init my_app --state riverpod --latest-deps');
+    _logger.info('');
+    _logger.info('  # Using templates for common app types');
+    _logger.info('  flutter_blueprint init my_store --template ecommerce');
+    _logger.info('  flutter_blueprint init my_social --template social-media');
+    _logger
+        .info('  flutter_blueprint init my_fitness --template fitness-tracker');
+    _logger.info('  flutter_blueprint init my_budget --template finance-app');
+    _logger.info('  flutter_blueprint init my_food --template food-delivery');
+    _logger.info('  flutter_blueprint init my_chat --template chat-app');
     _logger.info('');
     _logger.info('  # With CI/CD configuration');
     _logger.info('  flutter_blueprint init my_app --ci github');

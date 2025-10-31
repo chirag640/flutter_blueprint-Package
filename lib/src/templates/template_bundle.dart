@@ -21,7 +21,21 @@ class TemplateFile {
 }
 
 class TemplateBundle {
-  const TemplateBundle({required this.files});
+  const TemplateBundle({
+    required this.files,
+    this.additionalDependencies = const {},
+    this.additionalDevDependencies = const {},
+    this.requiredFeatures = const [],
+  });
 
   final List<TemplateFile> files;
+
+  /// Additional dependencies to add to pubspec.yaml
+  final Map<String, String> additionalDependencies;
+
+  /// Additional dev dependencies to add to pubspec.yaml
+  final Map<String, String> additionalDevDependencies;
+
+  /// List of feature names that should be generated for this template
+  final List<String> requiredFeatures;
 }

@@ -11,3 +11,6 @@ library flutter_blueprint;
 export 'src/config/blueprint_config.dart';
 export 'src/config/blueprint_manifest.dart';
 export 'src/generator/blueprint_generator.dart';
+export 'src/templates/template_library.dart';
+export 'src/utils/dependency_manager.dart';
+export 'src/utils/project_preview.dart';
