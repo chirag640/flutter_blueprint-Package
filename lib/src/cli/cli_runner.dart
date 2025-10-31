@@ -5,6 +5,8 @@ import 'package:args/args.dart';
 import '../analyzer/code_quality_analyzer.dart';
 import '../analyzer/quality_issue.dart';
 import '../commands/add_feature_command.dart';
+import '../commands/analyze_command.dart';
+import '../commands/optimize_command.dart';
 import '../config/blueprint_config.dart';
 import '../generator/blueprint_generator.dart';
 import '../prompts/interactive_prompter.dart';
@@ -60,6 +62,9 @@ class CliRunner {
           break;
         case 'analyze':
           await _runAnalyze(results);
+          break;
+        case 'optimize':
+          await _runOptimize(results);
           break;
         case 'refactor':
           await _runRefactor(results);
@@ -723,6 +728,28 @@ class CliRunner {
 
   /// Runs code quality analysis on the project.
   Future<void> _runAnalyze(ArgResults results) async {
+    // Check if this is the new analyze command with --size or --performance flags
+    final hasNewFlags = results.rest.contains('--size') ||
+        results.rest.contains('--performance') ||
+        results.rest.contains('--all');
+
+    if (hasNewFlags) {
+      // Use new AnalyzeCommand
+      final command = AnalyzeCommand(logger: _logger);
+      final parser = ArgParser();
+      command.configureArgs(parser);
+
+      try {
+        final cmdResults = parser.parse(results.rest.skip(1).toList());
+        await command.execute(cmdResults);
+      } catch (e) {
+        _logger.error('Error running analyze command: $e');
+        exit(1);
+      }
+      return;
+    }
+
+    // Fall back to old code quality analysis
     _logger.info('🔍 Running code quality analysis...\n');
 
     // Get project path from arguments or use current directory
@@ -784,6 +811,21 @@ class CliRunner {
     } else {
       _logger.info('');
       _logger.success('✅ All checks passed! Your code looks great.');
+    }
+  }
+
+  /// Runs optimization on the project.
+  Future<void> _runOptimize(ArgResults results) async {
+    final command = OptimizeCommand(logger: _logger);
+    final parser = ArgParser();
+    command.configureArgs(parser);
+
+    try {
+      final cmdResults = parser.parse(results.rest.skip(1).toList());
+      await command.execute(cmdResults);
+    } catch (e) {
+      _logger.error('Error running optimize command: $e');
+      exit(1);
     }
   }
 
@@ -913,7 +955,9 @@ class CliRunner {
         '                         If app_name is omitted, launches interactive wizard');
     _logger
         .info('  add feature <name>     Add a new feature to existing project');
-    _logger.info('  analyze [path]         Analyze code quality in project');
+    _logger.info(
+        '  analyze [path]         Analyze code quality, bundle size, or performance');
+    _logger.info('  optimize [path]        Optimize bundle size and assets');
     _logger.info(
         '  refactor [path]        Refactor project with automatic improvements\n');
     _logger.info('Global options:');
@@ -986,22 +1030,38 @@ class CliRunner {
         '  flutter_blueprint add feature settings --presentation --no-data --no-domain');
     _logger.info('');
     _logger.info('Analyze Examples:');
-    _logger.info('  # Basic analysis');
+    _logger.info('  # Code quality analysis');
     _logger.info('  flutter_blueprint analyze');
     _logger.info('  flutter_blueprint analyze ./my_project');
     _logger.info('');
-    _logger.info('  # Strict mode (all warnings become errors)');
-    _logger.info('  flutter_blueprint analyze --strict');
+    _logger.info('  # Bundle size analysis');
+    _logger.info('  flutter_blueprint analyze --size');
+    _logger.info('  flutter_blueprint analyze --size --verbose');
     _logger.info('');
     _logger.info('  # Performance analysis');
     _logger.info('  flutter_blueprint analyze --performance');
     _logger.info('');
+    _logger.info('  # All analyses');
+    _logger.info('  flutter_blueprint analyze --all');
+    _logger.info('');
+    _logger.info('  # Strict mode (all warnings become errors)');
+    _logger.info('  flutter_blueprint analyze --strict');
+    _logger.info('');
     _logger.info('  # Accessibility checks');
     _logger.info('  flutter_blueprint analyze --accessibility');
     _logger.info('');
-    _logger.info('  # All checks');
-    _logger.info(
-        '  flutter_blueprint analyze --strict --performance --accessibility');
+    _logger.info('Optimize Examples:');
+    _logger.info('  # Analyze tree-shaking opportunities');
+    _logger.info('  flutter_blueprint optimize --tree-shake');
+    _logger.info('');
+    _logger.info('  # Optimize assets');
+    _logger.info('  flutter_blueprint optimize --assets');
+    _logger.info('');
+    _logger.info('  # All optimizations');
+    _logger.info('  flutter_blueprint optimize --all');
+    _logger.info('');
+    _logger.info('  # Dry run (preview changes)');
+    _logger.info('  flutter_blueprint optimize --assets --dry-run');
     _logger.info('');
     _logger.info('Refactor Examples:');
     _logger.info('  # Add caching layer');
