@@ -83,6 +83,29 @@ class BlueprintGenerator {
       _printCISetupInstructions(config.ciProvider);
     }
 
+    // Ensure Flutter platform files are created (adds platform folders)
+    _logger.info('');
+    _logger.info('🛠️ Initializing Flutter project files...');
+    try {
+      final createResult = await Process.run(
+        'flutter',
+        ['create', '.'],
+        workingDirectory: targetPath,
+        runInShell: true,
+      );
+
+      if (createResult.exitCode == 0) {
+        _logger.success('✅ Flutter project files initialized successfully!');
+      } else {
+        _logger.warning(
+            '⚠️  Failed to run "flutter create ." automatically. Please run "flutter create ." manually if you need platform folders.');
+        _logger.warning('   Error: ${createResult.stderr}');
+      }
+    } catch (e) {
+      _logger.warning(
+          '⚠️  Failed to run "flutter create ." automatically. Please run "flutter create ." manually if you need platform folders.');
+    }
+
     // Auto-install dependencies
     _logger.info('');
     _logger.info('📦 Installing dependencies...');
