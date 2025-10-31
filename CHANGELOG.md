@@ -1,13 +1,36 @@
-## 0.5.3 (2025-10-30) - Automated Publishing & CI/CD
+## 0.6.1 (2025-10-31) - Platform Support & Auto-Publish Fixes
+
+### 🔧 Bug Fixes
+
+**Platform Support Declaration:**
+
+- ✅ Fixed incorrect platform support warnings by explicitly declaring CLI platforms (Windows, Linux, macOS)
+- ✅ Removed `CliRunner` export from main library to prevent mobile platform conflicts
+- ✅ Updated package description to clarify this is a CLI tool that **generates** apps for all platforms
+- ✅ Added clear documentation that CLI runs on desktop, but generated projects support Android/iOS/Web/Desktop
+
+**Auto-Publishing Reliability:**
+
+- ✅ Fixed auto-publish workflow not triggering by using PAT instead of GITHUB_TOKEN
+- ✅ Added `persist-credentials: false` to checkout step
+- ✅ Added configurable `REPO_PAT` secret support with graceful fallback
+- ✅ Updated README with setup instructions for reliable auto-publishing
+
+### 📝 Documentation
+
+- ✅ Added prominent note in README clarifying CLI vs generated project platforms
+- ✅ Added PAT setup guide for GitHub Actions publishing
+- ✅ Updated pubspec.yaml description for better clarity
+
 ## 0.6.0 (2025-10-30)
 
 ### 🔄 Auto-generated Release
 
 **Changes:**
+
 - Automatic minor version bump
 - Triggered by: feat: Implement fully automated CI/CD with version bumping, publishing, and quality checks
 - Commit: d0f2de8cb067a561ddaeeedc35ccc62f2ffb5979
-
 
 ### 🤖 Fully Automated Release Pipeline
 

@@ -7,6 +7,8 @@
 [![Publish](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/publish.yml/badge.svg)](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/publish.yml)
 [![Quality](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/quality.yml/badge.svg)](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/quality.yml)
 
+> **📱 Important Note:** This is a **CLI tool** that runs on your development machine (Windows, Linux, macOS) to **generate** Flutter projects. The **generated projects support ALL platforms**: Android, iOS, Web, and Desktop. The CLI itself uses terminal-based UI libraries and thus only runs on desktop platforms, but the apps it creates work everywhere!
+
 ## 🚀 Why flutter_blueprint?
 
 | Problem                                    | Traditional Approach           | flutter_blueprint Solution                      |
