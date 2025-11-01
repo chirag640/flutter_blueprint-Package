@@ -112,7 +112,8 @@ class CliRunner {
       ..addOption(
         'platforms',
         abbr: 'p',
-        help: 'Target platforms (comma-separated: mobile,web,desktop or "all")',
+        help:
+            'Target platforms (comma-separated: mobile,web,desktop or android,ios,web or "all")',
       )
       ..addOption(
         'ci',

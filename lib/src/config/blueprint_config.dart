@@ -29,16 +29,33 @@ enum TargetPlatform {
 
   static TargetPlatform parse(String value) {
     final normalized = value.trim().toLowerCase();
+
+    // Direct match
     for (final candidate in TargetPlatform.values) {
       if (candidate.name == normalized) {
         return candidate;
       }
     }
-    throw ArgumentError('Unsupported platform: $value');
+
+    // Handle android/ios as mobile
+    if (normalized == 'android' || normalized == 'ios') {
+      return TargetPlatform.mobile;
+    }
+
+    // Handle windows/macos/linux as desktop
+    if (normalized == 'windows' ||
+        normalized == 'macos' ||
+        normalized == 'linux') {
+      return TargetPlatform.desktop;
+    }
+
+    throw ArgumentError(
+        'Unsupported platform: $value. Use: mobile, web, desktop (or android, ios, windows, macos, linux)');
   }
 
   /// Parse comma-separated list of platforms (e.g., "mobile,web,desktop")
   /// Also supports "all" to include all platforms
+  /// Accepts specific platforms like "android,ios,web" which map to "mobile,web"
   static List<TargetPlatform> parseMultiple(String value) {
     final normalized = value.trim().toLowerCase();
 
@@ -50,7 +67,7 @@ enum TargetPlatform {
     // Handle comma-separated values
     final parts =
         normalized.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty);
-    final platforms = <TargetPlatform>[];
+    final platforms = <TargetPlatform>{}; // Use Set to avoid duplicates
 
     for (final part in parts) {
       platforms.add(parse(part));
@@ -60,7 +77,7 @@ enum TargetPlatform {
       throw ArgumentError('At least one platform must be specified');
     }
 
-    return platforms;
+    return platforms.toList();
   }
 }
 

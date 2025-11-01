@@ -35,6 +35,16 @@ class BlueprintManifest {
         value.forEach((nestedKey, nestedValue) {
           writeEntry('$nestedKey', nestedValue, indent + 1);
         });
+      } else if (value is List) {
+        // Handle lists as YAML arrays
+        if (value.isEmpty) {
+          buffer.writeln('$prefix$key: []');
+        } else {
+          buffer.writeln('$prefix$key:');
+          for (final item in value) {
+            buffer.writeln('$prefix  - ${_scalar(item)}');
+          }
+        }
       } else {
         buffer.writeln('$prefix$key: ${_scalar(value)}');
       }
