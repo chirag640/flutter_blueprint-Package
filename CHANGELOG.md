@@ -1,3 +1,14 @@
+## 0.8.3 (2025-11-01) - Bug Fixes & Improvements
+
+### 🐛 FIX: Windows Compatibility
+
+- ✅ Fixed issues with Windows compatibility for Flutter commands
+- ✅ Improved handling of file paths and environment variables on Windows
+- ✅ Ensured `flutter pub get` and `flutter create` commands run correctly on Windows
+### 🛠️ IMPROVEMENT: Asset Configuration
+- ✅ Improved asset configuration handling for multi-platform projects
+- ✅ Streamlined asset paths and folder structures
+
 ## 0.8.0 (2025-11-01) - Collaboration & Team Features + Performance Optimization
 
 ### 🤝 NEW: Collaboration & Team Features
