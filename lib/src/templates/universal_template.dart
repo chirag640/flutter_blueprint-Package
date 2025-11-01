@@ -480,12 +480,9 @@ String _buildUniversalPubspec(BlueprintConfig config) {
     }
   }
 
-  // Assets configuration
-  final assetsConfig = config.includeLocalization
-      ? '''
-  assets:
-    - assets/l10n/'''
-      : '';
+  // Build assets block inline to avoid extra leading newlines/spacing
+  final assetsBlock =
+      config.includeLocalization ? '\n  assets:\n    - assets/l10n/' : '';
 
   return '''
 name: ${config.appName}
@@ -503,8 +500,7 @@ dev_dependencies:
 ${devDependencies.join('\n')}
 
 flutter:
-  uses-material-design: true
-  $assetsConfig
+  uses-material-design: true$assetsBlock
 ''';
 }
 

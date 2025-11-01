@@ -91,13 +91,15 @@ class BlueprintGenerator {
 
     // Auto-run flutter create (secure execution with timeout)
     _logger.info('');
-    _logger.info('� Initializing Flutter project...');
+    _logger.info('🎯 Initializing Flutter project...');
     try {
+      // Use 'flutter.bat' on Windows for better compatibility
+      final flutterCmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
       final createResult = await Process.run(
-        'flutter',
+        flutterCmd,
         ['create', '.'],
         workingDirectory: validatedPath,
-        runInShell: false, // Security: prevent shell injection
+        runInShell: true, // Required on Windows to find flutter in PATH
       ).timeout(
         const Duration(minutes: 3),
         onTimeout: () {
@@ -132,11 +134,13 @@ class BlueprintGenerator {
     _logger.info('');
     _logger.info('📦 Installing dependencies...');
     try {
+      // Use 'flutter.bat' on Windows for better compatibility
+      final flutterCmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
       final pubGetResult = await Process.run(
-        'flutter',
+        flutterCmd,
         ['pub', 'get'],
         workingDirectory: validatedPath,
-        runInShell: false, // Security: prevent shell injection
+        runInShell: true, // Required on Windows to find flutter in PATH
       ).timeout(
         const Duration(minutes: 5),
         onTimeout: () {
