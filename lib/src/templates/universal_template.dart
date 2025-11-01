@@ -503,7 +503,8 @@ dev_dependencies:
 ${devDependencies.join('\n')}
 
 flutter:
-  uses-material-design: true$assetsConfig
+  uses-material-design: true
+  $assetsConfig
 ''';
 }
 
