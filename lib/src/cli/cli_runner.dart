@@ -19,6 +19,7 @@ import '../utils/logger.dart';
 import '../utils/input_validator.dart';
 import '../utils/project_preview.dart';
 import '../utils/dependency_manager.dart';
+import '../utils/update_checker.dart';
 
 /// Main CLI entry point that parses arguments and delegates to commands.
 class CliRunner {
@@ -35,9 +36,18 @@ class CliRunner {
   final BlueprintGenerator _generator;
 
   Future<void> run(List<String> arguments) async {
+    // Check for updates in the background
+    UpdateInfo? updateInfo;
+    try {
+      updateInfo = await UpdateChecker().checkForUpdates();
+    } catch (_) {
+      // Fail silently
+    }
+
     // Handle add command separately to avoid flag conflicts
     if (arguments.isNotEmpty && arguments.first == 'add') {
       await _runAddDirect(arguments.skip(1).toList());
+      _showUpdateNotification(updateInfo);
       return;
     }
 
@@ -48,11 +58,13 @@ class CliRunner {
 
       if (results['help'] as bool) {
         _printUsage(parser);
+        _showUpdateNotification(updateInfo);
         return;
       }
 
       if (results['version'] as bool) {
-        _logger.info('flutter_blueprint version 0.1.0-dev.1');
+        _logger.info('flutter_blueprint version 0.8.4');
+        _showUpdateNotification(updateInfo);
         return;
       }
 
@@ -86,6 +98,28 @@ class CliRunner {
     } catch (e) {
       _logger.error('Unexpected error: $e');
       exit(1);
+    } finally {
+      _showUpdateNotification(updateInfo);
+    }
+  }
+
+  void _showUpdateNotification(UpdateInfo? updateInfo) {
+    if (updateInfo != null) {
+      _logger.info('');
+      _logger.info('┌──────────────────────────────────────────────────┐');
+      _logger.info('│              🚀 Update Available!              │');
+      _logger.info('├──────────────────────────────────────────────────┤');
+      _logger.info('│                                                  │');
+      _logger.info('│   A new version of flutter_blueprint is here!    │');
+      _logger.info('│                                                  │');
+      _logger.info('│   Current: ${updateInfo.currentVersion.padRight(10)}                           │');
+      _logger.info('│   Latest:  ${updateInfo.latestVersion.padRight(10)}                            │');
+      _logger.info('│                                                  │');
+      _logger.info('│   Run the command below to update:               │');
+      _logger.info('│                                                  │');
+      _logger.info('│   dart pub global activate flutter_blueprint     │');
+      _logger.info('│                                                  │');
+      _logger.info('└──────────────────────────────────────────────────┘');
     }
   }
 

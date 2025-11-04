@@ -55,6 +55,7 @@
 | � **Extensions & Utils**       | String, DateTime, Context extensions + Constants                             |
 | 🧪 **Professional Tests**      | Validator tests, test helpers, widget tests                                  |
 | 📁 **Smart File Organization** | Constants (endpoints, app), Errors, Network, Utils, Widgets                  |
+| 🚀 **Auto-Update Checker**     | Automatically notifies you when a new version is available                   |
 
 ### **DevOps Integration** (NEW in v0.5.0!)
 
@@ -70,11 +71,27 @@
 
 ## 📦 Installation
 
-### Global Activation (Recommended)
+### Windows (Automated Installer)
+
+For the best experience on Windows, use the automated installer. It handles adding the tool to your system's PATH automatically.
+
+Open PowerShell and run the following command:
+
+```powershell
+iex (irm 'https://raw.githubusercontent.com/chirag640/flutter_blueprint-Package/main/scripts/install.ps1')
+```
+
+After the script finishes, **restart your terminal**, and you can use the CLI anywhere.
+
+### macOS / Linux / Other
+
+For other platforms, or for manual installation, you can use `dart pub global activate`.
 
 ```bash
 dart pub global activate flutter_blueprint
 ```
+
+> **Note:** If you use this method, you may need to manually add the pub cache `bin` directory to your system's PATH. The command will provide the correct directory if needed.
 
 Then use it anywhere:
 

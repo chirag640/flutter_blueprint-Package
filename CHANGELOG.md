@@ -1,3 +1,19 @@
+## 0.8.4 (2025-11-03) - Quality of Life Improvements
+
+### ✨ NEW: Automated Windows Installer
+
+- ✅ Introduced `install.ps1` script for Windows users to automate installation and PATH setup.
+- ✅ Streamlined installation process from multiple manual steps to a single PowerShell command.
+- ✅ Automatically adds the Dart pub cache `bin` directory to the user's PATH environment variable.
+- ✅ Updated `README.md` to guide Windows users to the new automated installation method.
+
+### 🚀 NEW: Automatic Update Checker
+
+- ✅ Added a non-intrusive, automatic update checker to the CLI.
+- ✅ Notifies users when a new version of `flutter_blueprint` is available on pub.dev.
+- ✅ Caches the check for 24 hours to ensure minimal performance impact.
+- ✅ Displays a clear, actionable message with the command to update.
+
 ## 0.8.3 (2025-11-01) - Bug Fixes & Improvements
 
 ### 🐛 FIX: Windows Compatibility

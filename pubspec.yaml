@@ -1,6 +1,6 @@
 name: flutter_blueprint
 description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming."
-version: 0.8.3
+version: 0.8.4
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
 issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues
@@ -22,13 +22,13 @@ platforms:
 # was removed so the package isn't treated as a platform plugin.
 
 dependencies:
-  flutter:
-    sdk: flutter
   args: ^2.4.2
   path: ^1.9.0
   yaml: ^3.1.2
   mustache_template: ^2.0.0
   interact: ^2.2.0
+  http: ^1.1.0
+  pub_semver: ^2.1.4
 
 dev_dependencies:
   lints: ^3.0.0
