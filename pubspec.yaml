@@ -1,9 +1,10 @@
 name: flutter_blueprint
-description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming."
-version: 0.8.4
+description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming. Optional Hive offline caching support is available for generated projects (enable with `includeHive: true`)."
+version: 0.9.4
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
 issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues
+documentation: https://github.com/chirag640/flutter_blueprint-Package#readme
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

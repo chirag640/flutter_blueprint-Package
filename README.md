@@ -1128,6 +1128,24 @@ features:
 
 ---
 
+## Hive Offline Caching (NEW)
+
+- ✅ Optional Hive integration for generated projects to provide robust offline caching and sync functionality.
+- ✅ Enables `HiveDatabase`, `CacheManager`, and `SyncManager` files in generated apps when Hive is enabled via `includeHive`.
+- **CLI usage (planned flag):** `flutter_blueprint init my_app --state provider --hive` — note: the explicit CLI `--hive` flag is planned; currently enable Hive programmatically with `BlueprintConfig(includeHive: true)` or use the helper `tools/create_with_hive.dart` to generate a sample app.
+- **Programmatic usage:**
+
+```dart
+final config = BlueprintConfig(
+  appName: 'my_app',
+  stateManagement: StateManagement.provider,
+  platforms: [TargetPlatform.mobile],
+  includeHive: true, // Enable Hive templates
+);
+```
+
+- For full implementation details, code samples, and architecture notes see `HIVE_IMPLEMENTATION.md` at the repository root.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) first.
@@ -1151,7 +1169,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📧 Email: chaudharychirag640@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/chirag640/flutter_blueprint-Package-Package/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/chirag640/flutter_blueprint-Package-Package/discussions)
-
 
 ## 🌟 Show Your Support
 

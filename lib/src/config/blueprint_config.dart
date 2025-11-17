@@ -120,6 +120,7 @@ class BlueprintConfig {
     required this.includeApi,
     required this.includeTests,
     this.ciProvider = CIProvider.none,
+    this.includeHive = false,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -146,6 +147,9 @@ class BlueprintConfig {
   /// Whether to include test scaffolding.
   final bool includeTests;
 
+  /// Whether to include Hive offline caching support.
+  final bool includeHive;
+
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
@@ -171,6 +175,7 @@ class BlueprintConfig {
     bool? includeApi,
     bool? includeTests,
     CIProvider? ciProvider,
+    bool? includeHive,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -182,6 +187,7 @@ class BlueprintConfig {
       includeApi: includeApi ?? this.includeApi,
       includeTests: includeTests ?? this.includeTests,
       ciProvider: ciProvider ?? this.ciProvider,
+      includeHive: includeHive ?? this.includeHive,
     );
   }
 
@@ -198,6 +204,7 @@ class BlueprintConfig {
         'env': includeEnv,
         'api': includeApi,
         'tests': includeTests,
+        'hive': includeHive,
       }),
     };
   }
@@ -245,6 +252,7 @@ class BlueprintConfig {
       includeEnv: _readBool(features['env'], fallback: true),
       includeApi: _readBool(features['api'], fallback: true),
       includeTests: _readBool(features['tests'], fallback: true),
+      includeHive: _readBool(features['hive'], fallback: false),
     );
   }
 

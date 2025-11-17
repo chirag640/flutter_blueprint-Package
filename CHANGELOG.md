@@ -1,5 +1,16 @@
 ## 0.8.4 (2025-11-03) - Quality of Life Improvements
 
+### ✨ NEW: Hive Offline Caching
+
+- ✅ Added `includeHive` boolean to `BlueprintConfig` to toggle Hive support when generating projects.
+- ✅ New Hive template generators: `HiveDatabase`, `CacheManager`, and `SyncManager` (generated into `lib/core/storage/`) to provide offline persistence, configurable cache strategies (TTL/LRU/size), and an offline sync queue with retry logic.
+- ✅ Integrated Hive templates across Provider, Riverpod, and Bloc starter templates; pubspec dependencies and `main.dart` initialization are added conditionally when `includeHive: true`.
+- ✅ Added comprehensive tests (`test/src/templates/hive_integration_test.dart`) and a helper script `tools/create_with_hive.dart` which generates a sample app (`generated_hive_app`) to verify outputs.
+- ✅ Documentation added: `HIVE_IMPLEMENTATION.md` (full implementation notes, usage examples, and architecture benefits).
+- ⚠️ Note: The CLI `--hive` flag is planned (not added to the public CLI flags yet). Use programmatic `BlueprintConfig(includeHive: true)` or the generation script to enable Hive for now.
+
+See `HIVE_IMPLEMENTATION.md` at the repo root for complete implementation details and examples.
+
 ### ✨ NEW: Automated Windows Installer
 
 - ✅ Introduced `install.ps1` script for Windows users to automate installation and PATH setup.
@@ -21,7 +32,9 @@
 - ✅ Fixed issues with Windows compatibility for Flutter commands
 - ✅ Improved handling of file paths and environment variables on Windows
 - ✅ Ensured `flutter pub get` and `flutter create` commands run correctly on Windows
+
 ### 🛠️ IMPROVEMENT: Asset Configuration
+
 - ✅ Improved asset configuration handling for multi-platform projects
 - ✅ Streamlined asset paths and folder structures
 

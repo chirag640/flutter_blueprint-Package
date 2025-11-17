@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
+import 'hive_templates.dart';
 import 'template_bundle.dart';
 
 /// Builds a Riverpod-based mobile template with professional architecture
@@ -133,6 +134,18 @@ TemplateBundle buildRiverpodMobileBundle() {
       TemplateFile(
           path: p.join('lib', 'core', 'storage', 'secure_storage.dart'),
           build: _secureStorage),
+      TemplateFile(
+          path: p.join('lib', 'core', 'storage', 'hive_database.dart'),
+          build: _hiveDatabase,
+          shouldGenerate: (config) => config.includeHive),
+      TemplateFile(
+          path: p.join('lib', 'core', 'storage', 'cache_manager.dart'),
+          build: _cacheManager,
+          shouldGenerate: (config) => config.includeHive),
+      TemplateFile(
+          path: p.join('lib', 'core', 'storage', 'sync_manager.dart'),
+          build: _syncManager,
+          shouldGenerate: (config) => config.includeHive),
 
       // Core: Providers (Global Riverpod providers)
       TemplateFile(
@@ -228,6 +241,12 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  connectivity_plus: ^6.0.5')
       ..writeln('  pretty_dio_logger: ^1.4.0');
   }
+  if (config.includeHive) {
+    buffer
+      ..writeln('  hive: ^2.2.3')
+      ..writeln('  hive_flutter: ^1.1.0')
+      ..writeln('  path_provider: ^2.1.5');
+  }
 
   buffer
     ..writeln('')
@@ -267,12 +286,18 @@ String _mainDart(BlueprintConfig config) {
   if (config.includeEnv) {
     buffer.writeln("import 'core/config/env_loader.dart';");
   }
+  if (config.includeHive) {
+    buffer.writeln("import 'core/storage/hive_database.dart';");
+  }
   buffer
     ..writeln('')
     ..writeln('Future<void> main() async {')
     ..writeln('  WidgetsFlutterBinding.ensureInitialized();');
   if (config.includeEnv) {
     buffer.writeln("  await EnvLoader.load();");
+  }
+  if (config.includeHive) {
+    buffer.writeln("  await HiveDatabase.instance.init();");
   }
   buffer
     ..writeln('  runApp(')
@@ -1843,3 +1868,8 @@ String _titleCase(String input) {
     return lower[0].toUpperCase() + lower.substring(1);
   }).join(' ');
 }
+
+// Hive template wrappers
+String _hiveDatabase(BlueprintConfig config) => generateHiveDatabase(config);
+String _cacheManager(BlueprintConfig config) => generateCacheManager(config);
+String _syncManager(BlueprintConfig config) => generateSyncManager(config);
