@@ -95,6 +95,7 @@ class DependencyManager {
     required String stateManagement,
     required bool includeApi,
     required bool includeLocalization,
+    bool includeHive = false,
   }) async {
     final packages = <String>[];
 
@@ -124,6 +125,10 @@ class DependencyManager {
 
     if (includeLocalization) {
       packages.add('intl');
+    }
+
+    if (includeHive) {
+      packages.addAll(['hive', 'hive_flutter', 'path_provider']);
     }
 
     _logger.info('🔍 Fetching latest dependency versions from pub.dev...');

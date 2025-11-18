@@ -131,13 +131,15 @@ void main() async {
 
 /// Build mobile-specific main
 String _buildMobileMain(BlueprintConfig config) {
-  final stateSetup = _getStateManagementSetup(config.stateManagement);
+  final stateSetup = config.stateManagement == StateManagement.riverpod
+      ? _getStateManagementSetup(config.stateManagement)
+      : '';
 
   return '''
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'core/responsive/screen_util_config.dart';
-$stateSetup
+import '../core/responsive/screen_util_config.dart';
+${stateSetup.isNotEmpty ? '$stateSetup\n' : ''}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -207,12 +209,14 @@ class HomePage extends StatelessWidget {
 
 /// Build web-specific main
 String _buildWebMain(BlueprintConfig config) {
-  final stateSetup = _getStateManagementSetup(config.stateManagement);
+  final stateSetup = config.stateManagement == StateManagement.riverpod
+      ? _getStateManagementSetup(config.stateManagement)
+      : '';
 
   return '''
 import 'package:flutter/material.dart';
 import 'package:url_strategy/url_strategy.dart';
-$stateSetup
+${stateSetup.isNotEmpty ? '$stateSetup\n' : ''}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -269,12 +273,14 @@ class HomePage extends StatelessWidget {
 
 /// Build desktop-specific main
 String _buildDesktopMain(BlueprintConfig config) {
-  final stateSetup = _getStateManagementSetup(config.stateManagement);
+  final stateSetup = config.stateManagement == StateManagement.riverpod
+      ? _getStateManagementSetup(config.stateManagement)
+      : '';
 
   return '''
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-$stateSetup
+${stateSetup.isNotEmpty ? '$stateSetup\n' : ''}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -458,6 +464,12 @@ String _buildUniversalPubspec(BlueprintConfig config) {
     dependencies.add('  pretty_dio_logger: ^1.4.0');
   }
 
+  // Hive database (if enabled)
+  if (config.includeHive) {
+    dependencies.add('  hive: ^2.2.3');
+    dependencies.add('  hive_flutter: ^1.1.0');
+  }
+
   // Platform-specific dependencies
   if (config.hasPlatform(TargetPlatform.web)) {
     dependencies.add('  url_strategy: ^0.3.0');
@@ -465,6 +477,10 @@ String _buildUniversalPubspec(BlueprintConfig config) {
 
   if (config.hasPlatform(TargetPlatform.desktop)) {
     dependencies.add('  window_manager: ^0.4.3');
+  }
+
+  // path_provider is needed for both desktop and hive
+  if (config.hasPlatform(TargetPlatform.desktop) || config.includeHive) {
     dependencies.add('  path_provider: ^2.1.5');
   }
 

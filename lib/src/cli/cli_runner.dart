@@ -374,6 +374,7 @@ class CliRunner {
           stateManagement: config.stateManagement.label,
           includeApi: config.includeApi,
           includeLocalization: config.includeLocalization,
+          includeHive: config.includeHive,
         );
       } finally {
         depManager.close();
@@ -622,6 +623,7 @@ class CliRunner {
           stateManagement: stateMgmt.label,
           includeApi: includeApi,
           includeLocalization: includeLocalization,
+          includeHive: includeHive,
         );
       } finally {
         depManager.close();

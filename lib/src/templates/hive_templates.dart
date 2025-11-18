@@ -3,7 +3,6 @@ import '../config/blueprint_config.dart';
 /// Generates Hive database initialization code
 String generateHiveDatabase(BlueprintConfig config) {
   return """import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../utils/logger.dart';
 
@@ -323,7 +322,6 @@ class CacheManager<T> {
   Map<String, dynamic> getStats() {
     _ensureInitialized();
     
-    final now = DateTime.now();
     int expiredCount = 0;
     int validCount = 0;
     

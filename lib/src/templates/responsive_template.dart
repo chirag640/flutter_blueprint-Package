@@ -8,7 +8,6 @@ class ResponsiveComponents {
   static String screenUtilConfig() {
     return '''
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Screen configuration and breakpoints using flutter_screenutil
 class AppScreen {
