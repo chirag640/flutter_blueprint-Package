@@ -4,6 +4,7 @@ import '../config/blueprint_config.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
+import 'security_templates.dart';
 import 'template_bundle.dart';
 
 TemplateBundle buildProviderMobileBundle() {
@@ -191,6 +192,46 @@ TemplateBundle buildProviderMobileBundle() {
           path: p.join('lib', 'core', 'widgets', 'error_boundary.dart'),
           build: _errorBoundary,
           shouldGenerate: (config) => config.includeAnalytics),
+
+      // Core: Security
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'certificate_pinner.dart'),
+          build: _certificatePinner,
+          shouldGenerate: (config) => config.enableCertificatePinning),
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'security', 'device_security_checker.dart'),
+          build: _deviceSecurityChecker,
+          shouldGenerate: (config) => config.enableRootDetection),
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'biometric_auth.dart'),
+          build: _biometricAuth,
+          shouldGenerate: (config) => config.enableBiometricAuth),
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'api_key_manager.dart'),
+          build: _apiKeyManager,
+          shouldGenerate: (config) => config.enableApiKeyObfuscation),
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'encrypted_storage.dart'),
+          build: _encryptedStorage,
+          shouldGenerate: (config) => config.enableEncryptedStorage),
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'screenshot_protection.dart'),
+          build: _screenshotProtection,
+          shouldGenerate: (config) => config.enableScreenshotProtection),
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'security', 'network_security_config.dart'),
+          build: _networkSecurityConfig,
+          shouldGenerate: (config) => config.includeSecurity),
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'security_interceptor.dart'),
+          build: _securityInterceptor,
+          shouldGenerate: (config) => config.includeSecurity),
+      TemplateFile(
+          path: p.join('lib', 'core', 'security', 'secure_http_client.dart'),
+          build: _secureHttpClient,
+          shouldGenerate: (config) => config.enableCertificatePinning),
 
       // Features: Home
       TemplateFile(
@@ -1920,4 +1961,41 @@ String _analyticsEvents(BlueprintConfig config) {
 
 String _errorBoundary(BlueprintConfig config) {
   return generateErrorBoundary();
+}
+
+// Security templates
+String _certificatePinner(BlueprintConfig config) {
+  return generateCertificatePinner();
+}
+
+String _deviceSecurityChecker(BlueprintConfig config) {
+  return generateDeviceSecurityChecker();
+}
+
+String _biometricAuth(BlueprintConfig config) {
+  return generateBiometricAuth();
+}
+
+String _apiKeyManager(BlueprintConfig config) {
+  return generateApiKeyManager();
+}
+
+String _encryptedStorage(BlueprintConfig config) {
+  return generateEncryptedStorage();
+}
+
+String _screenshotProtection(BlueprintConfig config) {
+  return generateScreenshotProtection();
+}
+
+String _networkSecurityConfig(BlueprintConfig config) {
+  return generateNetworkSecurityConfig();
+}
+
+String _securityInterceptor(BlueprintConfig config) {
+  return generateSecurityInterceptor();
+}
+
+String _secureHttpClient(BlueprintConfig config) {
+  return generateSecureHttpClient();
 }

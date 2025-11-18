@@ -1,3 +1,76 @@
+## 1.2.0 (2025-11-18) - Security Best Practices
+
+### 🔒 NEW: Security Best Practices
+
+- ✅ Added `securityLevel` enum to `BlueprintConfig` with four levels: `none`, `basic`, `standard`, `enterprise`.
+- ✅ Comprehensive security template generators:
+  - **CertificatePinner**: SSL/TLS certificate pinning for HTTPS (enterprise)
+  - **DeviceSecurityChecker**: Root/jailbreak detection (standard+)
+  - **BiometricAuth**: Biometric authentication wrapper (standard+)
+  - **ApiKeyManager**: API key obfuscation and secure storage (enterprise)
+  - **EncryptedStorage**: Enhanced encrypted storage with AES (all levels)
+  - **ScreenshotProtection**: Prevent screenshots on sensitive screens (enterprise)
+  - **NetworkSecurityConfig**: HTTPS validation and domain allowlisting (all levels)
+  - **SecurityInterceptor**: Security headers for HTTP requests (all levels)
+  - **SecureHttpClient**: Secure Dio client with certificate pinning (enterprise)
+- ✅ Added `--security <level>` CLI option (none, basic, standard, enterprise).
+- ✅ Integrated into interactive wizard with security level selection.
+- ✅ Conditional dependency management based on security level.
+- ✅ Integration across all mobile templates (Provider, Riverpod, Bloc).
+- ✅ Comprehensive test suite with 36 passing tests (374 total tests passing).
+
+**Usage Examples:**
+
+```bash
+# Basic security (encrypted storage + network security)
+flutter_blueprint init my_app --security basic
+
+# Standard security (+ biometric auth + root detection)
+flutter_blueprint init my_app --security standard
+
+# Enterprise security (all features + certificate pinning)
+flutter_blueprint init my_app --security enterprise --state bloc
+
+# Interactive wizard (includes security option)
+flutter_blueprint init
+```
+
+**Generated Structure:**
+
+```
+lib/core/security/
+├── certificate_pinner.dart             # SSL pinning (enterprise)
+├── device_security_checker.dart        # Root/jailbreak detection (standard+)
+├── biometric_auth.dart                 # Biometric auth (standard+)
+├── api_key_manager.dart                # API key obfuscation (enterprise)
+├── encrypted_storage.dart              # AES encryption (all levels)
+├── screenshot_protection.dart          # Screenshot prevention (enterprise)
+├── network_security_config.dart        # HTTPS validation (all levels)
+├── security_interceptor.dart           # Security headers (all levels)
+└── secure_http_client.dart             # Secure HTTP client (enterprise)
+```
+
+**Security Levels:**
+
+| Feature                  | Basic | Standard | Enterprise |
+| ------------------------ | ----- | -------- | ---------- |
+| Encrypted Storage        | ✅    | ✅       | ✅         |
+| Network Security Config  | ✅    | ✅       | ✅         |
+| Security Headers         | ✅    | ✅       | ✅         |
+| Root/Jailbreak Detection | ❌    | ✅       | ✅         |
+| Biometric Authentication | ❌    | ✅       | ✅         |
+| Certificate Pinning      | ❌    | ❌       | ✅         |
+| API Key Obfuscation      | ❌    | ❌       | ✅         |
+| Screenshot Protection    | ❌    | ❌       | ✅         |
+
+**Dependencies Added:**
+
+- Basic+: `flutter_secure_storage`, `flutter_jailbreak_detection`, `device_info_plus`
+- Standard+: `local_auth`
+- Enterprise: `encrypt`, `crypto`, `pointycastle`, `flutter_windowmanager`
+
+---
+
 ## 1.1.0 (2025-11-18) - Analytics & Crash Reporting
 
 ### ✨ NEW: Analytics & Crash Reporting Support

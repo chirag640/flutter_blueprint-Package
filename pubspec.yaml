@@ -1,6 +1,6 @@
 name: flutter_blueprint
-description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming. Includes optional Hive offline caching, pagination support, and analytics/crash reporting with Firebase or Sentry (enable with `includeHive: true`, `includePagination: true`, or `includeAnalytics: true`)."
-version: 1.1.0
+description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming. Includes optional Hive offline caching, pagination support, analytics/crash reporting, and security best practices (certificate pinning, biometric auth, encrypted storage, root detection). Enable with `includeHive`, `includePagination`, `includeAnalytics`, or `--security` flag."
+version: 1.2.0
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
 issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues

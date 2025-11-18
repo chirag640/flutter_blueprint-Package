@@ -120,6 +120,26 @@ enum AnalyticsProvider {
   }
 }
 
+/// Security levels for application hardening.
+enum SecurityLevel {
+  none,
+  basic,
+  standard,
+  enterprise;
+
+  String get label => name;
+
+  static SecurityLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in SecurityLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported security level: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -143,6 +163,7 @@ class BlueprintConfig {
     this.includePagination = false,
     this.includeAnalytics = false,
     this.analyticsProvider = AnalyticsProvider.none,
+    this.securityLevel = SecurityLevel.none,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -181,8 +202,38 @@ class BlueprintConfig {
   /// The analytics provider to use (Firebase, Sentry, or none).
   final AnalyticsProvider analyticsProvider;
 
+  /// The security level to apply (none, basic, standard, enterprise).
+  final SecurityLevel securityLevel;
+
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
+
+  /// Check if security features are included
+  bool get includeSecurity => securityLevel != SecurityLevel.none;
+
+  /// Check if certificate pinning should be enabled (enterprise only)
+  bool get enableCertificatePinning =>
+      securityLevel == SecurityLevel.enterprise;
+
+  /// Check if root detection should be enabled (standard and enterprise)
+  bool get enableRootDetection =>
+      securityLevel == SecurityLevel.standard ||
+      securityLevel == SecurityLevel.enterprise;
+
+  /// Check if biometric auth should be enabled (standard and enterprise)
+  bool get enableBiometricAuth =>
+      securityLevel == SecurityLevel.standard ||
+      securityLevel == SecurityLevel.enterprise;
+
+  /// Check if API key obfuscation should be enabled (enterprise only)
+  bool get enableApiKeyObfuscation => securityLevel == SecurityLevel.enterprise;
+
+  /// Check if encrypted storage should be enabled (all levels)
+  bool get enableEncryptedStorage => includeSecurity;
+
+  /// Check if screenshot protection should be enabled (enterprise only)
+  bool get enableScreenshotProtection =>
+      securityLevel == SecurityLevel.enterprise;
 
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
@@ -210,6 +261,7 @@ class BlueprintConfig {
     bool? includePagination,
     bool? includeAnalytics,
     AnalyticsProvider? analyticsProvider,
+    SecurityLevel? securityLevel,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -225,6 +277,7 @@ class BlueprintConfig {
       includePagination: includePagination ?? this.includePagination,
       includeAnalytics: includeAnalytics ?? this.includeAnalytics,
       analyticsProvider: analyticsProvider ?? this.analyticsProvider,
+      securityLevel: securityLevel ?? this.securityLevel,
     );
   }
 
@@ -236,6 +289,7 @@ class BlueprintConfig {
       'state_management': stateManagement.label,
       'ci_provider': ciProvider.label,
       'analytics_provider': analyticsProvider.label,
+      'security_level': securityLevel.label,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -289,6 +343,9 @@ class BlueprintConfig {
       ),
       analyticsProvider: AnalyticsProvider.parse(
         (map['analytics_provider'] ?? 'none') as String,
+      ),
+      securityLevel: SecurityLevel.parse(
+        (map['security_level'] ?? 'none') as String,
       ),
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),

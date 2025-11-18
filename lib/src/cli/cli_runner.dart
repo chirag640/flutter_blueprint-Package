@@ -228,6 +228,11 @@ class CliRunner {
             'Include analytics and crash reporting (firebase, sentry, or none)',
         allowed: ['firebase', 'sentry', 'none'],
       )
+      ..addOption(
+        'security',
+        help: 'Security level (none, basic, standard, enterprise)',
+        allowed: ['none', 'basic', 'standard', 'enterprise'],
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -554,6 +559,7 @@ class CliRunner {
         'Hive offline caching (storage + sync)',
         'Pagination support (infinite scroll + skeleton loaders)',
         'Analytics & Crash Reporting',
+        'Security Best Practices',
       ],
       defaultValues: [
         'Theme system (Light/Dark modes)',
@@ -573,6 +579,7 @@ class CliRunner {
         selectedFeatures.any((f) => f.contains('Pagination'));
     final includeAnalytics =
         selectedFeatures.any((f) => f.contains('Analytics'));
+    final includeSecurity = selectedFeatures.any((f) => f.contains('Security'));
 
     // If analytics selected, prompt for provider
     AnalyticsProvider analyticsProvider = AnalyticsProvider.none;
@@ -584,6 +591,18 @@ class CliRunner {
         defaultValue: 'firebase',
       );
       analyticsProvider = AnalyticsProvider.parse(providerChoice);
+    }
+
+    // If security selected, prompt for level
+    SecurityLevel securityLevel = SecurityLevel.none;
+    if (includeSecurity) {
+      _logger.info('');
+      final levelChoice = await _prompter.choose(
+        '🔒 Choose security level',
+        ['basic', 'standard', 'enterprise'],
+        defaultValue: 'standard',
+      );
+      securityLevel = SecurityLevel.parse(levelChoice);
     }
 
     // Show summary
@@ -604,6 +623,10 @@ class CliRunner {
     _logger.info('   Tests: ${includeTests ? '✅' : '❌'}');
     _logger.info('   Hive caching: ${includeHive ? '✅' : '❌'}');
     _logger.info('   Pagination: ${includePagination ? '✅' : '❌'}');
+    _logger.info(
+        '   Analytics: ${includeAnalytics ? "✅ (${analyticsProvider.label})" : '❌'}');
+    _logger.info(
+        '   Security: ${includeSecurity ? "✅ (${securityLevel.label})" : '❌'}');
     _logger.info('');
 
     // Create config
@@ -621,6 +644,7 @@ class CliRunner {
       includePagination: includePagination,
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
+      securityLevel: securityLevel,
     );
 
     // Ask if they want to see preview
@@ -846,6 +870,16 @@ class CliRunner {
       analyticsProvider = AnalyticsProvider.none;
     }
 
+    // Security configuration
+    final securityArg = results['security'] as String?;
+    final SecurityLevel securityLevel;
+
+    if (securityArg != null) {
+      securityLevel = SecurityLevel.parse(securityArg);
+    } else {
+      securityLevel = SecurityLevel.none;
+    }
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -869,6 +903,7 @@ class CliRunner {
       includePagination: includePagination,
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
+      securityLevel: securityLevel,
     );
   }
 

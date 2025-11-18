@@ -42,6 +42,7 @@
 | 📱 **Multi-platform support**      | Mobile, Web, Desktop - all in one project       | Universal or single-platform    |
 | 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI       |
 | 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry        | Unified API + Error tracking    |
+| 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)          | 9 security utilities + patterns |
 
 ### **Professional Add-ons** (What Makes It Pro)
 
@@ -58,6 +59,7 @@
 | 🧪 **Professional Tests**      | Validator tests, test helpers, widget tests                                  |
 | 📁 **Smart File Organization** | Constants (endpoints, app), Errors, Network, Utils, Widgets                  |
 | 🚀 **Auto-Update Checker**     | Automatically notifies you when a new version is available                   |
+| 🔒 **Security Utilities**      | Certificate pinning, biometric auth, encrypted storage, root detection       |
 
 ### **DevOps Integration** (NEW in v0.5.0!)
 
@@ -204,12 +206,17 @@ flutter_blueprint init my_app --state riverpod --api --pagination
 # Combine Hive + Pagination for production-ready apps
 flutter_blueprint init my_app --state bloc --api --hive --pagination
 
-# With Analytics & Crash Reporting (NEW in v1.1.0!)
+# With Analytics & Crash Reporting
 flutter_blueprint init my_app --analytics firebase --state bloc
 flutter_blueprint init my_app --analytics sentry --state riverpod
 
+# With Security Best Practices (NEW in v1.2.0!)
+flutter_blueprint init my_app --security basic --state bloc
+flutter_blueprint init my_app --security standard --state riverpod
+flutter_blueprint init my_app --security enterprise --state bloc
+
 # Full-featured production app
-flutter_blueprint init my_app --state bloc --api --hive --pagination --analytics firebase --ci github
+flutter_blueprint init my_app --state bloc --api --hive --pagination --analytics firebase --security enterprise --ci github
 
 # With CI/CD configuration
 flutter_blueprint init my_app --ci github
@@ -1030,6 +1037,7 @@ flutter_blueprint init <app_name> [options]
 | `--hive`                 | Include Hive offline caching (storage + cache + sync)             | false              |
 | `--pagination`           | Include pagination support (infinite scroll + skeletons)          | false              |
 | `--analytics <provider>` | Include analytics & crash reporting (firebase/sentry/none)        | none               |
+| `--security <level>`     | Security best practices (none/basic/standard/enterprise)          | none               |
 | `-h, --help`             | Show help                                                         | -                  |
 | `-v, --version`          | Show version                                                      | -                  |
 

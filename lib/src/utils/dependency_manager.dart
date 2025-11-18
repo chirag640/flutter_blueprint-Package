@@ -98,6 +98,7 @@ class DependencyManager {
     bool includeHive = false,
     bool includeAnalytics = false,
     String analyticsProvider = 'none',
+    String securityLevel = 'none',
   }) async {
     final packages = <String>[];
 
@@ -148,6 +149,33 @@ class DependencyManager {
         case 'sentry':
           packages.add('sentry_flutter');
           break;
+      }
+    }
+
+    // Security packages based on security level
+    if (securityLevel != 'none') {
+      packages.add('flutter_secure_storage');
+
+      if (securityLevel == 'basic' ||
+          securityLevel == 'standard' ||
+          securityLevel == 'enterprise') {
+        packages.addAll([
+          'flutter_jailbreak_detection',
+          'device_info_plus',
+        ]);
+      }
+
+      if (securityLevel == 'standard' || securityLevel == 'enterprise') {
+        packages.add('local_auth');
+      }
+
+      if (securityLevel == 'enterprise') {
+        packages.addAll([
+          'encrypt',
+          'crypto',
+          'pointycastle',
+          'flutter_windowmanager',
+        ]);
       }
     }
 
