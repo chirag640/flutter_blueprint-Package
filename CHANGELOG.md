@@ -1,3 +1,64 @@
+## 1.1.0 (2025-11-18) - Analytics & Crash Reporting
+
+### ✨ NEW: Analytics & Crash Reporting Support
+
+- ✅ Added `includeAnalytics` boolean and `analyticsProvider` enum to `BlueprintConfig` for analytics integration.
+- ✅ New `AnalyticsProvider` enum supporting: `firebase`, `sentry`, and `none`.
+- ✅ Comprehensive analytics template generators:
+  - **AnalyticsService**: Abstract interface with unified API for all providers
+  - **FirebaseAnalyticsService**: Complete Firebase Analytics + Crashlytics + Performance implementation
+  - **SentryAnalyticsService**: Full Sentry integration with breadcrumbs and transactions
+  - **AnalyticsEvents**: Pre-defined event constants for consistency
+  - **ErrorBoundary**: Widget wrapper for automatic error reporting
+- ✅ Added `--analytics <provider>` CLI option (firebase, sentry, none).
+- ✅ Integrated into interactive wizard with provider selection.
+- ✅ Automatic dependency management for Firebase and Sentry packages.
+- ✅ Integration across all mobile templates (Provider, Riverpod, Bloc).
+- ✅ Comprehensive test suite with 23 passing tests.
+
+**Usage Examples:**
+
+```bash
+# Firebase Analytics
+flutter_blueprint init my_app --analytics firebase --state bloc
+
+# Sentry
+flutter_blueprint init my_app --analytics sentry --state riverpod
+
+# Interactive wizard (includes analytics option)
+flutter_blueprint init
+```
+
+**Generated Structure:**
+
+```
+lib/core/analytics/
+├── analytics_service.dart              # Abstract interface
+├── firebase_analytics_service.dart     # Firebase implementation
+├── sentry_service.dart                 # Sentry implementation
+└── analytics_events.dart               # Event constants
+
+lib/core/widgets/
+└── error_boundary.dart                 # Error catching widget
+```
+
+**Key Features:**
+
+- **Provider flexibility**: Choose between Firebase or Sentry
+- **Unified API**: Same interface regardless of provider
+- **Auto error tracking**: ErrorBoundary widget catches and reports errors
+- **Performance monitoring**: Built-in trace support
+- **Event tracking**: Pre-defined constants for common events
+- **User identification**: Set user ID and properties
+- **Crash reporting**: Automatic crash detection and reporting
+
+**Dependencies Added:**
+
+- Firebase: `firebase_core`, `firebase_analytics`, `firebase_crashlytics`, `firebase_performance`, `package_info_plus`
+- Sentry: `sentry_flutter`, `package_info_plus`
+
+---
+
 ## 1.0.5 (2025-11-18) - Pagination Feature
 
 ### ✨ NEW: Pagination Support

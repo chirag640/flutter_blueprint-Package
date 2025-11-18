@@ -30,17 +30,18 @@
 
 ### **Core Features**
 
-| Feature                       | Description                                     | Generated Files                 |
-| ----------------------------- | ----------------------------------------------- | ------------------------------- |
-| ⚡ **One-command setup**      | `flutter_blueprint init my_app`                 | 42-46 files in seconds          |
-| 🧱 **Clean architecture**     | Separation of concerns (core/, features/, app/) | Professional folder structure   |
-| 🎯 **State management**       | **Provider, Riverpod, OR Bloc**                 | Choose your preferred pattern   |
-| 🎨 **Theming system**         | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
-| 🌐 **Internationalization**   | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
-| 🛠️ **Environment config**     | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
-| 🧭 **Professional routing**   | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
-| 📱 **Multi-platform support** | Mobile, Web, Desktop - all in one project       | Universal or single-platform    |
-| 📄 **Pagination support**     | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI       |
+| Feature                            | Description                                     | Generated Files                 |
+| ---------------------------------- | ----------------------------------------------- | ------------------------------- |
+| ⚡ **One-command setup**           | `flutter_blueprint init my_app`                 | 42-46 files in seconds          |
+| 🧱 **Clean architecture**          | Separation of concerns (core/, features/, app/) | Professional folder structure   |
+| 🎯 **State management**            | **Provider, Riverpod, OR Bloc**                 | Choose your preferred pattern   |
+| 🎨 **Theming system**              | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
+| 🌐 **Internationalization**        | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
+| 🛠️ **Environment config**          | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
+| 🧭 **Professional routing**        | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
+| 📱 **Multi-platform support**      | Mobile, Web, Desktop - all in one project       | Universal or single-platform    |
+| 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI       |
+| 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry        | Unified API + Error tracking    |
 
 ### **Professional Add-ons** (What Makes It Pro)
 
@@ -202,6 +203,13 @@ flutter_blueprint init my_app --state riverpod --api --pagination
 
 # Combine Hive + Pagination for production-ready apps
 flutter_blueprint init my_app --state bloc --api --hive --pagination
+
+# With Analytics & Crash Reporting (NEW in v1.1.0!)
+flutter_blueprint init my_app --analytics firebase --state bloc
+flutter_blueprint init my_app --analytics sentry --state riverpod
+
+# Full-featured production app
+flutter_blueprint init my_app --state bloc --api --hive --pagination --analytics firebase --ci github
 
 # With CI/CD configuration
 flutter_blueprint init my_app --ci github
@@ -760,6 +768,7 @@ For complete documentation on collaboration features, see:
 
 - [COLLABORATION_FEATURES.md](./COLLABORATION_FEATURES.md) - Comprehensive collaboration guide
 - [PERFORMANCE_OPTIMIZATION.md](./PERFORMANCE_OPTIMIZATION.md) - Performance monitoring and optimization
+- [ANALYTICS_IMPLEMENTATION.md](./ANALYTICS_IMPLEMENTATION.md) - Analytics & crash reporting setup guide
 
 ---
 
@@ -963,7 +972,8 @@ my_app/
 
 - **Minimal** (no optional features): 19 files
 - **Standard** (theme + API + tests): 43 files
-- **Full Stack** (all features + Hive + Pagination): **49 files** 🚀
+- **Full Stack** (all features + Hive + Pagination): 49 files
+- **Enterprise** (all features + Hive + Pagination + Analytics): **54 files** 🚀
 
 ---
 
@@ -1007,20 +1017,21 @@ flutter_blueprint init <app_name> [options]
 
 **Options:**
 
-| Flag                 | Description                                                       | Default            |
-| -------------------- | ----------------------------------------------------------------- | ------------------ |
-| `--state <choice>`   | State management (provider/riverpod/bloc)                         | Interactive prompt |
-| `--platforms <list>` | Target platforms (mobile/web/desktop or comma-separated or "all") | mobile             |
-| `--ci <provider>`    | CI/CD provider (github/gitlab/azure)                              | none               |
-| `--theme`            | Include theme scaffolding                                         | Interactive prompt |
-| `--localization`     | Include l10n setup                                                | Interactive prompt |
-| `--env`              | Include environment config                                        | Interactive prompt |
-| `--api`              | Include API client                                                | Interactive prompt |
-| `--tests`            | Include test scaffolding                                          | Interactive prompt |
-| `--hive`             | Include Hive offline caching (storage + cache + sync)             | false              |
-| `--pagination`       | Include pagination support (infinite scroll + skeletons)          | false              |
-| `-h, --help`         | Show help                                                         | -                  |
-| `-v, --version`      | Show version                                                      | -                  |
+| Flag                     | Description                                                       | Default            |
+| ------------------------ | ----------------------------------------------------------------- | ------------------ |
+| `--state <choice>`       | State management (provider/riverpod/bloc)                         | Interactive prompt |
+| `--platforms <list>`     | Target platforms (mobile/web/desktop or comma-separated or "all") | mobile             |
+| `--ci <provider>`        | CI/CD provider (github/gitlab/azure)                              | none               |
+| `--theme`                | Include theme scaffolding                                         | Interactive prompt |
+| `--localization`         | Include l10n setup                                                | Interactive prompt |
+| `--env`                  | Include environment config                                        | Interactive prompt |
+| `--api`                  | Include API client                                                | Interactive prompt |
+| `--tests`                | Include test scaffolding                                          | Interactive prompt |
+| `--hive`                 | Include Hive offline caching (storage + cache + sync)             | false              |
+| `--pagination`           | Include pagination support (infinite scroll + skeletons)          | false              |
+| `--analytics <provider>` | Include analytics & crash reporting (firebase/sentry/none)        | none               |
+| `-h, --help`             | Show help                                                         | -                  |
+| `-v, --version`          | Show version                                                      | -                  |
 
 ---
 

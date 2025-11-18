@@ -101,6 +101,25 @@ enum CIProvider {
   }
 }
 
+/// Supported analytics providers.
+enum AnalyticsProvider {
+  none,
+  firebase,
+  sentry;
+
+  String get label => name;
+
+  static AnalyticsProvider parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in AnalyticsProvider.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported analytics provider: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -122,6 +141,8 @@ class BlueprintConfig {
     this.ciProvider = CIProvider.none,
     this.includeHive = false,
     this.includePagination = false,
+    this.includeAnalytics = false,
+    this.analyticsProvider = AnalyticsProvider.none,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -154,6 +175,12 @@ class BlueprintConfig {
   /// Whether to include pagination utilities (controller, widgets, skeleton loaders).
   final bool includePagination;
 
+  /// Whether to include analytics and crash reporting.
+  final bool includeAnalytics;
+
+  /// The analytics provider to use (Firebase, Sentry, or none).
+  final AnalyticsProvider analyticsProvider;
+
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
@@ -181,6 +208,8 @@ class BlueprintConfig {
     CIProvider? ciProvider,
     bool? includeHive,
     bool? includePagination,
+    bool? includeAnalytics,
+    AnalyticsProvider? analyticsProvider,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -194,6 +223,8 @@ class BlueprintConfig {
       ciProvider: ciProvider ?? this.ciProvider,
       includeHive: includeHive ?? this.includeHive,
       includePagination: includePagination ?? this.includePagination,
+      includeAnalytics: includeAnalytics ?? this.includeAnalytics,
+      analyticsProvider: analyticsProvider ?? this.analyticsProvider,
     );
   }
 
@@ -204,6 +235,7 @@ class BlueprintConfig {
       'platforms': platforms.map((p) => p.label).toList(),
       'state_management': stateManagement.label,
       'ci_provider': ciProvider.label,
+      'analytics_provider': analyticsProvider.label,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -212,6 +244,7 @@ class BlueprintConfig {
         'tests': includeTests,
         'hive': includeHive,
         'pagination': includePagination,
+        'analytics': includeAnalytics,
       }),
     };
   }
@@ -254,6 +287,9 @@ class BlueprintConfig {
       ciProvider: CIProvider.parse(
         (map['ci_provider'] ?? 'none') as String,
       ),
+      analyticsProvider: AnalyticsProvider.parse(
+        (map['analytics_provider'] ?? 'none') as String,
+      ),
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),
@@ -261,6 +297,7 @@ class BlueprintConfig {
       includeTests: _readBool(features['tests'], fallback: true),
       includeHive: _readBool(features['hive'], fallback: false),
       includePagination: _readBool(features['pagination'], fallback: false),
+      includeAnalytics: _readBool(features['analytics'], fallback: false),
     );
   }
 

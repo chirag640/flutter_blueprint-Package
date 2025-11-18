@@ -222,6 +222,12 @@ class CliRunner {
             'Include pagination support (controller, paginated list view, skeleton loaders)',
         defaultsTo: null,
       )
+      ..addOption(
+        'analytics',
+        help:
+            'Include analytics and crash reporting (firebase, sentry, or none)',
+        allowed: ['firebase', 'sentry', 'none'],
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -375,6 +381,8 @@ class CliRunner {
           includeApi: config.includeApi,
           includeLocalization: config.includeLocalization,
           includeHive: config.includeHive,
+          includeAnalytics: config.includeAnalytics,
+          analyticsProvider: config.analyticsProvider.label,
         );
       } finally {
         depManager.close();
@@ -545,6 +553,7 @@ class CliRunner {
         'Test scaffolding',
         'Hive offline caching (storage + sync)',
         'Pagination support (infinite scroll + skeleton loaders)',
+        'Analytics & Crash Reporting',
       ],
       defaultValues: [
         'Theme system (Light/Dark modes)',
@@ -562,6 +571,20 @@ class CliRunner {
     final includeHive = selectedFeatures.any((f) => f.contains('Hive'));
     final includePagination =
         selectedFeatures.any((f) => f.contains('Pagination'));
+    final includeAnalytics =
+        selectedFeatures.any((f) => f.contains('Analytics'));
+
+    // If analytics selected, prompt for provider
+    AnalyticsProvider analyticsProvider = AnalyticsProvider.none;
+    if (includeAnalytics) {
+      _logger.info('');
+      final providerChoice = await _prompter.choose(
+        '📊 Choose analytics provider',
+        ['firebase', 'sentry'],
+        defaultValue: 'firebase',
+      );
+      analyticsProvider = AnalyticsProvider.parse(providerChoice);
+    }
 
     // Show summary
     _logger.info('');
@@ -596,6 +619,8 @@ class CliRunner {
       includeTests: includeTests,
       includeHive: includeHive,
       includePagination: includePagination,
+      includeAnalytics: includeAnalytics,
+      analyticsProvider: analyticsProvider,
     );
 
     // Ask if they want to see preview
@@ -624,6 +649,8 @@ class CliRunner {
           includeApi: includeApi,
           includeLocalization: includeLocalization,
           includeHive: includeHive,
+          includeAnalytics: includeAnalytics,
+          analyticsProvider: analyticsProvider.label,
         );
       } finally {
         depManager.close();
@@ -801,6 +828,24 @@ class CliRunner {
       defaultValue: false,
     );
 
+    // Analytics configuration
+    final analyticsArg = results['analytics'] as String?;
+    final bool includeAnalytics;
+    final AnalyticsProvider analyticsProvider;
+
+    if (analyticsArg != null) {
+      if (analyticsArg == 'none') {
+        includeAnalytics = false;
+        analyticsProvider = AnalyticsProvider.none;
+      } else {
+        includeAnalytics = true;
+        analyticsProvider = AnalyticsProvider.parse(analyticsArg);
+      }
+    } else {
+      includeAnalytics = false;
+      analyticsProvider = AnalyticsProvider.none;
+    }
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -822,6 +867,8 @@ class CliRunner {
       includeTests: includeTests,
       includeHive: includeHive,
       includePagination: includePagination,
+      includeAnalytics: includeAnalytics,
+      analyticsProvider: analyticsProvider,
     );
   }
 

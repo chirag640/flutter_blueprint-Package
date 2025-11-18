@@ -96,6 +96,8 @@ class DependencyManager {
     required bool includeApi,
     required bool includeLocalization,
     bool includeHive = false,
+    bool includeAnalytics = false,
+    String analyticsProvider = 'none',
   }) async {
     final packages = <String>[];
 
@@ -129,6 +131,24 @@ class DependencyManager {
 
     if (includeHive) {
       packages.addAll(['hive', 'hive_flutter', 'path_provider']);
+    }
+
+    if (includeAnalytics) {
+      packages.add('package_info_plus');
+
+      switch (analyticsProvider.toLowerCase()) {
+        case 'firebase':
+          packages.addAll([
+            'firebase_core',
+            'firebase_analytics',
+            'firebase_crashlytics',
+            'firebase_performance',
+          ]);
+          break;
+        case 'sentry':
+          packages.add('sentry_flutter');
+          break;
+      }
     }
 
     _logger.info('🔍 Fetching latest dependency versions from pub.dev...');

@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
+import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
 import 'template_bundle.dart';
@@ -162,6 +163,33 @@ TemplateBundle buildRiverpodMobileBundle() {
           path: p.join('lib', 'core', 'pagination', 'skeleton_loader.dart'),
           build: _skeletonLoader,
           shouldGenerate: (config) => config.includePagination),
+
+      // Core: Analytics
+      TemplateFile(
+          path: p.join('lib', 'core', 'analytics', 'analytics_service.dart'),
+          build: _analyticsService,
+          shouldGenerate: (config) => config.includeAnalytics),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'analytics', 'firebase_analytics_service.dart'),
+          build: _firebaseAnalyticsService,
+          shouldGenerate: (config) =>
+              config.includeAnalytics &&
+              config.analyticsProvider == AnalyticsProvider.firebase),
+      TemplateFile(
+          path: p.join('lib', 'core', 'analytics', 'sentry_service.dart'),
+          build: _sentryService,
+          shouldGenerate: (config) =>
+              config.includeAnalytics &&
+              config.analyticsProvider == AnalyticsProvider.sentry),
+      TemplateFile(
+          path: p.join('lib', 'core', 'analytics', 'analytics_events.dart'),
+          build: _analyticsEvents,
+          shouldGenerate: (config) => config.includeAnalytics),
+      TemplateFile(
+          path: p.join('lib', 'core', 'widgets', 'error_boundary.dart'),
+          build: _errorBoundary,
+          shouldGenerate: (config) => config.includeAnalytics),
 
       // Core: Providers (Global Riverpod providers)
       TemplateFile(
@@ -1897,3 +1925,11 @@ String _paginatedListView(BlueprintConfig config) =>
     generatePaginatedListView(config);
 String _skeletonLoader(BlueprintConfig config) =>
     generateSkeletonLoader(config);
+
+// Analytics template wrappers
+String _analyticsService(BlueprintConfig config) => generateAnalyticsService();
+String _firebaseAnalyticsService(BlueprintConfig config) =>
+    generateFirebaseAnalyticsService();
+String _sentryService(BlueprintConfig config) => generateSentryService();
+String _analyticsEvents(BlueprintConfig config) => generateAnalyticsEvents();
+String _errorBoundary(BlueprintConfig config) => generateErrorBoundary();
