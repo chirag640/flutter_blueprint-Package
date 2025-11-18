@@ -140,6 +140,25 @@ enum SecurityLevel {
   }
 }
 
+/// Memory management and performance optimization levels.
+enum MemoryLevel {
+  none,
+  basic,
+  advanced;
+
+  String get label => name;
+
+  static MemoryLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in MemoryLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported memory level: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -164,6 +183,8 @@ class BlueprintConfig {
     this.includeAnalytics = false,
     this.analyticsProvider = AnalyticsProvider.none,
     this.securityLevel = SecurityLevel.none,
+    this.memoryLevel = MemoryLevel.none,
+    this.maxImageCacheSize = 100,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -205,6 +226,12 @@ class BlueprintConfig {
   /// The security level to apply (none, basic, standard, enterprise).
   final SecurityLevel securityLevel;
 
+  /// The memory management level to apply (none, basic, advanced).
+  final MemoryLevel memoryLevel;
+
+  /// Maximum image cache size in MB (default: 100).
+  final int maxImageCacheSize;
+
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
@@ -235,6 +262,18 @@ class BlueprintConfig {
   bool get enableScreenshotProtection =>
       securityLevel == SecurityLevel.enterprise;
 
+  /// Check if memory management features are included
+  bool get includeMemoryManagement => memoryLevel != MemoryLevel.none;
+
+  /// Check if memory profiling should be enabled (advanced only)
+  bool get enableMemoryProfiling => memoryLevel == MemoryLevel.advanced;
+
+  /// Check if image caching should be enabled (basic and advanced)
+  bool get enableImageCaching => includeMemoryManagement;
+
+  /// Check if leak detection should be enabled (advanced only)
+  bool get enableLeakDetection => memoryLevel == MemoryLevel.advanced;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -262,6 +301,8 @@ class BlueprintConfig {
     bool? includeAnalytics,
     AnalyticsProvider? analyticsProvider,
     SecurityLevel? securityLevel,
+    MemoryLevel? memoryLevel,
+    int? maxImageCacheSize,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -278,6 +319,8 @@ class BlueprintConfig {
       includeAnalytics: includeAnalytics ?? this.includeAnalytics,
       analyticsProvider: analyticsProvider ?? this.analyticsProvider,
       securityLevel: securityLevel ?? this.securityLevel,
+      memoryLevel: memoryLevel ?? this.memoryLevel,
+      maxImageCacheSize: maxImageCacheSize ?? this.maxImageCacheSize,
     );
   }
 
@@ -290,6 +333,8 @@ class BlueprintConfig {
       'ci_provider': ciProvider.label,
       'analytics_provider': analyticsProvider.label,
       'security_level': securityLevel.label,
+      'memory_level': memoryLevel.label,
+      'max_image_cache_size': maxImageCacheSize,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -347,6 +392,10 @@ class BlueprintConfig {
       securityLevel: SecurityLevel.parse(
         (map['security_level'] ?? 'none') as String,
       ),
+      memoryLevel: MemoryLevel.parse(
+        (map['memory_level'] ?? 'none') as String,
+      ),
+      maxImageCacheSize: (map['max_image_cache_size'] ?? 100) as int,
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),

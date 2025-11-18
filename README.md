@@ -43,6 +43,7 @@
 | 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI       |
 | 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry        | Unified API + Error tracking    |
 | 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)          | 9 security utilities + patterns |
+| 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection  | 7 memory utilities + profiling  |
 
 ### **Professional Add-ons** (What Makes It Pro)
 
@@ -60,6 +61,7 @@
 | 📁 **Smart File Organization** | Constants (endpoints, app), Errors, Network, Utils, Widgets                  |
 | 🚀 **Auto-Update Checker**     | Automatically notifies you when a new version is available                   |
 | 🔒 **Security Utilities**      | Certificate pinning, biometric auth, encrypted storage, root detection       |
+| 🧠 **Memory Management**       | Disposable patterns, memory profiling, leak detection, image cache manager   |
 
 ### **DevOps Integration** (NEW in v0.5.0!)
 

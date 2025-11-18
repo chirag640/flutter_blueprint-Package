@@ -1,3 +1,62 @@
+## 1.3.0 (2025-11-18) - Memory Management & Performance
+
+### 🧠 NEW: Memory Management & Performance Optimization
+
+- ✅ Added `memoryLevel` enum to `BlueprintConfig` with three levels: `none`, `basic`, `advanced`.
+- ✅ Comprehensive memory management template generators:
+  - **DisposableBloc**: Auto-cleanup base class for BLoC with subscription tracking
+  - **DisposableProvider**: Auto-cleanup base class for ChangeNotifier with disposal safety
+  - **DisposableRiverpod**: Extensions and mixins for Riverpod resource cleanup
+  - **MemoryProfiler**: Real-time memory monitoring with leak detection (advanced)
+  - **ImageCacheManager**: LRU image cache with configurable size limits
+  - **StreamSubscriptionManager**: Centralized subscription lifecycle management
+  - **MemoryLeakDetector**: WeakReference-based leak tracking and reporting (advanced)
+- ✅ Added `--memory <level>` CLI option (none, basic, advanced).
+- ✅ Added `--max-cache-size <MB>` CLI option (default: 100MB).
+- ✅ Integrated into interactive wizard with memory management prompts.
+- ✅ State-management-specific implementations (separate for Provider, Riverpod, Bloc).
+- ✅ Integration across all mobile templates with conditional generation.
+- ✅ Comprehensive test suite with 48 passing tests (422 total tests).
+
+**Usage Examples:**
+
+```bash
+# Basic memory management (disposable patterns + image cache)
+flutter_blueprint init my_app --memory basic
+
+# Advanced memory management (+ profiling + leak detection)
+flutter_blueprint init my_app --memory advanced --max-cache-size 150
+
+# Combined with other features
+flutter_blueprint init my_app --state riverpod --memory advanced --security standard
+
+# Interactive wizard (includes memory management option)
+flutter_blueprint init
+```
+
+**Generated Structure:**
+
+```
+lib/core/memory/
+├── disposable_bloc.dart                # BLoC auto-cleanup base class
+├── disposable_provider.dart            # Provider auto-cleanup base class
+├── disposable_riverpod.dart            # Riverpod cleanup extensions
+├── memory_profiler.dart                # Memory monitoring (advanced)
+├── image_cache_manager.dart            # LRU image cache
+├── stream_subscription_manager.dart    # Subscription manager
+└── memory_leak_detector.dart           # Leak detection (advanced)
+```
+
+**Benefits:**
+
+- 🚀 Prevents memory leaks in long-running apps
+- 📊 Real-time memory profiling in debug mode
+- 🎯 Automatic resource cleanup on disposal
+- 💾 Optimized image caching with LRU eviction
+- 🔍 Early leak detection during development
+
+---
+
 ## 1.2.0 (2025-11-18) - Security Best Practices
 
 ### 🔒 NEW: Security Best Practices

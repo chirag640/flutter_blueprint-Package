@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import '../config/blueprint_config.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
+import 'memory_templates.dart';
 import 'pagination_templates.dart';
 import 'security_templates.dart';
 import 'template_bundle.dart';
@@ -232,6 +233,29 @@ TemplateBundle buildProviderMobileBundle() {
           path: p.join('lib', 'core', 'security', 'secure_http_client.dart'),
           build: _secureHttpClient,
           shouldGenerate: (config) => config.enableCertificatePinning),
+
+      // Memory Management templates
+      TemplateFile(
+          path: p.join('lib', 'core', 'memory', 'disposable_provider.dart'),
+          build: _disposableProvider,
+          shouldGenerate: (config) => config.includeMemoryManagement),
+      TemplateFile(
+          path: p.join('lib', 'core', 'memory', 'memory_profiler.dart'),
+          build: _memoryProfiler,
+          shouldGenerate: (config) => config.enableMemoryProfiling),
+      TemplateFile(
+          path: p.join('lib', 'core', 'memory', 'image_cache_manager.dart'),
+          build: _imageCacheManager,
+          shouldGenerate: (config) => config.enableImageCaching),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'memory', 'stream_subscription_manager.dart'),
+          build: _streamSubscriptionManager,
+          shouldGenerate: (config) => config.includeMemoryManagement),
+      TemplateFile(
+          path: p.join('lib', 'core', 'memory', 'memory_leak_detector.dart'),
+          build: _memoryLeakDetector,
+          shouldGenerate: (config) => config.enableLeakDetection),
 
       // Features: Home
       TemplateFile(
@@ -1999,3 +2023,14 @@ String _securityInterceptor(BlueprintConfig config) {
 String _secureHttpClient(BlueprintConfig config) {
   return generateSecureHttpClient();
 }
+
+// Memory management template wrappers
+String _disposableProvider(BlueprintConfig config) =>
+    generateDisposableProvider();
+String _memoryProfiler(BlueprintConfig config) => generateMemoryProfiler();
+String _imageCacheManager(BlueprintConfig config) =>
+    generateImageCacheManager();
+String _streamSubscriptionManager(BlueprintConfig config) =>
+    generateStreamSubscriptionManager();
+String _memoryLeakDetector(BlueprintConfig config) =>
+    generateMemoryLeakDetector();

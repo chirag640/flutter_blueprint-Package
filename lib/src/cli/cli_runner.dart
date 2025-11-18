@@ -233,6 +233,16 @@ class CliRunner {
         help: 'Security level (none, basic, standard, enterprise)',
         allowed: ['none', 'basic', 'standard', 'enterprise'],
       )
+      ..addOption(
+        'memory',
+        help:
+            'Memory management level (none, basic, advanced) - includes disposable patterns, profiling, and leak detection',
+        allowed: ['none', 'basic', 'advanced'],
+      )
+      ..addOption(
+        'max-cache-size',
+        help: 'Maximum image cache size in MB (default: 100)',
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -560,6 +570,7 @@ class CliRunner {
         'Pagination support (infinite scroll + skeleton loaders)',
         'Analytics & Crash Reporting',
         'Security Best Practices',
+        'Memory Management & Performance',
       ],
       defaultValues: [
         'Theme system (Light/Dark modes)',
@@ -580,6 +591,7 @@ class CliRunner {
     final includeAnalytics =
         selectedFeatures.any((f) => f.contains('Analytics'));
     final includeSecurity = selectedFeatures.any((f) => f.contains('Security'));
+    final includeMemory = selectedFeatures.any((f) => f.contains('Memory'));
 
     // If analytics selected, prompt for provider
     AnalyticsProvider analyticsProvider = AnalyticsProvider.none;
@@ -603,6 +615,34 @@ class CliRunner {
         defaultValue: 'standard',
       );
       securityLevel = SecurityLevel.parse(levelChoice);
+    }
+
+    // If memory management selected, prompt for level
+    MemoryLevel memoryLevel = MemoryLevel.none;
+    int maxImageCacheSize = 100;
+    if (includeMemory) {
+      _logger.info('');
+      final levelChoice = await _prompter.choose(
+        '🧠 Choose memory management level',
+        ['basic', 'advanced'],
+        defaultValue: 'basic',
+      );
+      memoryLevel = MemoryLevel.parse(levelChoice);
+
+      // Prompt for cache size if memory features enabled
+      _logger.info('');
+      final cacheSizeStr = await _prompter.prompt(
+        '💾 Maximum image cache size (MB)',
+        defaultValue: '100',
+      );
+      try {
+        maxImageCacheSize = int.parse(cacheSizeStr);
+        if (maxImageCacheSize <= 0) {
+          maxImageCacheSize = 100;
+        }
+      } catch (e) {
+        maxImageCacheSize = 100;
+      }
     }
 
     // Show summary
@@ -645,6 +685,8 @@ class CliRunner {
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
       securityLevel: securityLevel,
+      memoryLevel: memoryLevel,
+      maxImageCacheSize: maxImageCacheSize,
     );
 
     // Ask if they want to see preview
@@ -880,6 +922,35 @@ class CliRunner {
       securityLevel = SecurityLevel.none;
     }
 
+    // Memory management configuration
+    final memoryArg = results['memory'] as String?;
+    final MemoryLevel memoryLevel;
+
+    if (memoryArg != null) {
+      memoryLevel = MemoryLevel.parse(memoryArg);
+    } else {
+      memoryLevel = MemoryLevel.none;
+    }
+
+    // Max image cache size
+    final maxCacheSizeArg = results['max-cache-size'] as String?;
+    final int maxImageCacheSize;
+
+    if (maxCacheSizeArg != null) {
+      try {
+        maxImageCacheSize = int.parse(maxCacheSizeArg);
+        if (maxImageCacheSize <= 0) {
+          _logger.error('❌ Max cache size must be positive');
+          exit(1);
+        }
+      } catch (e) {
+        _logger.error('❌ Invalid max cache size: $maxCacheSizeArg');
+        exit(1);
+      }
+    } else {
+      maxImageCacheSize = 100; // Default 100MB
+    }
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -904,6 +975,8 @@ class CliRunner {
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
       securityLevel: securityLevel,
+      memoryLevel: memoryLevel,
+      maxImageCacheSize: maxImageCacheSize,
     );
   }
 
