@@ -44,6 +44,7 @@
 | 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry        | Unified API + Error tracking    |
 | 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)          | 9 security utilities + patterns |
 | 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection  | 7 memory utilities + profiling  |
+| 🔷 **Advanced Riverpod Patterns**  | 3 levels (none → advanced) with code generation | 6 pattern generators + examples |
 
 ### **Professional Add-ons** (What Makes It Pro)
 

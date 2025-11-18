@@ -1,3 +1,62 @@
+## 1.4.0 (2025-11-18) - Advanced Riverpod Patterns
+
+### 🔷 NEW: Advanced Riverpod Patterns & Code Generation
+
+- ✅ Added `riverpodLevel` enum to `BlueprintConfig` with three levels: `none`, `basic`, `advanced`.
+- ✅ Comprehensive Riverpod pattern template generators:
+  - **CancellableAsyncNotifier**: AsyncNotifier with automatic cancellation, retry logic, and optimistic updates
+  - **AutoDisposingFamily**: Extensions for keepAlive, cacheFor, and disposeDelay with LRU cache implementation
+  - **ProviderComposition**: Utilities for combining providers (combine2/3/4, select, derived state)
+  - **AdvancedExamples**: Real-world patterns (repository, use case, pagination, API client)
+  - **PerformancePatterns**: Optimization patterns (select, Consumer, batching, debouncing)
+  - **CodeGenSetup**: Riverpod code generation setup with @riverpod annotations
+- ✅ Added `--riverpod-level <level>` CLI option (none, basic, advanced).
+- ✅ Added `--code-generation` flag for riverpod_generator setup.
+- ✅ Integrated into interactive wizard with Riverpod-specific prompts.
+- ✅ Automatic dependency management (riverpod_annotation, riverpod_generator, build_runner).
+- ✅ build.yaml configuration file generation.
+- ✅ Comprehensive test suite with 49 tests (42+ passing).
+
+**Usage Examples:**
+
+```bash
+# Basic Riverpod patterns (AsyncNotifier, composition)
+flutter_blueprint init my_app --state riverpod --riverpod-level basic
+
+# Advanced patterns + code generation
+flutter_blueprint init my_app --state riverpod --riverpod-level advanced --code-generation
+
+# Combined with other features
+flutter_blueprint init my_app --state riverpod --riverpod-level advanced \
+  --memory advanced --security standard
+
+# Interactive wizard (includes Riverpod options)
+flutter_blueprint init
+```
+
+**Generated Structure:**
+
+```
+lib/core/patterns/
+├── cancellable_async_notifier.dart    # AsyncNotifier with cancellation
+├── auto_disposing_family.dart          # Auto-disposal extensions
+├── provider_composition.dart           # Provider combination utilities
+├── riverpod_examples.dart             # Real-world patterns
+└── performance_patterns.dart           # Optimization patterns
+build.yaml                              # Code generation config (optional)
+```
+
+**Benefits:**
+
+- 🚀 Production-ready Riverpod patterns out of the box
+- 🔷 Type-safe state management with compile-time safety
+- ⚡ Performance optimization patterns included
+- 🛠️ Optional code generation for cleaner syntax
+- 📚 Comprehensive examples and documentation
+- 🧪 Real-world patterns (repository, use case, pagination)
+
+---
+
 ## 1.3.0 (2025-11-18) - Memory Management & Performance
 
 ### 🧠 NEW: Memory Management & Performance Optimization

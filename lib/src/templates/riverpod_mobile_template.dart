@@ -5,6 +5,7 @@ import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'memory_templates.dart';
 import 'pagination_templates.dart';
+import 'riverpod_advanced_templates.dart';
 import 'security_templates.dart';
 import 'template_bundle.dart';
 
@@ -256,6 +257,32 @@ TemplateBundle buildRiverpodMobileBundle() {
           build: _memoryLeakDetector,
           shouldGenerate: (config) => config.enableLeakDetection),
 
+      // Advanced Riverpod Patterns
+      TemplateFile(
+          path: p.join('lib', 'core', 'patterns', 'cancellable_async_notifier.dart'),
+          build: _cancellableAsyncNotifier,
+          shouldGenerate: (config) => config.includeAdvancedRiverpod),
+      TemplateFile(
+          path: p.join('lib', 'core', 'patterns', 'auto_disposing_family.dart'),
+          build: _autoDisposingFamily,
+          shouldGenerate: (config) => config.includeAdvancedRiverpod),
+      TemplateFile(
+          path: p.join('lib', 'core', 'patterns', 'provider_composition.dart'),
+          build: _providerComposition,
+          shouldGenerate: (config) => config.includeAdvancedRiverpod),
+      TemplateFile(
+          path: p.join('lib', 'core', 'patterns', 'riverpod_examples.dart'),
+          build: _riverpodExamples,
+          shouldGenerate: (config) => config.enableProviderComposition),
+      TemplateFile(
+          path: p.join('lib', 'core', 'patterns', 'performance_patterns.dart'),
+          build: _performancePatterns,
+          shouldGenerate: (config) => config.enablePerformancePatterns),
+      TemplateFile(
+          path: 'build.yaml',
+          build: _buildYaml,
+          shouldGenerate: (config) => config.enableCodeGeneration),
+
       // Core: Providers (Global Riverpod providers)
       TemplateFile(
           path: p.join('lib', 'core', 'providers', 'app_providers.dart'),
@@ -331,6 +358,12 @@ String _pubspec(BlueprintConfig config) {
 
   // Use Riverpod instead of Provider
   buffer.writeln('  flutter_riverpod: ^2.5.1');
+  
+  // Add riverpod_annotation for code generation
+  if (config.enableCodeGeneration) {
+    buffer.writeln('  riverpod_annotation: ^2.3.5');
+  }
+  
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
   buffer.writeln('  equatable: ^2.0.5');
@@ -365,6 +398,12 @@ String _pubspec(BlueprintConfig config) {
     ..writeln('  flutter_lints: ^5.0.0');
   if (config.includeTests) {
     buffer.writeln('  mocktail: ^1.0.3');
+  }
+  
+  // Add build_runner and riverpod_generator for code generation
+  if (config.enableCodeGeneration) {
+    buffer.writeln('  build_runner: ^2.4.9');
+    buffer.writeln('  riverpod_generator: ^2.4.0');
   }
 
   buffer
@@ -2025,3 +2064,32 @@ String _streamSubscriptionManager(BlueprintConfig config) =>
     generateStreamSubscriptionManager();
 String _memoryLeakDetector(BlueprintConfig config) =>
     generateMemoryLeakDetector();
+
+// Advanced Riverpod pattern template wrappers
+String _cancellableAsyncNotifier(BlueprintConfig config) =>
+    generateAsyncNotifierPattern();
+String _autoDisposingFamily(BlueprintConfig config) =>
+    generateAutoDisposingFamily();
+String _providerComposition(BlueprintConfig config) =>
+    generateProviderComposition();
+String _riverpodExamples(BlueprintConfig config) =>
+    generateAdvancedExamples();
+String _performancePatterns(BlueprintConfig config) =>
+    generatePerformancePatterns();
+String _buildYaml(BlueprintConfig config) {
+  return '''
+targets:
+  \$default:
+    builders:
+      riverpod_generator:
+        options:
+          # Generate code for all files
+          generate_for:
+            include:
+              - lib/**
+              - test/**
+            exclude:
+              - lib/generated/**
+              - lib/**/*.g.dart
+              - lib/**/*.freezed.dart
+''';

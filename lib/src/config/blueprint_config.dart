@@ -159,6 +159,25 @@ enum MemoryLevel {
   }
 }
 
+/// Advanced Riverpod pattern levels.
+enum RiverpodLevel {
+  none,
+  basic,
+  advanced;
+
+  String get label => name;
+
+  static RiverpodLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in RiverpodLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported Riverpod level: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -185,6 +204,8 @@ class BlueprintConfig {
     this.securityLevel = SecurityLevel.none,
     this.memoryLevel = MemoryLevel.none,
     this.maxImageCacheSize = 100,
+    this.riverpodLevel = RiverpodLevel.none,
+    this.enableCodeGeneration = false,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -232,6 +253,12 @@ class BlueprintConfig {
   /// Maximum image cache size in MB (default: 100).
   final int maxImageCacheSize;
 
+  /// The advanced Riverpod pattern level to apply (none, basic, advanced).
+  final RiverpodLevel riverpodLevel;
+
+  /// Whether to enable Riverpod code generation setup.
+  final bool enableCodeGeneration;
+
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
@@ -274,6 +301,25 @@ class BlueprintConfig {
   /// Check if leak detection should be enabled (advanced only)
   bool get enableLeakDetection => memoryLevel == MemoryLevel.advanced;
 
+  /// Check if advanced Riverpod patterns are included
+  bool get includeAdvancedRiverpod =>
+      riverpodLevel != RiverpodLevel.none &&
+      stateManagement == StateManagement.riverpod;
+
+  /// Check if AsyncNotifier patterns should be included
+  bool get enableAsyncNotifierPatterns => includeAdvancedRiverpod;
+
+  /// Check if auto-disposing family providers should be included
+  bool get enableAutoDisposingFamily => includeAdvancedRiverpod;
+
+  /// Check if provider composition patterns should be included
+  bool get enableProviderComposition => includeAdvancedRiverpod;
+
+  /// Check if performance optimization patterns should be included
+  bool get enablePerformancePatterns =>
+      riverpodLevel == RiverpodLevel.advanced &&
+      stateManagement == StateManagement.riverpod;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -303,6 +349,8 @@ class BlueprintConfig {
     SecurityLevel? securityLevel,
     MemoryLevel? memoryLevel,
     int? maxImageCacheSize,
+    RiverpodLevel? riverpodLevel,
+    bool? enableCodeGeneration,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -321,6 +369,8 @@ class BlueprintConfig {
       securityLevel: securityLevel ?? this.securityLevel,
       memoryLevel: memoryLevel ?? this.memoryLevel,
       maxImageCacheSize: maxImageCacheSize ?? this.maxImageCacheSize,
+      riverpodLevel: riverpodLevel ?? this.riverpodLevel,
+      enableCodeGeneration: enableCodeGeneration ?? this.enableCodeGeneration,
     );
   }
 
@@ -335,6 +385,8 @@ class BlueprintConfig {
       'security_level': securityLevel.label,
       'memory_level': memoryLevel.label,
       'max_image_cache_size': maxImageCacheSize,
+      'riverpod_level': riverpodLevel.label,
+      'enable_code_generation': enableCodeGeneration,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -396,6 +448,11 @@ class BlueprintConfig {
         (map['memory_level'] ?? 'none') as String,
       ),
       maxImageCacheSize: (map['max_image_cache_size'] ?? 100) as int,
+      riverpodLevel: RiverpodLevel.parse(
+        (map['riverpod_level'] ?? 'none') as String,
+      ),
+      enableCodeGeneration:
+          _readBool(map['enable_code_generation'], fallback: false),
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),

@@ -243,6 +243,17 @@ class CliRunner {
         'max-cache-size',
         help: 'Maximum image cache size in MB (default: 100)',
       )
+      ..addOption(
+        'riverpod-level',
+        help:
+            'Advanced Riverpod patterns level (none, basic, advanced) - includes AsyncNotifier, family providers, composition patterns',
+        allowed: ['none', 'basic', 'advanced'],
+      )
+      ..addFlag(
+        'code-generation',
+        help: 'Enable Riverpod code generation setup (riverpod_generator)',
+        defaultsTo: null,
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -645,6 +656,34 @@ class CliRunner {
       }
     }
 
+    // Advanced Riverpod patterns (only if Riverpod is selected)
+    RiverpodLevel riverpodLevel = RiverpodLevel.none;
+    bool enableCodeGeneration = false;
+    if (stateMgmt == StateManagement.riverpod) {
+      _logger.info('');
+      final includeRiverpod = await _prompter.confirm(
+        '🔷 Enable advanced Riverpod patterns?',
+        defaultValue: false,
+      );
+
+      if (includeRiverpod) {
+        _logger.info('');
+        final levelChoice = await _prompter.choose(
+          '🔷 Choose Riverpod patterns level',
+          ['basic', 'advanced'],
+          defaultValue: 'basic',
+        );
+        riverpodLevel = RiverpodLevel.parse(levelChoice);
+
+        // Prompt for code generation
+        _logger.info('');
+        enableCodeGeneration = await _prompter.confirm(
+          '⚙️  Enable Riverpod code generation (riverpod_generator)?',
+          defaultValue: false,
+        );
+      }
+    }
+
     // Show summary
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
@@ -667,6 +706,15 @@ class CliRunner {
         '   Analytics: ${includeAnalytics ? "✅ (${analyticsProvider.label})" : '❌'}');
     _logger.info(
         '   Security: ${includeSecurity ? "✅ (${securityLevel.label})" : '❌'}');
+    _logger.info(
+        '   Memory: ${memoryLevel != MemoryLevel.none ? "✅ (${memoryLevel.label})" : '❌'}');
+    if (stateMgmt == StateManagement.riverpod) {
+      _logger.info(
+          '   Riverpod patterns: ${riverpodLevel != RiverpodLevel.none ? "✅ (${riverpodLevel.label})" : '❌'}');
+      if (enableCodeGeneration) {
+        _logger.info('   Code generation: ✅');
+      }
+    }
     _logger.info('');
 
     // Create config
@@ -687,6 +735,8 @@ class CliRunner {
       securityLevel: securityLevel,
       memoryLevel: memoryLevel,
       maxImageCacheSize: maxImageCacheSize,
+      riverpodLevel: riverpodLevel,
+      enableCodeGeneration: enableCodeGeneration,
     );
 
     // Ask if they want to see preview
@@ -951,6 +1001,26 @@ class CliRunner {
       maxImageCacheSize = 100; // Default 100MB
     }
 
+    // Advanced Riverpod patterns configuration
+    final riverpodArg = results['riverpod-level'] as String?;
+    final RiverpodLevel riverpodLevel;
+
+    if (riverpodArg != null && stateMgmt == StateManagement.riverpod) {
+      riverpodLevel = RiverpodLevel.parse(riverpodArg);
+    } else {
+      riverpodLevel = RiverpodLevel.none;
+    }
+
+    // Code generation flag
+    final codeGenFlag = results['code-generation'] as bool?;
+    final bool enableCodeGeneration;
+
+    if (codeGenFlag != null && stateMgmt == StateManagement.riverpod) {
+      enableCodeGeneration = codeGenFlag;
+    } else {
+      enableCodeGeneration = false;
+    }
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -977,6 +1047,8 @@ class CliRunner {
       securityLevel: securityLevel,
       memoryLevel: memoryLevel,
       maxImageCacheSize: maxImageCacheSize,
+      riverpodLevel: riverpodLevel,
+      enableCodeGeneration: enableCodeGeneration,
     );
   }
 
