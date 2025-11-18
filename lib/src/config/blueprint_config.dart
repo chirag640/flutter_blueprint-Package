@@ -121,6 +121,7 @@ class BlueprintConfig {
     required this.includeTests,
     this.ciProvider = CIProvider.none,
     this.includeHive = false,
+    this.includePagination = false,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -150,6 +151,9 @@ class BlueprintConfig {
   /// Whether to include Hive offline caching support.
   final bool includeHive;
 
+  /// Whether to include pagination utilities (controller, widgets, skeleton loaders).
+  final bool includePagination;
+
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
@@ -176,6 +180,7 @@ class BlueprintConfig {
     bool? includeTests,
     CIProvider? ciProvider,
     bool? includeHive,
+    bool? includePagination,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -188,6 +193,7 @@ class BlueprintConfig {
       includeTests: includeTests ?? this.includeTests,
       ciProvider: ciProvider ?? this.ciProvider,
       includeHive: includeHive ?? this.includeHive,
+      includePagination: includePagination ?? this.includePagination,
     );
   }
 
@@ -205,6 +211,7 @@ class BlueprintConfig {
         'api': includeApi,
         'tests': includeTests,
         'hive': includeHive,
+        'pagination': includePagination,
       }),
     };
   }
@@ -253,6 +260,7 @@ class BlueprintConfig {
       includeApi: _readBool(features['api'], fallback: true),
       includeTests: _readBool(features['tests'], fallback: true),
       includeHive: _readBool(features['hive'], fallback: false),
+      includePagination: _readBool(features['pagination'], fallback: false),
     );
   }
 

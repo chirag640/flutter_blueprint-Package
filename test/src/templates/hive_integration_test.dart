@@ -192,7 +192,7 @@ void main() {
 
         final content = mainFile.build(configWithHive);
 
-        expect(content, contains("import 'core/storage/hive_database.dart';"));
+        expect(content, contains("import 'core/database/hive_database.dart';"));
         expect(content, contains('await HiveDatabase.instance.init();'));
         expect(content, contains('Future<void> main() async'));
         expect(content, contains('WidgetsFlutterBinding.ensureInitialized()'));
@@ -250,7 +250,7 @@ void main() {
 
         final content = mainFile.build(configWithHive);
 
-        expect(content, contains("import 'core/storage/hive_database.dart';"));
+        expect(content, contains("import 'core/database/hive_database.dart';"));
         expect(content, contains('await HiveDatabase.instance.init();'));
         expect(content, contains('ProviderScope'));
       });
@@ -294,7 +294,7 @@ void main() {
 
         final content = mainFile.build(configWithHive);
 
-        expect(content, contains("import 'core/storage/hive_database.dart';"));
+        expect(content, contains("import 'core/database/hive_database.dart';"));
         expect(content, contains('await HiveDatabase.instance.init();'));
       });
     });

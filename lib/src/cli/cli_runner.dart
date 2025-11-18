@@ -112,8 +112,10 @@ class CliRunner {
       _logger.info('│                                                  │');
       _logger.info('│   A new version of flutter_blueprint is here!    │');
       _logger.info('│                                                  │');
-      _logger.info('│   Current: ${updateInfo.currentVersion.padRight(10)}                           │');
-      _logger.info('│   Latest:  ${updateInfo.latestVersion.padRight(10)}                            │');
+      _logger.info(
+          '│   Current: ${updateInfo.currentVersion.padRight(10)}                           │');
+      _logger.info(
+          '│   Latest:  ${updateInfo.latestVersion.padRight(10)}                            │');
       _logger.info('│                                                  │');
       _logger.info('│   Run the command below to update:               │');
       _logger.info('│                                                  │');
@@ -206,6 +208,18 @@ class CliRunner {
       ..addFlag(
         'tests',
         help: 'Include test scaffolding',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'hive',
+        help:
+            'Include Hive offline caching (storage, cache manager, sync queue)',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'pagination',
+        help:
+            'Include pagination support (controller, paginated list view, skeleton loaders)',
         defaultsTo: null,
       )
       // Analyze command flags
@@ -528,6 +542,8 @@ class CliRunner {
         'Environment config (.env)',
         'API client (Dio + interceptors)',
         'Test scaffolding',
+        'Hive offline caching (storage + sync)',
+        'Pagination support (infinite scroll + skeleton loaders)',
       ],
       defaultValues: [
         'Theme system (Light/Dark modes)',
@@ -542,6 +558,9 @@ class CliRunner {
     final includeEnv = selectedFeatures.any((f) => f.contains('Environment'));
     final includeApi = selectedFeatures.any((f) => f.contains('API'));
     final includeTests = selectedFeatures.any((f) => f.contains('Test'));
+    final includeHive = selectedFeatures.any((f) => f.contains('Hive'));
+    final includePagination =
+        selectedFeatures.any((f) => f.contains('Pagination'));
 
     // Show summary
     _logger.info('');
@@ -559,6 +578,8 @@ class CliRunner {
     _logger.info('   Environment: ${includeEnv ? '✅' : '❌'}');
     _logger.info('   API client: ${includeApi ? '✅' : '❌'}');
     _logger.info('   Tests: ${includeTests ? '✅' : '❌'}');
+    _logger.info('   Hive caching: ${includeHive ? '✅' : '❌'}');
+    _logger.info('   Pagination: ${includePagination ? '✅' : '❌'}');
     _logger.info('');
 
     // Create config
@@ -572,6 +593,8 @@ class CliRunner {
       includeEnv: includeEnv,
       includeApi: includeApi,
       includeTests: includeTests,
+      includeHive: includeHive,
+      includePagination: includePagination,
     );
 
     // Ask if they want to see preview
@@ -763,6 +786,18 @@ class CliRunner {
       'Include test scaffolding?',
       defaultValue: true,
     );
+    final includeHive = await _resolveBoolFlag(
+      results,
+      'hive',
+      'Include Hive offline caching?',
+      defaultValue: false,
+    );
+    final includePagination = await _resolveBoolFlag(
+      results,
+      'pagination',
+      'Include pagination support?',
+      defaultValue: false,
+    );
 
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
@@ -783,6 +818,8 @@ class CliRunner {
       includeEnv: includeEnv,
       includeApi: includeApi,
       includeTests: includeTests,
+      includeHive: includeHive,
+      includePagination: includePagination,
     );
   }
 
@@ -1233,6 +1270,9 @@ class CliRunner {
     _logger.info('  flutter_blueprint init my_app --state provider --theme');
     _logger.info(
         '  flutter_blueprint init my_app --state riverpod --no-localization');
+    _logger.info('  flutter_blueprint init my_app --state bloc --api --hive');
+    _logger.info(
+        '  flutter_blueprint init my_app --state riverpod --api --pagination');
     _logger.info('');
     _logger.info('  # With project preview (see structure before generation)');
     _logger.info('  flutter_blueprint init my_app --preview');

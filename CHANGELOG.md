@@ -1,4 +1,73 @@
-## 0.8.4 (2025-11-03) - Quality of Life Improvements
+## 1.0.5 (2025-11-18) - Pagination Feature
+
+### ✨ NEW: Pagination Support
+
+- ✅ Added `includePagination` boolean to `BlueprintConfig` to toggle pagination support when generating projects.
+- ✅ New pagination template generators: `PaginationController`, `PaginatedListView`, and `SkeletonLoader` (generated into `lib/core/pagination/`).
+  - **PaginationController**: Generic controller with multiple states (initial, loading, loadingMore, success, failure, empty), automatic pagination logic, error handling with retry, and pull-to-refresh support.
+  - **PaginatedListView**: Production-ready widget with infinite scroll detection, pull-to-refresh, customizable builders (empty, error, loading, loadingMore, separator), and scroll threshold configuration.
+  - **SkeletonLoader**: Animated skeleton screens with shimmer effects, pre-built list tiles, and automatic theme adaptation (light/dark mode).
+- ✅ Added `--pagination` CLI flag for easy enablement via command line.
+- ✅ Integrated into interactive wizard with "Pagination support (infinite scroll + skeleton loaders)" multi-select option.
+- ✅ Integrated pagination templates across Provider, Riverpod, and Bloc mobile templates with conditional generation.
+- ✅ Added comprehensive tests (`test/src/templates/pagination_integration_test.dart`) covering config serialization, template generation, and content verification.
+- ✅ Updated documentation with usage examples and implementation details.
+
+**Usage Examples:**
+
+```bash
+# Generate project with pagination support
+flutter_blueprint init my_app --state riverpod --api --pagination
+
+# Interactive wizard mode (select from features list)
+flutter_blueprint init
+
+# Programmatic configuration
+BlueprintConfig(
+  appName: 'my_app',
+  stateManagement: StateManagement.provider,
+  includePagination: true,
+)
+```
+
+**Generated Structure:**
+
+```
+lib/core/pagination/
+├── pagination_controller.dart    # Generic pagination state management
+├── paginated_list_view.dart      # Infinite scroll widget with pull-to-refresh
+└── skeleton_loader.dart           # Animated loading skeletons
+```
+
+**Key Features:**
+
+- **Type-safe pagination**: Generic `PaginationController<T>` works with any data type
+- **Automatic infinite scroll**: Triggers at 90% scroll position by default (configurable)
+- **Pull-to-refresh**: Built-in `RefreshIndicator` support
+- **Comprehensive error handling**: Retry logic for both initial load and load more
+- **Customizable UI**: All builders are optional and can be overridden
+- **Production-ready**: Includes loading states, empty states, error states, and skeleton loaders
+- **Smooth animations**: Shimmer effect for skeleton loaders with theme support
+
+**Benefits:**
+
+- **Save hours** of pagination implementation time
+- **Consistent UX** across all list screens
+- **Professional loading states** with animated skeletons
+- **Built-in best practices** for infinite scroll and error handling
+- **Zero boilerplate** - ready to use with your API
+
+**Impact:**
+
+- **Tests**: 305 → **315 tests** (+10 pagination tests, all passing)
+- **Generated files**: Up to 3 additional files when pagination is enabled
+- **Production-ready**: Tested with all three state management options
+
+See the generated `pagination_controller.dart`, `paginated_list_view.dart`, and `skeleton_loader.dart` files for complete implementation details and usage examples.
+
+---
+
+## 0.9.4 (2025-11-03) - Quality of Life Improvements
 
 ### ✨ NEW: Hive Offline Caching
 

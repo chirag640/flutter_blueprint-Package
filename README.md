@@ -32,7 +32,7 @@
 
 | Feature                       | Description                                     | Generated Files                 |
 | ----------------------------- | ----------------------------------------------- | ------------------------------- |
-| ⚡ **One-command setup**      | `flutter_blueprint init my_app`                 | 42-43 files in seconds          |
+| ⚡ **One-command setup**      | `flutter_blueprint init my_app`                 | 42-46 files in seconds          |
 | 🧱 **Clean architecture**     | Separation of concerns (core/, features/, app/) | Professional folder structure   |
 | 🎯 **State management**       | **Provider, Riverpod, OR Bloc**                 | Choose your preferred pattern   |
 | 🎨 **Theming system**         | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
@@ -40,6 +40,7 @@
 | 🛠️ **Environment config**     | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
 | 🧭 **Professional routing**   | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
 | 📱 **Multi-platform support** | Mobile, Web, Desktop - all in one project       | Universal or single-platform    |
+| 📄 **Pagination support**     | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI       |
 
 ### **Professional Add-ons** (What Makes It Pro)
 
@@ -137,6 +138,8 @@ flutter_blueprint init
    ✓ Environment config (.env)
    ✓ API client (Dio + interceptors)
    ✓ Test scaffolding
+   ✓ Hive offline caching (storage + sync)
+   ✓ Pagination support (infinite scroll + skeleton loaders)
 
 📋 Configuration Summary:
    App name: my_awesome_app
@@ -146,6 +149,8 @@ flutter_blueprint init
    Environment: ✅
    API client: ✅
    Tests: ✅
+   Hive caching: ✅
+   Pagination: ✅
 
 ✔ 🚀 Ready to generate your app? · yes
 
@@ -188,6 +193,15 @@ flutter_blueprint init my_app \
   --api \
   --tests \
   --no-localization
+
+# With Hive offline caching (NEW in v0.9.4!)
+flutter_blueprint init my_app --state bloc --api --hive
+
+# With pagination support (NEW in v0.9.5!)
+flutter_blueprint init my_app --state riverpod --api --pagination
+
+# Combine Hive + Pagination for production-ready apps
+flutter_blueprint init my_app --state bloc --api --hive --pagination
 
 # With CI/CD configuration
 flutter_blueprint init my_app --ci github
@@ -898,6 +912,14 @@ my_app/
 │   │   ├── storage/
 │   │   │   ├── local_storage.dart             # 💾 SharedPreferences wrapper
 │   │   │   └── secure_storage.dart            #   Secure token storage
+│   │   ├── database/                          # 🗄️ Optional: Hive offline caching
+│   │   │   ├── hive_database.dart             #   Singleton Hive DB manager
+│   │   │   ├── cache_manager.dart             #   TTL/LRU/Size eviction strategies
+│   │   │   └── sync_manager.dart              #   Offline queue with retry logic
+│   │   ├── pagination/                        # 📄 Optional: Pagination system
+│   │   │   ├── pagination_controller.dart     #   Generic pagination controller
+│   │   │   ├── paginated_list_view.dart       #   Infinite scroll widget
+│   │   │   └── skeleton_loader.dart           #   Animated loading skeletons
 │   │   ├── theme/
 │   │   │   ├── app_theme.dart                 # 🎨 Light/Dark themes
 │   │   │   ├── app_colors.dart                #   Color palette
@@ -940,7 +962,8 @@ my_app/
 **File Count by Feature Set:**
 
 - **Minimal** (no optional features): 19 files
-- **Full Stack** (all features enabled): **43 files** 🚀
+- **Standard** (theme + API + tests): 43 files
+- **Full Stack** (all features + Hive + Pagination): **49 files** 🚀
 
 ---
 
@@ -994,6 +1017,8 @@ flutter_blueprint init <app_name> [options]
 | `--env`              | Include environment config                                        | Interactive prompt |
 | `--api`              | Include API client                                                | Interactive prompt |
 | `--tests`            | Include test scaffolding                                          | Interactive prompt |
+| `--hive`             | Include Hive offline caching (storage + cache + sync)             | false              |
+| `--pagination`       | Include pagination support (infinite scroll + skeletons)          | false              |
 | `-h, --help`         | Show help                                                         | -                  |
 | `-v, --version`      | Show version                                                      | -                  |
 

@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
 import 'hive_templates.dart';
+import 'pagination_templates.dart';
 import 'template_bundle.dart';
 
 TemplateBundle buildProviderMobileBundle() {
@@ -147,6 +148,21 @@ TemplateBundle buildProviderMobileBundle() {
           path: p.join('lib', 'core', 'database', 'sync_manager.dart'),
           build: _syncManager,
           shouldGenerate: (config) => config.includeHive),
+
+      // Core: Pagination
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'pagination', 'pagination_controller.dart'),
+          build: _paginationController,
+          shouldGenerate: (config) => config.includePagination),
+      TemplateFile(
+          path: p.join('lib', 'core', 'pagination', 'paginated_list_view.dart'),
+          build: _paginatedListView,
+          shouldGenerate: (config) => config.includePagination),
+      TemplateFile(
+          path: p.join('lib', 'core', 'pagination', 'skeleton_loader.dart'),
+          build: _skeletonLoader,
+          shouldGenerate: (config) => config.includePagination),
 
       // Features: Home
       TemplateFile(
@@ -1842,4 +1858,17 @@ String _cacheManager(BlueprintConfig config) {
 
 String _syncManager(BlueprintConfig config) {
   return generateSyncManager(config);
+}
+
+// Pagination templates
+String _paginationController(BlueprintConfig config) {
+  return generatePaginationController(config);
+}
+
+String _paginatedListView(BlueprintConfig config) {
+  return generatePaginatedListView(config);
+}
+
+String _skeletonLoader(BlueprintConfig config) {
+  return generateSkeletonLoader(config);
 }

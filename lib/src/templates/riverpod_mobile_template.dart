@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
 import 'hive_templates.dart';
+import 'pagination_templates.dart';
 import 'template_bundle.dart';
 
 /// Builds a Riverpod-based mobile template with professional architecture
@@ -135,17 +136,32 @@ TemplateBundle buildRiverpodMobileBundle() {
           path: p.join('lib', 'core', 'storage', 'secure_storage.dart'),
           build: _secureStorage),
       TemplateFile(
-          path: p.join('lib', 'core', 'storage', 'hive_database.dart'),
+          path: p.join('lib', 'core', 'database', 'hive_database.dart'),
           build: _hiveDatabase,
           shouldGenerate: (config) => config.includeHive),
       TemplateFile(
-          path: p.join('lib', 'core', 'storage', 'cache_manager.dart'),
+          path: p.join('lib', 'core', 'database', 'cache_manager.dart'),
           build: _cacheManager,
           shouldGenerate: (config) => config.includeHive),
       TemplateFile(
-          path: p.join('lib', 'core', 'storage', 'sync_manager.dart'),
+          path: p.join('lib', 'core', 'database', 'sync_manager.dart'),
           build: _syncManager,
           shouldGenerate: (config) => config.includeHive),
+
+      // Core: Pagination
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'pagination', 'pagination_controller.dart'),
+          build: _paginationController,
+          shouldGenerate: (config) => config.includePagination),
+      TemplateFile(
+          path: p.join('lib', 'core', 'pagination', 'paginated_list_view.dart'),
+          build: _paginatedListView,
+          shouldGenerate: (config) => config.includePagination),
+      TemplateFile(
+          path: p.join('lib', 'core', 'pagination', 'skeleton_loader.dart'),
+          build: _skeletonLoader,
+          shouldGenerate: (config) => config.includePagination),
 
       // Core: Providers (Global Riverpod providers)
       TemplateFile(
@@ -287,7 +303,7 @@ String _mainDart(BlueprintConfig config) {
     buffer.writeln("import 'core/config/env_loader.dart';");
   }
   if (config.includeHive) {
-    buffer.writeln("import 'core/storage/hive_database.dart';");
+    buffer.writeln("import 'core/database/hive_database.dart';");
   }
   buffer
     ..writeln('')
@@ -1873,3 +1889,11 @@ String _titleCase(String input) {
 String _hiveDatabase(BlueprintConfig config) => generateHiveDatabase(config);
 String _cacheManager(BlueprintConfig config) => generateCacheManager(config);
 String _syncManager(BlueprintConfig config) => generateSyncManager(config);
+
+// Pagination template wrappers
+String _paginationController(BlueprintConfig config) =>
+    generatePaginationController(config);
+String _paginatedListView(BlueprintConfig config) =>
+    generatePaginatedListView(config);
+String _skeletonLoader(BlueprintConfig config) =>
+    generateSkeletonLoader(config);
