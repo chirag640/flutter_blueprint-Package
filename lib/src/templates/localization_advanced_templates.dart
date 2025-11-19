@@ -181,8 +181,7 @@ class ARBGenerator {
     Map<String, String> translations, {
     Map<String, ARBMetadata>? metadata,
   }) async {
-    final fileName = 'app_\$locale.arb';
-    final filePath = '\$outputDirectory/\$fileName';
+    final filePath = '\$outputDirectory/app_\$locale.arb';
     
     final arbContent = <String, dynamic>{
       '@@locale': locale,
@@ -216,8 +215,7 @@ class ARBGenerator {
     String locale,
     Map<String, PluralTranslation> plurals,
   ) async {
-    final fileName = 'app_\$locale.arb';
-    final filePath = '\$outputDirectory/\$fileName';
+    final filePath = '\$outputDirectory/app_\$locale.arb';
     
     final arbContent = <String, dynamic>{
       '@@locale': locale,
@@ -252,8 +250,7 @@ class ARBGenerator {
     String locale,
     Map<String, GenderTranslation> genders,
   ) async {
-    final fileName = 'app_\$locale.arb';
-    final filePath = '\$outputDirectory/\$fileName';
+    final filePath = '\$outputDirectory/app_\$locale.arb';
     
     final arbContent = <String, dynamic>{
       '@@locale': locale,
@@ -684,7 +681,8 @@ class TranslationHelper {
 String generateLocalizationExamples() {
   return r'''
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'locale_manager.dart';
+import 'rtl_support.dart';
 
 /// Example: Complete app setup with localization
 ///
@@ -739,6 +737,15 @@ class LocaleSwitcher extends StatelessWidget {
         }
       },
     );
+  }
+}
+
+/// Translation helper for pluralization
+class TranslationHelper {
+  static String plural(int count, Map<String, String> forms) {
+    if (count == 0 && forms.containsKey('zero')) return forms['zero']!;
+    if (count == 1 && forms.containsKey('one')) return forms['one']!;
+    return forms['other']?.replaceAll('\$count', count.toString()) ?? '';
   }
 }
 

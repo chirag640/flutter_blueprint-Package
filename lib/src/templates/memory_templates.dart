@@ -176,7 +176,6 @@ mixin DisposableNotifierMixin<State> on Notifier<State> {
 String generateMemoryProfiler() {
   return r'''
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 

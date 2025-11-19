@@ -16,7 +16,6 @@
 /// - Secure storage integration
 String generateJWTHandler() {
   return r'''
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -772,7 +771,8 @@ enum BiometricAuthState {
 
 /// Biometric settings helper
 class BiometricSettings {
-  static const String _biometricEnabledKey = 'biometric_enabled';
+  // Storage key for biometric preference
+  // static const String _biometricEnabledKey = 'biometric_enabled';
   
   /// Check if biometric is enabled in app settings
   Future<bool> isBiometricEnabled() async {
@@ -783,7 +783,7 @@ class BiometricSettings {
   
   /// Enable biometric authentication
   Future<void> enableBiometric() async {
-    // Save to preferences
+    // Save to preferences using _biometricEnabledKey
   }
   
   /// Disable biometric authentication
@@ -925,6 +925,8 @@ class Credentials {
 String generateAuthExamples() {
   return r'''
 import 'package:flutter/material.dart';
+import 'biometric_auth.dart';
+import 'secure_storage.dart';
 
 /// Example: Complete authentication flow
 ///
@@ -944,43 +946,18 @@ class LoginExample extends StatefulWidget {
 }
 
 class _LoginExampleState extends State<LoginExample> {
-  final _jwtHandler = JWTHandler();
-  final _sessionManager = SessionManager(
-    timeout: Duration(minutes: 30),
-  );
+  // Example fields (uncomment to use):
+  // final _jwtHandler = JWTHandler();
+  // final _sessionManager = SessionManager(timeout: Duration(minutes: 30));
   
-  Future<void> _login(String email, String password) async {
-    try {
-      // Call your API
-      final response = await _authenticate(email, password);
-      
-      // Save tokens
-      await _jwtHandler.saveTokens(
-        response.accessToken,
-        response.refreshToken,
-      );
-      
-      // Start session
-      await _sessionManager.startSession(
-        userId: _jwtHandler.getUserIdFromToken(response.accessToken) ?? '',
-      );
-      
-      // Navigate to home
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (e) {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
-    }
-  }
-  
-  Future<AuthResponse> _authenticate(String email, String password) async {
-    // Implement your API call
-    throw UnimplementedError();
-  }
+  // Implement your login logic here
+  // Example:
+  // Future<void> _login(String email, String password) async {
+  //   final response = await _authenticate(email, password);
+  //   await _jwtHandler.saveTokens(response.accessToken, response.refreshToken);
+  //   await _sessionManager.startSession(userId: _jwtHandler.getUserIdFromToken(response.accessToken) ?? '');
+  //   if (mounted) Navigator.pushReplacementNamed(context, '/home');
+  // }
   
   @override
   Widget build(BuildContext context) {

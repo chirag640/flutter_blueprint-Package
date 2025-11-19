@@ -99,6 +99,15 @@ class DependencyManager {
     bool includeAnalytics = false,
     String analyticsProvider = 'none',
     String securityLevel = 'none',
+    String memoryLevel = 'none',
+    String riverpodLevel = 'none',
+    bool enableCodeGeneration = false,
+    String localizationLevel = 'none',
+    String authLevel = 'none',
+    bool enableJWT = false,
+    bool enableOAuth = false,
+    bool enableBiometric = false,
+    String offlineLevel = 'none',
   }) async {
     final packages = <String>[];
 
@@ -177,6 +186,50 @@ class DependencyManager {
           'flutter_windowmanager',
         ]);
       }
+    }
+
+    // Riverpod code generation packages
+    if (riverpodLevel != 'none' && enableCodeGeneration) {
+      packages.addAll([
+        'riverpod_generator',
+        'build_runner',
+      ]);
+    }
+
+    // Authentication packages
+    if (authLevel != 'none') {
+      if (!packages.contains('flutter_secure_storage')) {
+        packages.add('flutter_secure_storage');
+      }
+      packages.add('shared_preferences');
+
+      if (enableJWT) {
+        packages.add('jwt_decoder');
+      }
+
+      if (enableOAuth) {
+        packages.addAll([
+          'http',
+          'url_launcher',
+          'crypto',
+        ]);
+      }
+
+      if (enableBiometric) {
+        packages.addAll([
+          'local_auth',
+          'local_auth_android',
+          'local_auth_darwin',
+        ]);
+      }
+    }
+
+    // Offline-first packages
+    if (offlineLevel != 'none') {
+      packages.addAll([
+        'connectivity_plus',
+        'shared_preferences',
+      ]);
     }
 
     _logger.info('🔍 Fetching latest dependency versions from pub.dev...');

@@ -132,6 +132,8 @@ class CancelledException implements Exception {
 /// - Memory-efficient family providers
 String generateAutoDisposingFamily() {
   return '''
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Extension for creating auto-disposing family providers with cache management.
@@ -785,6 +787,7 @@ final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 /// - Avoiding unnecessary rebuilds
 String generatePerformancePatterns() {
   return '''
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

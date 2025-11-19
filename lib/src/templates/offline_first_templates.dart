@@ -298,8 +298,6 @@ enum SyncEventType {
 /// - Conflict detection
 String generateConflictResolver() {
   return r'''
-import 'package:flutter/foundation.dart';
-
 /// Conflict resolver for handling data synchronization conflicts.
 ///
 /// Usage:
@@ -675,6 +673,7 @@ class SyncConfig {
 String generateOfflineRepository() {
   return r'''
 import 'dart:async';
+import 'sync_queue.dart';
 
 /// Offline-first repository pattern.
 ///
@@ -1043,6 +1042,10 @@ String generateSyncCoordinator() {
   return r'''
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'sync_queue.dart';
+import 'network_monitor.dart';
+import 'background_sync.dart';
+import 'offline_repository.dart';
 
 /// Sync coordinator for orchestrating offline-first operations.
 ///
@@ -1200,6 +1203,10 @@ class SyncStatistics {
 String generateOfflineExamples() {
   return r'''
 import 'package:flutter/material.dart';
+import 'offline_repository.dart';
+import 'sync_coordinator.dart';
+import 'sync_queue.dart';
+import 'network_monitor.dart';
 
 /// Example: Complete offline-first implementation
 ///
@@ -1211,22 +1218,21 @@ import 'package:flutter/material.dart';
 /// - Background sync
 
 /// Example: Offline-first post repository
-class PostRepository extends OfflineRepository<Post> {
+class PostRepository {
+  final LocalDataSource<Post> localDataSource;
+  final RemoteDataSource<Post> remoteDataSource;
+  final SyncQueue? syncQueue;
+  
   PostRepository({
-    required super.localDataSource,
-    required super.remoteDataSource,
-    super.syncQueue,
+    required this.localDataSource,
+    required this.remoteDataSource,
+    this.syncQueue,
   });
   
-  @override
-  Map<String, dynamic> _toMap(Post item) {
-    return {
-      'id': item.id,
-      'title': item.title,
-      'content': item.content,
-      'timestamp': item.timestamp.toIso8601String(),
-    };
-  }
+  // Helper method for serialization if needed
+  // Map<String, dynamic> toMap(Post item) {
+  //   return {'id': item.id, 'title': item.title, 'content': item.content, 'timestamp': item.timestamp.toIso8601String()};
+  // }
 }
 
 /// Example: Post model

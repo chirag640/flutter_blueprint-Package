@@ -491,6 +491,65 @@ class BlueprintConfig {
   /// Check if all platforms are selected
   bool get isUniversal => platforms.length == TargetPlatform.values.length;
 
+  /// Validates configuration for conflicts and dependencies.
+  ///
+  /// Returns a list of error messages. Empty list means valid configuration.
+  List<String> validate() {
+    final errors = <String>[];
+
+    // Validate offline-first dependencies
+    if (enableBackgroundSync && offlineLevel == OfflineLevel.none) {
+      errors.add(
+          '❌ Background sync requires offline-level to be basic or advanced');
+    }
+
+    if (enableConflictResolution && offlineLevel != OfflineLevel.advanced) {
+      errors.add('❌ Conflict resolution requires offline-level to be advanced');
+    }
+
+    // Validate authentication dependencies
+    if (enableBiometric && authLevel == AuthLevel.none) {
+      errors
+          .add('❌ Biometric auth requires auth-level to be basic or advanced');
+    }
+
+    if (enableJWT && !includeApi) {
+      errors.add('⚠️  JWT handling works best with API support enabled');
+    }
+
+    if (enableOAuth && !includeApi) {
+      errors.add('⚠️  OAuth integration works best with API support enabled');
+    }
+
+    // Validate Riverpod dependencies
+    if (enableCodeGeneration && stateManagement != StateManagement.riverpod) {
+      errors.add('❌ Code generation requires Riverpod state management');
+    }
+
+    if (riverpodLevel != RiverpodLevel.none &&
+        stateManagement != StateManagement.riverpod) {
+      errors.add(
+          '❌ Advanced Riverpod patterns require Riverpod state management');
+    }
+
+    // Validate localization dependencies
+    if (enableRTL && !includeLocalization) {
+      errors.add('❌ RTL support requires localization to be enabled');
+    }
+
+    if (!supportedLocales.contains(defaultLocale)) {
+      errors.add(
+          '❌ Default locale "$defaultLocale" must be in supported locales');
+    }
+
+    // Validate sync interval
+    if (syncInterval < 1) {
+      errors.add('❌ Sync interval must be at least 1 minute');
+    }
+
+    return errors;
+  }
+
   /// Creates a copy of this configuration with optionally updated values.
   ///
   /// Any parameter set to null will retain its current value.

@@ -435,6 +435,23 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  path_provider: ^2.1.5');
   }
 
+  // Authentication packages
+  if (config.enableJWT) {
+    buffer.writeln('  jwt_decoder: ^2.0.1');
+  }
+  if (config.enableOAuth) {
+    buffer
+      ..writeln('  http: ^1.2.2')
+      ..writeln('  url_launcher: ^6.3.1')
+      ..writeln('  crypto: ^3.0.5');
+  }
+  if (config.enableBiometric) {
+    buffer
+      ..writeln('  local_auth: ^2.3.0')
+      ..writeln('  local_auth_android: ^1.0.56')
+      ..writeln('  local_auth_darwin: ^1.3.1');
+  }
+
   buffer
     ..writeln('')
     ..writeln('dev_dependencies:')

@@ -476,11 +476,34 @@ class CliRunner {
           includeHive: config.includeHive,
           includeAnalytics: config.includeAnalytics,
           analyticsProvider: config.analyticsProvider.label,
+          securityLevel: config.securityLevel.label,
+          memoryLevel: config.memoryLevel.label,
+          riverpodLevel: config.riverpodLevel.label,
+          enableCodeGeneration: config.enableCodeGeneration,
+          localizationLevel: config.localizationLevel.label,
+          authLevel: config.authLevel.label,
+          enableJWT: config.enableJWT,
+          enableOAuth: config.enableOAuth,
+          enableBiometric: config.enableBiometric,
+          offlineLevel: config.offlineLevel.label,
         );
       } finally {
         depManager.close();
       }
       _logger.info('');
+    }
+
+    // Validate configuration
+    final validationErrors = config.validate();
+    if (validationErrors.isNotEmpty) {
+      _logger.error('❌ Configuration validation failed:');
+      _logger.error('');
+      for (final error in validationErrors) {
+        _logger.error('  $error');
+      }
+      _logger.error('');
+      _logger.info('💡 Fix these issues and try again');
+      exit(1);
     }
 
     // Generate project
@@ -1036,10 +1059,33 @@ class CliRunner {
           includeHive: includeHive,
           includeAnalytics: includeAnalytics,
           analyticsProvider: analyticsProvider.label,
+          securityLevel: securityLevel.label,
+          memoryLevel: memoryLevel.label,
+          riverpodLevel: riverpodLevel.label,
+          enableCodeGeneration: enableCodeGeneration,
+          localizationLevel: localizationLevel.label,
+          authLevel: authLevel.label,
+          enableJWT: enableJWT,
+          enableOAuth: enableOAuth,
+          enableBiometric: enableBiometric,
+          offlineLevel: offlineLevel.label,
         );
       } finally {
         depManager.close();
       }
+    }
+
+    // Validate configuration
+    final validationErrors = config.validate();
+    if (validationErrors.isNotEmpty) {
+      _logger.error('❌ Configuration validation failed:');
+      _logger.error('');
+      for (final error in validationErrors) {
+        _logger.error('  $error');
+      }
+      _logger.error('');
+      _logger.info('💡 Fix these issues and try again');
+      return;
     }
 
     // Final confirm
