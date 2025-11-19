@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import '../config/blueprint_config.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
+import 'localization_advanced_templates.dart';
 import 'memory_templates.dart';
 import 'pagination_templates.dart';
 import 'security_templates.dart';
@@ -280,6 +281,30 @@ TemplateBundle buildProviderMobileBundle() {
           path: p.join('assets', 'l10n', 'hi.arb'),
           build: _hiLocalization,
           shouldGenerate: (config) => config.includeLocalization),
+
+      // Advanced Localization templates
+      TemplateFile(
+          path: p.join('lib', 'core', 'localization', 'locale_manager.dart'),
+          build: _advancedLocaleManager,
+          shouldGenerate: (config) => config.includeAdvancedLocalization),
+      TemplateFile(
+          path: p.join('lib', 'core', 'localization', 'arb_generator.dart'),
+          build: _arbGenerator,
+          shouldGenerate: (config) => config.enableARBGenerator),
+      TemplateFile(
+          path: p.join('lib', 'core', 'localization', 'rtl_support.dart'),
+          build: _rtlSupport,
+          shouldGenerate: (config) => config.includeRTLSupport),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'localization', 'dynamic_locale_loader.dart'),
+          build: _dynamicLocaleLoader,
+          shouldGenerate: (config) => config.enableDynamicLocaleLoader),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'localization', 'localization_examples.dart'),
+          build: _localizationExamples,
+          shouldGenerate: (config) => config.includeAdvancedLocalization),
 
       // Environment
       TemplateFile(
@@ -2034,3 +2059,13 @@ String _streamSubscriptionManager(BlueprintConfig config) =>
     generateStreamSubscriptionManager();
 String _memoryLeakDetector(BlueprintConfig config) =>
     generateMemoryLeakDetector();
+
+// Advanced localization template wrappers
+String _advancedLocaleManager(BlueprintConfig config) =>
+    generateAdvancedLocaleManager();
+String _arbGenerator(BlueprintConfig config) => generateARBGenerator();
+String _rtlSupport(BlueprintConfig config) => generateRTLSupport();
+String _dynamicLocaleLoader(BlueprintConfig config) =>
+    generateDynamicLocaleLoader();
+String _localizationExamples(BlueprintConfig config) =>
+    generateLocalizationExamples();

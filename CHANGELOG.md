@@ -1,4 +1,41 @@
-## 1.4.0 (2025-11-18) - Advanced Riverpod Patterns
+# Changelog
+
+## 1.5.0
+
+### Advanced Localization
+
+- **LocalizationLevel enum**: none, basic, advanced levels for localization features
+- **Advanced Locale Manager**: Runtime locale switching with persistence (SharedPreferences)
+  - Support for 12+ languages including RTL (Arabic, Hebrew, Persian, Urdu)
+  - Locale persistence across app restarts
+  - ChangeNotifier integration for reactive updates
+  - Locale display name helpers
+- **ARB Generator**: Programmatic ARB file creation and management
+  - Support for pluralization (zero, one, two, few, many, other)
+  - Gender-based translations (male, female, other)
+  - Metadata support (descriptions, placeholders, context)
+  - Validation helpers
+- **RTL Support Utilities**: Comprehensive Right-to-Left language support
+  - Directional padding (start/end instead of left/right)
+  - Directional alignment helpers
+  - Icon mirroring for RTL
+  - Directional Row widget
+  - Border radius helpers
+  - Text alignment helpers
+- **Dynamic Locale Loader**: Lazy loading with caching
+  - Asset-based locale loading
+  - In-memory caching for performance
+  - Fallback locale support
+  - Preload multiple locales
+  - Translation interpolation
+  - Plural and gender form helpers
+- **CLI Flags**: `--localization-level`, `--supported-locales`, `--default-locale`, `--rtl`
+- **Interactive Wizard**: Prompts for localization level, supported locales, default locale, RTL support
+- **70 Tests**: Comprehensive test coverage (81% pass rate)
+
+## 1.4.0
+
+### Advanced Riverpod Patterns
 
 ### 🔷 NEW: Advanced Riverpod Patterns & Code Generation
 

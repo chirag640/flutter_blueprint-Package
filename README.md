@@ -30,21 +30,22 @@
 
 ### **Core Features**
 
-| Feature                            | Description                                     | Generated Files                 |
-| ---------------------------------- | ----------------------------------------------- | ------------------------------- |
-| ⚡ **One-command setup**           | `flutter_blueprint init my_app`                 | 42-46 files in seconds          |
-| 🧱 **Clean architecture**          | Separation of concerns (core/, features/, app/) | Professional folder structure   |
-| 🎯 **State management**            | **Provider, Riverpod, OR Bloc**                 | Choose your preferred pattern   |
-| 🎨 **Theming system**              | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography |
-| 🌐 **Internationalization**        | ARB files + intl config ready                   | en.arb, hi.arb, localization    |
-| 🛠️ **Environment config**          | Dev/Stage/Prod with .env support                | EnvLoader + .env.example        |
-| 🧭 **Professional routing**        | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes   |
-| 📱 **Multi-platform support**      | Mobile, Web, Desktop - all in one project       | Universal or single-platform    |
-| 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI       |
-| 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry        | Unified API + Error tracking    |
-| 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)          | 9 security utilities + patterns |
-| 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection  | 7 memory utilities + profiling  |
-| 🔷 **Advanced Riverpod Patterns**  | 3 levels (none → advanced) with code generation | 6 pattern generators + examples |
+| Feature                            | Description                                     | Generated Files                          |
+| ---------------------------------- | ----------------------------------------------- | ---------------------------------------- |
+| ⚡ **One-command setup**           | `flutter_blueprint init my_app`                 | 42-46 files in seconds                   |
+| 🧱 **Clean architecture**          | Separation of concerns (core/, features/, app/) | Professional folder structure            |
+| 🎯 **State management**            | **Provider, Riverpod, OR Bloc**                 | Choose your preferred pattern            |
+| 🎨 **Theming system**              | Material 3 with custom colors & typography      | AppTheme, AppColors, Typography          |
+| 🌐 **Internationalization**        | ARB files + intl config ready                   | en.arb, hi.arb, localization             |
+| 🛠️ **Environment config**          | Dev/Stage/Prod with .env support                | EnvLoader + .env.example                 |
+| 🧭 **Professional routing**        | Route names, guards, centralized navigation     | AppRouter, RouteGuard, Routes            |
+| 📱 **Multi-platform support**      | Mobile, Web, Desktop - all in one project       | Universal or single-platform             |
+| 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons   | PaginationController + UI                |
+| 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry        | Unified API + Error tracking             |
+| 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)          | 9 security utilities + patterns          |
+| 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection  | 7 memory utilities + profiling           |
+| 🔷 **Advanced Riverpod Patterns**  | 3 levels (none → advanced) with code generation | 6 pattern generators + examples          |
+| 🌍 **Advanced Localization**       | 3 levels (none → advanced) with ARB + RTL       | 5 localization utilities + 12+ languages |
 
 ### **Professional Add-ons** (What Makes It Pro)
 

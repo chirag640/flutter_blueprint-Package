@@ -178,6 +178,25 @@ enum RiverpodLevel {
   }
 }
 
+/// Advanced localization pattern levels.
+enum LocalizationLevel {
+  none,
+  basic,
+  advanced;
+
+  String get label => name;
+
+  static LocalizationLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in LocalizationLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported localization level: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -206,6 +225,10 @@ class BlueprintConfig {
     this.maxImageCacheSize = 100,
     this.riverpodLevel = RiverpodLevel.none,
     this.enableCodeGeneration = false,
+    this.localizationLevel = LocalizationLevel.none,
+    this.supportedLocales = const ['en', 'es'],
+    this.defaultLocale = 'en',
+    this.enableRTL = false,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -258,6 +281,18 @@ class BlueprintConfig {
 
   /// Whether to enable Riverpod code generation setup.
   final bool enableCodeGeneration;
+
+  /// The advanced localization pattern level to apply (none, basic, advanced).
+  final LocalizationLevel localizationLevel;
+
+  /// List of supported locale codes (e.g., ['en', 'es', 'ar']).
+  final List<String> supportedLocales;
+
+  /// The default locale code (must be in supportedLocales).
+  final String defaultLocale;
+
+  /// Whether to enable Right-to-Left (RTL) language support.
+  final bool enableRTL;
 
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
@@ -320,6 +355,23 @@ class BlueprintConfig {
       riverpodLevel == RiverpodLevel.advanced &&
       stateManagement == StateManagement.riverpod;
 
+  /// Check if advanced localization features are included
+  bool get includeAdvancedLocalization =>
+      localizationLevel != LocalizationLevel.none;
+
+  /// Check if ARB file generation should be enabled (basic and advanced)
+  bool get enableARBGenerator => includeAdvancedLocalization;
+
+  /// Check if dynamic locale loading should be enabled (advanced only)
+  bool get enableDynamicLocaleLoader =>
+      localizationLevel == LocalizationLevel.advanced;
+
+  /// Check if RTL support widgets should be included
+  bool get includeRTLSupport => enableRTL && includeAdvancedLocalization;
+
+  /// Check if locale persistence should be enabled (basic and advanced)
+  bool get enableLocalePersistence => includeAdvancedLocalization;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -351,6 +403,10 @@ class BlueprintConfig {
     int? maxImageCacheSize,
     RiverpodLevel? riverpodLevel,
     bool? enableCodeGeneration,
+    LocalizationLevel? localizationLevel,
+    List<String>? supportedLocales,
+    String? defaultLocale,
+    bool? enableRTL,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -371,6 +427,10 @@ class BlueprintConfig {
       maxImageCacheSize: maxImageCacheSize ?? this.maxImageCacheSize,
       riverpodLevel: riverpodLevel ?? this.riverpodLevel,
       enableCodeGeneration: enableCodeGeneration ?? this.enableCodeGeneration,
+      localizationLevel: localizationLevel ?? this.localizationLevel,
+      supportedLocales: supportedLocales ?? this.supportedLocales,
+      defaultLocale: defaultLocale ?? this.defaultLocale,
+      enableRTL: enableRTL ?? this.enableRTL,
     );
   }
 
@@ -387,6 +447,10 @@ class BlueprintConfig {
       'max_image_cache_size': maxImageCacheSize,
       'riverpod_level': riverpodLevel.label,
       'enable_code_generation': enableCodeGeneration,
+      'localization_level': localizationLevel.label,
+      'supported_locales': supportedLocales,
+      'default_locale': defaultLocale,
+      'enable_rtl': enableRTL,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -453,6 +517,15 @@ class BlueprintConfig {
       ),
       enableCodeGeneration:
           _readBool(map['enable_code_generation'], fallback: false),
+      localizationLevel: LocalizationLevel.parse(
+        (map['localization_level'] ?? 'none') as String,
+      ),
+      supportedLocales: (map['supported_locales'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          ['en', 'es'],
+      defaultLocale: (map['default_locale'] ?? 'en') as String,
+      enableRTL: _readBool(map['enable_rtl'], fallback: false),
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),

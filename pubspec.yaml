@@ -1,6 +1,6 @@
 name: flutter_blueprint
-description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming. Includes optional Hive offline caching, pagination support, analytics/crash reporting, security best practices, memory management utilities, and advanced Riverpod patterns (AsyncNotifier, auto-disposing family, composition, code generation). Enable with `includeHive`, `includePagination`, `includeAnalytics`, `--security`, `--memory`, or `--riverpod-level` flags."
-version: 1.4.0
+description: "CLI tool for scaffolding Flutter apps with clean architecture. Generates production-ready projects for Android, iOS, Web, and Desktop with state management, routing, and theming. Includes optional Hive offline caching, pagination support, analytics/crash reporting, security best practices, memory management utilities, advanced Riverpod patterns (AsyncNotifier, auto-disposing family, composition, code generation), and advanced localization (ARB generation, RTL support, dynamic loading). Enable with `includeHive`, `includePagination`, `includeAnalytics`, `--security`, `--memory`, `--riverpod-level`, or `--localization-level` flags."
+version: 1.5.0
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
 issue_tracker: https://github.com/chirag640/flutter_blueprint-Package/issues

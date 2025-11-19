@@ -254,6 +254,25 @@ class CliRunner {
         help: 'Enable Riverpod code generation setup (riverpod_generator)',
         defaultsTo: null,
       )
+      ..addOption(
+        'localization-level',
+        help:
+            'Advanced localization level (none, basic, advanced) - includes ARB generator, RTL support, dynamic loading',
+        allowed: ['none', 'basic', 'advanced'],
+      )
+      ..addOption(
+        'supported-locales',
+        help: 'Comma-separated list of locale codes (e.g., en,es,ar)',
+      )
+      ..addOption(
+        'default-locale',
+        help: 'Default locale code (must be in supported locales)',
+      )
+      ..addFlag(
+        'rtl',
+        help: 'Enable Right-to-Left (RTL) language support',
+        defaultsTo: null,
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -684,6 +703,58 @@ class CliRunner {
       }
     }
 
+    // Advanced localization
+    LocalizationLevel localizationLevel = LocalizationLevel.none;
+    List<String> supportedLocales = ['en', 'es'];
+    String defaultLocale = 'en';
+    bool enableRTL = false;
+
+    if (includeLocalization) {
+      _logger.info('');
+      final includeAdvancedLoc = await _prompter.confirm(
+        '🌍 Enable advanced localization features?',
+        defaultValue: false,
+      );
+
+      if (includeAdvancedLoc) {
+        _logger.info('');
+        final levelChoice = await _prompter.choose(
+          '🌍 Choose localization level',
+          ['basic', 'advanced'],
+          defaultValue: 'basic',
+        );
+        localizationLevel = LocalizationLevel.parse(levelChoice);
+
+        // Prompt for RTL support
+        _logger.info('');
+        enableRTL = await _prompter.confirm(
+          '↔️  Enable Right-to-Left (RTL) language support?',
+          defaultValue: false,
+        );
+
+        // Prompt for supported locales
+        _logger.info('');
+        final localesInput = await _prompter.prompt(
+          '🗺️  Enter supported locales (comma-separated, e.g., en,es,ar)',
+          defaultValue: 'en,es',
+        );
+        if (localesInput.isNotEmpty) {
+          supportedLocales =
+              localesInput.split(',').map((e) => e.trim()).toList();
+        }
+
+        // Prompt for default locale
+        if (supportedLocales.isNotEmpty) {
+          _logger.info('');
+          defaultLocale = await _prompter.choose(
+            '🌐 Choose default locale',
+            supportedLocales,
+            defaultValue: supportedLocales.first,
+          );
+        }
+      }
+    }
+
     // Show summary
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
@@ -715,6 +786,17 @@ class CliRunner {
         _logger.info('   Code generation: ✅');
       }
     }
+    if (includeLocalization) {
+      _logger.info(
+          '   Advanced localization: ${localizationLevel != LocalizationLevel.none ? "✅ (${localizationLevel.label})" : '❌'}');
+      if (localizationLevel != LocalizationLevel.none) {
+        _logger.info('   Supported locales: ${supportedLocales.join(", ")}');
+        _logger.info('   Default locale: $defaultLocale');
+        if (enableRTL) {
+          _logger.info('   RTL support: ✅');
+        }
+      }
+    }
     _logger.info('');
 
     // Create config
@@ -737,6 +819,10 @@ class CliRunner {
       maxImageCacheSize: maxImageCacheSize,
       riverpodLevel: riverpodLevel,
       enableCodeGeneration: enableCodeGeneration,
+      localizationLevel: localizationLevel,
+      supportedLocales: supportedLocales,
+      defaultLocale: defaultLocale,
+      enableRTL: enableRTL,
     );
 
     // Ask if they want to see preview
@@ -1021,6 +1107,51 @@ class CliRunner {
       enableCodeGeneration = false;
     }
 
+    // Advanced localization configuration
+    final localizationArg = results['localization-level'] as String?;
+    final LocalizationLevel localizationLevel;
+
+    if (localizationArg != null) {
+      localizationLevel = LocalizationLevel.parse(localizationArg);
+    } else {
+      localizationLevel = LocalizationLevel.none;
+    }
+
+    // Supported locales
+    final supportedLocalesArg = results['supported-locales'] as String?;
+    final List<String> supportedLocales;
+
+    if (supportedLocalesArg != null && supportedLocalesArg.isNotEmpty) {
+      supportedLocales =
+          supportedLocalesArg.split(',').map((e) => e.trim()).toList();
+      if (supportedLocales.isEmpty) {
+        _logger.error('❌ Supported locales list cannot be empty');
+        exit(1);
+      }
+    } else {
+      supportedLocales = ['en', 'es']; // Default locales
+    }
+
+    // Default locale
+    final defaultLocaleArg = results['default-locale'] as String?;
+    final String defaultLocale;
+
+    if (defaultLocaleArg != null && defaultLocaleArg.isNotEmpty) {
+      if (!supportedLocales.contains(defaultLocaleArg)) {
+        _logger.error(
+          '❌ Default locale "$defaultLocaleArg" must be in supported locales: ${supportedLocales.join(", ")}',
+        );
+        exit(1);
+      }
+      defaultLocale = defaultLocaleArg;
+    } else {
+      defaultLocale = supportedLocales.first; // Use first supported locale
+    }
+
+    // RTL support flag
+    final rtlFlag = results['rtl'] as bool?;
+    final bool enableRTL = rtlFlag ?? false;
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -1049,6 +1180,10 @@ class CliRunner {
       maxImageCacheSize: maxImageCacheSize,
       riverpodLevel: riverpodLevel,
       enableCodeGeneration: enableCodeGeneration,
+      localizationLevel: localizationLevel,
+      supportedLocales: supportedLocales,
+      defaultLocale: defaultLocale,
+      enableRTL: enableRTL,
     );
   }
 
