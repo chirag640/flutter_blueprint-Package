@@ -273,6 +273,32 @@ class CliRunner {
         help: 'Enable Right-to-Left (RTL) language support',
         defaultsTo: null,
       )
+      ..addOption(
+        'auth-level',
+        help:
+            'Advanced authentication level (none, basic, advanced) - includes JWT, OAuth, biometric, session management',
+        allowed: ['none', 'basic', 'advanced'],
+      )
+      ..addFlag(
+        'jwt',
+        help: 'Enable JWT token management',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'oauth',
+        help: 'Enable OAuth 2.0 integration',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'biometric',
+        help: 'Enable biometric authentication',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'refresh-token',
+        help: 'Enable automatic token refresh',
+        defaultsTo: null,
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -755,6 +781,59 @@ class CliRunner {
       }
     }
 
+    // Advanced authentication
+    AuthLevel authLevel = AuthLevel.none;
+    bool enableJWT = false;
+    bool enableOAuth = false;
+    bool enableBiometric = false;
+    bool enableRefreshToken = true;
+
+    _logger.info('');
+    final includeAdvancedAuth = await _prompter.confirm(
+      '🔐 Enable advanced authentication features?',
+      defaultValue: false,
+    );
+
+    if (includeAdvancedAuth) {
+      _logger.info('');
+      final levelChoice = await _prompter.choose(
+        '🔐 Choose authentication level',
+        ['basic', 'advanced'],
+        defaultValue: 'basic',
+      );
+      authLevel = AuthLevel.parse(levelChoice);
+
+      // Prompt for JWT
+      _logger.info('');
+      enableJWT = await _prompter.confirm(
+        '🎫 Enable JWT token management?',
+        defaultValue: true,
+      );
+
+      // Prompt for OAuth
+      _logger.info('');
+      enableOAuth = await _prompter.confirm(
+        '🔑 Enable OAuth 2.0 integration?',
+        defaultValue: false,
+      );
+
+      // Prompt for biometric
+      _logger.info('');
+      enableBiometric = await _prompter.confirm(
+        '👤 Enable biometric authentication (fingerprint/face)?',
+        defaultValue: false,
+      );
+
+      // Prompt for refresh token
+      if (enableJWT) {
+        _logger.info('');
+        enableRefreshToken = await _prompter.confirm(
+          '🔄 Enable automatic token refresh?',
+          defaultValue: true,
+        );
+      }
+    }
+
     // Show summary
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
@@ -797,6 +876,21 @@ class CliRunner {
         }
       }
     }
+    if (authLevel != AuthLevel.none) {
+      _logger.info('   Advanced authentication: ✅ (${authLevel.label})');
+      if (enableJWT) {
+        _logger.info('   JWT token management: ✅');
+      }
+      if (enableOAuth) {
+        _logger.info('   OAuth 2.0: ✅');
+      }
+      if (enableBiometric) {
+        _logger.info('   Biometric auth: ✅');
+      }
+      if (enableRefreshToken && enableJWT) {
+        _logger.info('   Auto token refresh: ✅');
+      }
+    }
     _logger.info('');
 
     // Create config
@@ -823,6 +917,11 @@ class CliRunner {
       supportedLocales: supportedLocales,
       defaultLocale: defaultLocale,
       enableRTL: enableRTL,
+      authLevel: authLevel,
+      enableJWT: enableJWT,
+      enableOAuth: enableOAuth,
+      enableBiometric: enableBiometric,
+      enableRefreshToken: enableRefreshToken,
     );
 
     // Ask if they want to see preview
@@ -1152,6 +1251,32 @@ class CliRunner {
     final rtlFlag = results['rtl'] as bool?;
     final bool enableRTL = rtlFlag ?? false;
 
+    // Advanced authentication configuration
+    final authArg = results['auth-level'] as String?;
+    final AuthLevel authLevel;
+
+    if (authArg != null) {
+      authLevel = AuthLevel.parse(authArg);
+    } else {
+      authLevel = AuthLevel.none;
+    }
+
+    // JWT flag
+    final jwtFlag = results['jwt'] as bool?;
+    final bool enableJWT = jwtFlag ?? false;
+
+    // OAuth flag
+    final oauthFlag = results['oauth'] as bool?;
+    final bool enableOAuth = oauthFlag ?? false;
+
+    // Biometric flag
+    final biometricFlag = results['biometric'] as bool?;
+    final bool enableBiometric = biometricFlag ?? false;
+
+    // Refresh token flag
+    final refreshTokenFlag = results['refresh-token'] as bool?;
+    final bool enableRefreshToken = refreshTokenFlag ?? true;
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -1184,6 +1309,11 @@ class CliRunner {
       supportedLocales: supportedLocales,
       defaultLocale: defaultLocale,
       enableRTL: enableRTL,
+      authLevel: authLevel,
+      enableJWT: enableJWT,
+      enableOAuth: enableOAuth,
+      enableBiometric: enableBiometric,
+      enableRefreshToken: enableRefreshToken,
     );
   }
 

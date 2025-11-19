@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
 import 'analytics_templates.dart';
+import 'authentication_templates.dart' as auth;
 import 'hive_templates.dart';
 import 'localization_advanced_templates.dart';
 import 'memory_templates.dart';
@@ -305,6 +306,33 @@ TemplateBundle buildProviderMobileBundle() {
               'lib', 'core', 'localization', 'localization_examples.dart'),
           build: _localizationExamples,
           shouldGenerate: (config) => config.includeAdvancedLocalization),
+
+      // Authentication
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'jwt_handler.dart'),
+          build: _jwtHandler,
+          shouldGenerate: (config) => config.includeJWTHandling),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'oauth_helper.dart'),
+          build: _oauthHelper,
+          shouldGenerate: (config) => config.includeOAuthFlow),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'session_manager.dart'),
+          build: _sessionManager,
+          shouldGenerate: (config) => config.includeSessionManagement),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'biometric_auth.dart'),
+          build: _biometricAuthHandler,
+          shouldGenerate: (config) =>
+              config.enableBiometric && config.includeAdvancedAuth),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'secure_storage.dart'),
+          build: _secureCredentialStorage,
+          shouldGenerate: (config) => config.includeSecureStorage),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'auth_examples.dart'),
+          build: _authExamples,
+          shouldGenerate: (config) => config.includeAdvancedAuth),
 
       // Environment
       TemplateFile(
@@ -2069,3 +2097,13 @@ String _dynamicLocaleLoader(BlueprintConfig config) =>
     generateDynamicLocaleLoader();
 String _localizationExamples(BlueprintConfig config) =>
     generateLocalizationExamples();
+
+// Authentication builder functions
+String _jwtHandler(BlueprintConfig config) => auth.generateJWTHandler();
+String _oauthHelper(BlueprintConfig config) => auth.generateOAuthHelper();
+String _sessionManager(BlueprintConfig config) => auth.generateSessionManager();
+String _biometricAuthHandler(BlueprintConfig config) =>
+    auth.generateBiometricAuth();
+String _secureCredentialStorage(BlueprintConfig config) =>
+    auth.generateSecureStorage();
+String _authExamples(BlueprintConfig config) => auth.generateAuthExamples();

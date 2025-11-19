@@ -46,6 +46,7 @@
 | 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection  | 7 memory utilities + profiling           |
 | 🔷 **Advanced Riverpod Patterns**  | 3 levels (none → advanced) with code generation | 6 pattern generators + examples          |
 | 🌍 **Advanced Localization**       | 3 levels (none → advanced) with ARB + RTL       | 5 localization utilities + 12+ languages |
+| 🔐 **Advanced Authentication**     | 3 levels (none → advanced) with JWT + OAuth     | 6 auth utilities (JWT, OAuth, biometric) |
 
 ### **Professional Add-ons** (What Makes It Pro)
 

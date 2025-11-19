@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
 import 'analytics_templates.dart';
+import 'authentication_templates.dart' as auth;
 import 'hive_templates.dart';
 import 'localization_advanced_templates.dart';
 import 'memory_templates.dart';
@@ -260,7 +261,8 @@ TemplateBundle buildRiverpodMobileBundle() {
 
       // Advanced Riverpod Patterns
       TemplateFile(
-          path: p.join('lib', 'core', 'patterns', 'cancellable_async_notifier.dart'),
+          path: p.join(
+              'lib', 'core', 'patterns', 'cancellable_async_notifier.dart'),
           build: _cancellableAsyncNotifier,
           shouldGenerate: (config) => config.includeAdvancedRiverpod),
       TemplateFile(
@@ -327,13 +329,42 @@ TemplateBundle buildRiverpodMobileBundle() {
           build: _rtlSupport,
           shouldGenerate: (config) => config.includeRTLSupport),
       TemplateFile(
-          path: p.join('lib', 'core', 'localization', 'dynamic_locale_loader.dart'),
+          path: p.join(
+              'lib', 'core', 'localization', 'dynamic_locale_loader.dart'),
           build: _dynamicLocaleLoader,
           shouldGenerate: (config) => config.enableDynamicLocaleLoader),
       TemplateFile(
-          path: p.join('lib', 'core', 'localization', 'localization_examples.dart'),
+          path: p.join(
+              'lib', 'core', 'localization', 'localization_examples.dart'),
           build: _localizationExamples,
           shouldGenerate: (config) => config.includeAdvancedLocalization),
+
+      // Authentication
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'jwt_handler.dart'),
+          build: _jwtHandler,
+          shouldGenerate: (config) => config.includeJWTHandling),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'oauth_helper.dart'),
+          build: _oauthHelper,
+          shouldGenerate: (config) => config.includeOAuthFlow),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'session_manager.dart'),
+          build: _sessionManager,
+          shouldGenerate: (config) => config.includeSessionManagement),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'biometric_auth.dart'),
+          build: _biometricAuthHandler,
+          shouldGenerate: (config) =>
+              config.enableBiometric && config.includeAdvancedAuth),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'secure_storage.dart'),
+          build: _secureCredentialStorage,
+          shouldGenerate: (config) => config.includeSecureStorage),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'auth_examples.dart'),
+          build: _authExamples,
+          shouldGenerate: (config) => config.includeAdvancedAuth),
 
       // Environment
       TemplateFile(
@@ -381,12 +412,12 @@ String _pubspec(BlueprintConfig config) {
 
   // Use Riverpod instead of Provider
   buffer.writeln('  flutter_riverpod: ^2.5.1');
-  
+
   // Add riverpod_annotation for code generation
   if (config.enableCodeGeneration) {
     buffer.writeln('  riverpod_annotation: ^2.3.5');
   }
-  
+
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
   buffer.writeln('  equatable: ^2.0.5');
@@ -422,7 +453,7 @@ String _pubspec(BlueprintConfig config) {
   if (config.includeTests) {
     buffer.writeln('  mocktail: ^1.0.3');
   }
-  
+
   // Add build_runner and riverpod_generator for code generation
   if (config.enableCodeGeneration) {
     buffer.writeln('  build_runner: ^2.4.9');
@@ -2098,6 +2129,16 @@ String _dynamicLocaleLoader(BlueprintConfig config) =>
 String _localizationExamples(BlueprintConfig config) =>
     generateLocalizationExamples();
 
+// Authentication builder functions
+String _jwtHandler(BlueprintConfig config) => auth.generateJWTHandler();
+String _oauthHelper(BlueprintConfig config) => auth.generateOAuthHelper();
+String _sessionManager(BlueprintConfig config) => auth.generateSessionManager();
+String _biometricAuthHandler(BlueprintConfig config) =>
+    auth.generateBiometricAuth();
+String _secureCredentialStorage(BlueprintConfig config) =>
+    auth.generateSecureStorage();
+String _authExamples(BlueprintConfig config) => auth.generateAuthExamples();
+
 // Advanced Riverpod pattern template wrappers
 String _cancellableAsyncNotifier(BlueprintConfig config) =>
     generateAsyncNotifierPattern();
@@ -2105,8 +2146,7 @@ String _autoDisposingFamily(BlueprintConfig config) =>
     generateAutoDisposingFamily();
 String _providerComposition(BlueprintConfig config) =>
     generateProviderComposition();
-String _riverpodExamples(BlueprintConfig config) =>
-    generateAdvancedExamples();
+String _riverpodExamples(BlueprintConfig config) => generateAdvancedExamples();
 String _performancePatterns(BlueprintConfig config) =>
     generatePerformancePatterns();
 String _buildYaml(BlueprintConfig config) {

@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.6.0
+
+### Advanced Authentication
+
+- **AuthLevel enum**: none, basic, advanced levels for authentication features
+- **JWT Token Handler**: Complete JWT token lifecycle management
+  - Access and refresh token storage with flutter_secure_storage
+  - Automatic token refresh before expiry
+  - Token validation and decoding with jwt_decoder
+  - User information extraction from tokens
+  - Token expiry checking with buffer
+  - Secure token clearing
+  - Authentication state checking
+  - Token refresh interceptor for HTTP clients
+- **OAuth 2.0 Helper**: Full OAuth 2.0 authorization flow
+  - Authorization code flow with PKCE support
+  - State parameter for CSRF protection
+  - Token exchange and refresh
+  - Multiple provider support (Google, Apple, GitHub)
+  - URL launcher integration
+  - Code challenge generation (SHA-256)
+  - Custom authorization parameters
+- **Session Manager**: Complete session lifecycle with timeout handling
+  - Session start/end with user ID tracking
+  - Activity tracking and automatic timeout reset
+  - Configurable timeout duration
+  - Warning before timeout
+  - Session restoration from storage
+  - Session validation and extension
+  - ChangeNotifier integration for reactive UI
+  - Activity tracker widget for automatic activity recording
+- **Biometric Authentication**: Fingerprint and face recognition support
+  - Availability checking (device support)
+  - Biometric type detection (face, fingerprint)
+  - Platform-specific authentication messages (Android/iOS)
+  - Sensitive operation authentication
+  - Stop authentication capability
+  - local_auth integration
+  - Biometric settings helper
+- **Secure Credential Storage**: Encrypted credential management
+  - Username and password storage
+  - Email and API key storage
+  - Custom value storage
+  - Platform-specific encryption (Android: EncryptedSharedPreferences, iOS: Keychain)
+  - Credential existence checking
+  - Clear individual or all credentials
+- **Authentication Examples**: Complete implementation examples
+  - Login flow with JWT
+  - Biometric login integration
+  - Session management patterns
+  - Best practices (HTTPS, PKCE, secure storage, token refresh)
+  - Common pitfalls to avoid
+- **CLI Flags**: `--auth-level`, `--jwt`, `--oauth`, `--biometric`, `--refresh-token`
+- **Interactive Wizard**: Prompts for authentication level, JWT, OAuth, biometric, token refresh
+- **81 Tests**: Comprehensive test coverage (100% pass rate)
+
 ## 1.5.0
 
 ### Advanced Localization

@@ -197,6 +197,25 @@ enum LocalizationLevel {
   }
 }
 
+/// Advanced authentication pattern levels.
+enum AuthLevel {
+  none,
+  basic,
+  advanced;
+
+  String get label => name;
+
+  static AuthLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in AuthLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported auth level: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -229,6 +248,11 @@ class BlueprintConfig {
     this.supportedLocales = const ['en', 'es'],
     this.defaultLocale = 'en',
     this.enableRTL = false,
+    this.authLevel = AuthLevel.none,
+    this.enableJWT = false,
+    this.enableOAuth = false,
+    this.enableBiometric = false,
+    this.enableRefreshToken = true,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -293,6 +317,21 @@ class BlueprintConfig {
 
   /// Whether to enable Right-to-Left (RTL) language support.
   final bool enableRTL;
+
+  /// The advanced authentication pattern level to apply (none, basic, advanced).
+  final AuthLevel authLevel;
+
+  /// Whether to enable JWT token management.
+  final bool enableJWT;
+
+  /// Whether to enable OAuth 2.0 integration.
+  final bool enableOAuth;
+
+  /// Whether to enable biometric authentication.
+  final bool enableBiometric;
+
+  /// Whether to enable automatic token refresh.
+  final bool enableRefreshToken;
 
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
@@ -372,6 +411,21 @@ class BlueprintConfig {
   /// Check if locale persistence should be enabled (basic and advanced)
   bool get enableLocalePersistence => includeAdvancedLocalization;
 
+  /// Check if advanced authentication features are included
+  bool get includeAdvancedAuth => authLevel != AuthLevel.none;
+
+  /// Check if JWT token handling should be enabled
+  bool get includeJWTHandling => enableJWT && includeAdvancedAuth;
+
+  /// Check if OAuth integration should be enabled
+  bool get includeOAuthFlow => enableOAuth && includeAdvancedAuth;
+
+  /// Check if session management should be enabled (basic and advanced)
+  bool get includeSessionManagement => includeAdvancedAuth;
+
+  /// Check if secure storage should be enabled (basic and advanced)
+  bool get includeSecureStorage => includeAdvancedAuth;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -407,6 +461,11 @@ class BlueprintConfig {
     List<String>? supportedLocales,
     String? defaultLocale,
     bool? enableRTL,
+    AuthLevel? authLevel,
+    bool? enableJWT,
+    bool? enableOAuth,
+    bool? enableBiometric,
+    bool? enableRefreshToken,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -431,6 +490,11 @@ class BlueprintConfig {
       supportedLocales: supportedLocales ?? this.supportedLocales,
       defaultLocale: defaultLocale ?? this.defaultLocale,
       enableRTL: enableRTL ?? this.enableRTL,
+      authLevel: authLevel ?? this.authLevel,
+      enableJWT: enableJWT ?? this.enableJWT,
+      enableOAuth: enableOAuth ?? this.enableOAuth,
+      enableBiometric: enableBiometric ?? this.enableBiometric,
+      enableRefreshToken: enableRefreshToken ?? this.enableRefreshToken,
     );
   }
 
@@ -451,6 +515,11 @@ class BlueprintConfig {
       'supported_locales': supportedLocales,
       'default_locale': defaultLocale,
       'enable_rtl': enableRTL,
+      'auth_level': authLevel.label,
+      'enable_jwt': enableJWT,
+      'enable_oauth': enableOAuth,
+      'enable_biometric': enableBiometric,
+      'enable_refresh_token': enableRefreshToken,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -526,6 +595,14 @@ class BlueprintConfig {
           ['en', 'es'],
       defaultLocale: (map['default_locale'] ?? 'en') as String,
       enableRTL: _readBool(map['enable_rtl'], fallback: false),
+      authLevel: AuthLevel.parse(
+        (map['auth_level'] ?? 'none') as String,
+      ),
+      enableJWT: _readBool(map['enable_jwt'], fallback: false),
+      enableOAuth: _readBool(map['enable_oauth'], fallback: false),
+      enableBiometric: _readBool(map['enable_biometric'], fallback: false),
+      enableRefreshToken:
+          _readBool(map['enable_refresh_token'], fallback: true),
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),
