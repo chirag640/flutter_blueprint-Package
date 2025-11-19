@@ -75,7 +75,8 @@ void main() {
         final bundle = buildProviderMobileBundle();
         final hiveFiles = bundle.files.where((file) {
           return file.path.contains('hive_database.dart') ||
-              file.path.contains('cache_manager.dart') ||
+              (file.path.contains('cache_manager.dart') &&
+                  file.path.contains('database')) ||
               file.path.contains('sync_manager.dart');
         }).toList();
 
@@ -92,7 +93,8 @@ void main() {
         final bundle = buildProviderMobileBundle();
         final hiveFiles = bundle.files.where((file) {
           return file.path.contains('hive_database.dart') ||
-              file.path.contains('cache_manager.dart') ||
+              (file.path.contains('cache_manager.dart') &&
+                  file.path.contains('database')) ||
               file.path.contains('sync_manager.dart');
         }).toList();
 
@@ -217,7 +219,8 @@ void main() {
         final bundle = buildRiverpodMobileBundle();
         final hiveFiles = bundle.files.where((file) {
           return file.path.contains('hive_database.dart') ||
-              file.path.contains('cache_manager.dart') ||
+              (file.path.contains('cache_manager.dart') &&
+                  file.path.contains('database')) ||
               file.path.contains('sync_manager.dart');
         }).toList();
 
@@ -261,7 +264,8 @@ void main() {
         final bundle = buildBlocMobileBundle();
         final hiveFiles = bundle.files.where((file) {
           return file.path.contains('hive_database.dart') ||
-              file.path.contains('cache_manager.dart') ||
+              (file.path.contains('cache_manager.dart') &&
+                  file.path.contains('database')) ||
               file.path.contains('sync_manager.dart');
         }).toList();
 
@@ -313,10 +317,12 @@ void main() {
         expect(content, contains('static HiveDatabase get instance'));
       });
 
-      test('CacheManager implements proper eviction', () {
+      test('cache manager implements proper caching', () {
         final bundle = buildProviderMobileBundle();
         final cacheFile = bundle.files.firstWhere(
-          (file) => file.path.contains('cache_manager.dart'),
+          (file) =>
+              file.path.contains('cache_manager.dart') &&
+              file.path.contains('database'),
         );
 
         final content = cacheFile.build(configWithHive);
@@ -343,7 +349,8 @@ void main() {
         final bundle = buildProviderMobileBundle();
         final hiveFiles = bundle.files.where((file) {
           return file.path.contains('hive_database.dart') ||
-              file.path.contains('cache_manager.dart') ||
+              (file.path.contains('cache_manager.dart') &&
+                  file.path.contains('database')) ||
               file.path.contains('sync_manager.dart');
         });
 

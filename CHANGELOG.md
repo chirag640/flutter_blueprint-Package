@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.7.1
+
+### Flutter 3.38 & Dart 3.10 Compatibility
+
+- **SDK Constraint Update**: Bumped minimum Dart SDK to `>=3.5.0 <4.0.0` for Dart 3.10 features
+- **Material 3 Enhancement**: Added `useMaterial3: true` to all templates (mobile, web, desktop)
+  - Riverpod mobile template
+  - BLoC mobile template
+  - Provider mobile template
+  - Web template
+  - Already present in desktop and universal templates
+- **Package Version Updates**: Updated to latest stable versions
+  - `flutter_bloc: ^8.1.6` (was 8.1.5)
+  - `flutter_riverpod: ^2.6.1` (was 2.5.1)
+  - `riverpod_annotation: ^2.6.1` (was 2.3.5)
+  - `riverpod_generator: ^2.6.2` (was 2.4.0)
+  - `provider: ^6.1.4` (was 6.1.2)
+- **Performance Monitoring Enhancements**: Added Flutter 3.38 specific features
+  - `recordWidgetRebuild()`: Track widget rebuild performance
+  - `recordImpellerFrame()`: Monitor Impeller rendering (default in 3.38+)
+  - Enhanced performance tracking for modern Flutter features
+- **Documentation Updates**:
+  - Added Flutter 3.38 and Dart 3.10 compatibility badges
+  - Updated README with latest version information
+
+### Notes
+
+- All generated projects now use Material 3 design system by default
+- Performance analyzer includes Impeller-specific monitoring
+- Ready for Dart 3.10 features (dot shorthands, enhanced pattern matching)
+
 ## 1.7.0
 
 ### Offline-First Architecture

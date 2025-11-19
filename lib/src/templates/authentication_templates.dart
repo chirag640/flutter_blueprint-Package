@@ -6,6 +6,7 @@
 /// - Session management
 /// - Biometric authentication
 /// - Secure token storage
+library;
 
 /// Generates JWT token handler with refresh logic.
 ///

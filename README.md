@@ -6,8 +6,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Publish](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/publish.yml/badge.svg)](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/publish.yml)
 [![Quality](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/quality.yml/badge.svg)](https://github.com/chirag640/flutter_blueprint-Package/actions/workflows/quality.yml)
+[![Flutter 3.38+](https://img.shields.io/badge/Flutter-3.38%2B-02569B?logo=flutter)](https://flutter.dev)
+[![Dart 3.10+](https://img.shields.io/badge/Dart-3.10%2B-0175C2?logo=dart)](https://dart.dev)
 
 > **📱 Important Note:** This is a **CLI tool** that runs on your development machine (Windows, Linux, macOS) to **generate** Flutter projects. The **generated projects support ALL platforms**: Android, iOS, Web, and Desktop. The CLI itself uses terminal-based UI libraries and thus only runs on desktop platforms, but the apps it creates work everywhere!
+>
+> **✨ Flutter 3.38 Ready:** Fully compatible with Flutter 3.38 and Dart 3.10, including Material 3 design, latest package versions, and enhanced performance monitoring for Impeller rendering.
 
 ## 🚀 Why flutter_blueprint?
 
@@ -30,24 +34,24 @@
 
 ### **Core Features**
 
-| Feature                            | Description                                      | Generated Files                                                                                                 |
-| ---------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| ⚡ **One-command setup**           | `flutter_blueprint init my_app`                  | 42-46 files in seconds                                                                                          |
-| 🧱 **Clean architecture**          | Separation of concerns (core/, features/, app/)  | Professional folder structure                                                                                   |
-| 🎯 **State management**            | **Provider, Riverpod, OR Bloc**                  | Choose your preferred pattern                                                                                   |
-| 🎨 **Theming system**              | Material 3 with custom colors & typography       | AppTheme, AppColors, Typography                                                                                 |
-| 🌐 **Internationalization**        | ARB files + intl config ready                    | en.arb, hi.arb, localization                                                                                    |
-| 🛠️ **Environment config**          | Dev/Stage/Prod with .env support                 | EnvLoader + .env.example                                                                                        |
-| 🧭 **Professional routing**        | Route names, guards, centralized navigation      | AppRouter, RouteGuard, Routes                                                                                   |
-| 📱 **Multi-platform support**      | Mobile, Web, Desktop - all in one project        | Universal or single-platform                                                                                    |
-| 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons    | PaginationController + UI                                                                                       |
-| 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry         | Unified API + Error tracking                                                                                    |
-| 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)           | 9 security utilities + patterns                                                                                 |
-| 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection   | 7 memory utilities + profiling                                                                                  |
-| 🔷 **Advanced Riverpod Patterns**  | 3 levels (none → advanced) with code generation  | 6 pattern generators + examples                                                                                 |
-| 🌍 **Advanced Localization**       | 3 levels (none → advanced) with ARB + RTL        | 5 localization utilities + 12+ languages                                                                        |
-| 🔐 **Advanced Authentication**     | 3 levels (none → advanced) with JWT + OAuth      | 6 auth utilities (JWT, OAuth, biometric)                                                                        |
-| 📴 **Offline-First Architecture**  | 3 levels (none → advanced) with sync + conflicts | 7 offline utilities (sync queue, resolver, background sync, repository, network monitor, coordinator, examples) |
+| Feature                            | Description                                                     | Generated Files                                                                                                 |
+| ---------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| ⚡ **One-command setup**           | `flutter_blueprint init my_app`                                 | 42-46 files in seconds                                                                                          |
+| 🧱 **Clean architecture**          | Separation of concerns (core/, features/, app/)                 | Professional folder structure                                                                                   |
+| 🎯 **State management**            | **Provider, Riverpod, OR Bloc**                                 | Choose your preferred pattern                                                                                   |
+| 🎨 **Theming system**              | Material 3 (useMaterial3: true) with custom colors & typography | AppTheme, AppColors, Typography                                                                                 |
+| 🌐 **Internationalization**        | ARB files + intl config ready                                   | en.arb, hi.arb, localization                                                                                    |
+| 🛠️ **Environment config**          | Dev/Stage/Prod with .env support                                | EnvLoader + .env.example                                                                                        |
+| 🧭 **Professional routing**        | Route names, guards, centralized navigation                     | AppRouter, RouteGuard, Routes                                                                                   |
+| 📱 **Multi-platform support**      | Mobile, Web, Desktop - all in one project                       | Universal or single-platform                                                                                    |
+| 📄 **Pagination support**          | Infinite scroll + pull-to-refresh + skeletons                   | PaginationController + UI                                                                                       |
+| 📊 **Analytics & Crash Reporting** | Firebase Analytics/Crashlytics OR Sentry                        | Unified API + Error tracking                                                                                    |
+| 🔒 **Security Best Practices**     | 4 security levels (basic → enterprise)                          | 9 security utilities + patterns                                                                                 |
+| 🧠 **Memory Management**           | 3 levels (none → advanced) with leak detection                  | 7 memory utilities + profiling                                                                                  |
+| 🔷 **Advanced Riverpod Patterns**  | 3 levels (none → advanced) with code generation                 | 6 pattern generators + examples                                                                                 |
+| 🌍 **Advanced Localization**       | 3 levels (none → advanced) with ARB + RTL                       | 5 localization utilities + 12+ languages                                                                        |
+| 🔐 **Advanced Authentication**     | 3 levels (none → advanced) with JWT + OAuth                     | 6 auth utilities (JWT, OAuth, biometric)                                                                        |
+| 📴 **Offline-First Architecture**  | 3 levels (none → advanced) with sync + conflicts                | 7 offline utilities (sync queue, resolver, background sync, repository, network monitor, coordinator, examples) |
 
 ### **Professional Add-ons** (What Makes It Pro)
 

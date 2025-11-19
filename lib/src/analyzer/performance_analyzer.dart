@@ -151,6 +151,23 @@ class PerformanceAnalyzer {
       buffer.writeln();
     }
 
+    // Flutter 3.38+ enhancements
+    buffer.writeln(
+        '  /// Records widget rebuild performance (Flutter 3.38+ enhancement)');
+    buffer.writeln(
+        '  void recordWidgetRebuild(String widgetName, Duration duration) {');
+    buffer.writeln(
+        "    _recordMetric('widget_rebuild_time', duration.inMicroseconds / 1000.0, metadata: {'widget': widgetName});");
+    buffer.writeln('  }');
+    buffer.writeln();
+    buffer.writeln(
+        '  /// Monitors Impeller rendering performance (default in Flutter 3.38+)');
+    buffer.writeln('  void recordImpellerFrame(Duration duration) {');
+    buffer.writeln(
+        "    _recordMetric('impeller_frame_time', duration.inMicroseconds / 1000.0);");
+    buffer.writeln('  }');
+    buffer.writeln();
+
     buffer.writeln(
         '  void _recordMetric(String name, double value, {Map<String, dynamic>? metadata}) {');
     buffer.writeln('    final metric = PerformanceMetric(');

@@ -7,6 +7,7 @@
 /// - Offline-first repository pattern
 /// - Network connectivity monitoring
 /// - Sync coordination
+library;
 
 /// Generates sync queue for offline operations.
 ///
@@ -298,6 +299,9 @@ enum SyncEventType {
 /// - Conflict detection
 String generateConflictResolver() {
   return r'''
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+
 /// Conflict resolver for handling data synchronization conflicts.
 ///
 /// Usage:
@@ -1218,21 +1222,36 @@ import 'network_monitor.dart';
 /// - Background sync
 
 /// Example: Offline-first post repository
-class PostRepository {
-  final LocalDataSource<Post> localDataSource;
-  final RemoteDataSource<Post> remoteDataSource;
-  final SyncQueue? syncQueue;
-  
+class PostRepository extends OfflineRepository<Post> {
   PostRepository({
-    required this.localDataSource,
-    required this.remoteDataSource,
-    this.syncQueue,
+    required super.localDataSource,
+    required super.remoteDataSource,
+    super.conflictResolver,
+    super.syncQueue,
   });
   
-  // Helper method for serialization if needed
-  // Map<String, dynamic> toMap(Post item) {
-  //   return {'id': item.id, 'title': item.title, 'content': item.content, 'timestamp': item.timestamp.toIso8601String()};
-  // }
+  @override
+  String getId(Post item) => item.id;
+  
+  @override
+  Map<String, dynamic> _toMap(Post item) {
+    return {
+      'id': item.id,
+      'title': item.title,
+      'content': item.content,
+      'timestamp': item.timestamp.toIso8601String(),
+    };
+  }
+  
+  @override
+  Post fromMap(Map<String, dynamic> map) {
+    return Post(
+      id: map['id'] as String,
+      title: map['title'] as String,
+      content: map['content'] as String,
+      timestamp: DateTime.parse(map['timestamp'] as String),
+    );
+  }
 }
 
 /// Example: Post model

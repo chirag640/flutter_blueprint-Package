@@ -442,11 +442,11 @@ String _pubspec(BlueprintConfig config) {
     ..writeln('    sdk: flutter');
 
   // Use Riverpod instead of Provider
-  buffer.writeln('  flutter_riverpod: ^2.5.1');
+  buffer.writeln('  flutter_riverpod: ^2.6.1');
 
   // Add riverpod_annotation for code generation
   if (config.enableCodeGeneration) {
-    buffer.writeln('  riverpod_annotation: ^2.3.5');
+    buffer.writeln('  riverpod_annotation: ^2.6.1');
   }
 
   buffer.writeln('  shared_preferences: ^2.2.3');
@@ -505,7 +505,7 @@ String _pubspec(BlueprintConfig config) {
   // Add build_runner and riverpod_generator for code generation
   if (config.enableCodeGeneration) {
     buffer.writeln('  build_runner: ^2.4.9');
-    buffer.writeln('  riverpod_generator: ^2.4.0');
+    buffer.writeln('  riverpod_generator: ^2.6.2');
   }
 
   buffer

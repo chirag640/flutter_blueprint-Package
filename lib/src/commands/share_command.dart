@@ -291,6 +291,7 @@ class ShareCommand extends Command<void> {
     }
   }
 
+  @override
   void printUsage() {
     _logger.info('''
 Manage shared blueprint configurations for teams.

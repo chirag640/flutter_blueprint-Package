@@ -408,7 +408,7 @@ String _pubspec(BlueprintConfig config) {
     ..writeln('  flutter:')
     ..writeln('    sdk: flutter');
 
-  buffer.writeln('  provider: ^6.1.2');
+  buffer.writeln('  provider: ^6.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
   buffer.writeln('  equatable: ^2.0.5');

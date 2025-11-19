@@ -150,8 +150,9 @@ class CodeQualityAnalyzer {
         // Skip acceptable numbers and array indices
         if (acceptableNumbers.contains(number)) continue;
         if (line.contains('[$number]')) continue; // Array access
-        if (line.contains('Duration('))
+        if (line.contains('Duration(')) {
           continue; // Duration is self-documenting
+        }
 
         // Check if number is in a const declaration (acceptable)
         if (line.contains('const') && line.contains('=')) continue;

@@ -423,18 +423,18 @@ String _buildUniversalPubspec(BlueprintConfig config) {
   // State management dependencies
   switch (config.stateManagement) {
     case StateManagement.bloc:
-      dependencies.add('  flutter_bloc: ^8.1.5');
+      dependencies.add('  flutter_bloc: ^8.1.6');
       dependencies.add('  bloc: ^8.1.4');
       dependencies
           .add('  equatable: ^2.0.5'); // Used with BLoC for state comparison
       break;
     case StateManagement.provider:
-      dependencies.add('  provider: ^6.1.2');
+      dependencies.add('  provider: ^6.1.4');
       dependencies.add('  equatable: ^2.0.5'); // Used for value equality
       break;
     case StateManagement.riverpod:
-      dependencies.add('  flutter_riverpod: ^2.5.1');
-      dependencies.add('  riverpod_annotation: ^2.3.3');
+      dependencies.add('  flutter_riverpod: ^2.6.1');
+      dependencies.add('  riverpod_annotation: ^2.6.1');
       dependencies.add('  equatable: ^2.0.5'); // Used for value equality
       break;
   }
@@ -503,7 +503,7 @@ String _buildUniversalPubspec(BlueprintConfig config) {
   if (config.enableCodeGeneration &&
       config.stateManagement == StateManagement.riverpod) {
     dependencies.add('  build_runner: ^2.4.9');
-    dependencies.add('  riverpod_generator: ^2.4.0');
+    dependencies.add('  riverpod_generator: ^2.6.2');
   }
 
   // Dev dependencies

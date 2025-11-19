@@ -418,7 +418,7 @@ String _pubspec(BlueprintConfig config) {
 
   // Use BLoC pattern
   buffer
-    ..writeln('  flutter_bloc: ^8.1.5')
+    ..writeln('  flutter_bloc: ^8.1.6')
     ..writeln('  bloc: ^8.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');

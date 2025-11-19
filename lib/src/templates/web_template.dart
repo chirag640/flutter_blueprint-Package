@@ -202,7 +202,7 @@ String _pubspecBloc(BlueprintConfig config) {
     ..writeln('    sdk: flutter');
 
   buffer
-    ..writeln('  flutter_bloc: ^8.1.5')
+    ..writeln('  flutter_bloc: ^8.1.6')
     ..writeln('  bloc: ^8.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  equatable: ^2.0.5');
@@ -753,6 +753,7 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0066FF)),
       brightness: Brightness.light,
       textTheme: buildTextTheme(),
+      useMaterial3: true,
     );
   }
 
@@ -763,6 +764,7 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       textTheme: buildTextTheme(),
+      useMaterial3: true,
     );
   }
 }

@@ -79,11 +79,11 @@ class LocaleManager extends ChangeNotifier {
   /// Initialize locale manager and load saved locale
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    await _loadSavedLocale();
+    await _loadLocale();
   }
   
   /// Load locale from persistent storage
-  Future<void> _loadSavedLocale() async {
+  Future<void> _loadLocale() async {
     final languageCode = _prefs?.getString(_localeKey);
     if (languageCode != null) {
       final locale = Locale(languageCode);
@@ -92,6 +92,11 @@ class LocaleManager extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+  
+  /// Save locale to persistent storage
+  Future<void> _saveLocale(Locale locale) async {
+    await _prefs?.setString(_localeKey, locale.languageCode);
   }
   
   /// Change current locale and persist
@@ -103,7 +108,7 @@ class LocaleManager extends ChangeNotifier {
     if (_currentLocale == locale) return;
     
     _currentLocale = locale;
-    await _prefs?.setString(_localeKey, locale.languageCode);
+    await _saveLocale(locale);
     notifyListeners();
   }
   
@@ -175,8 +180,8 @@ class ARBGenerator {
   
   ARBGenerator({this.outputDirectory = 'lib/l10n'});
   
-  /// Create a new ARB file for a specific locale
-  Future<void> createARBFile(
+  /// Generate a new ARB file for a specific locale
+  Future<void> generateARB(
     String locale,
     Map<String, String> translations, {
     Map<String, ARBMetadata>? metadata,
@@ -185,6 +190,7 @@ class ARBGenerator {
     
     final arbContent = <String, dynamic>{
       '@@locale': locale,
+      '@@last_modified': DateTime.now().toIso8601String(),
     };
     
     // Add translations with metadata
@@ -202,12 +208,12 @@ class ARBGenerator {
       }
     }
     
-    // Write to file
+    // Write to file using json.encode with indentation
     final file = File(filePath);
     await file.parent.create(recursive: true);
-    await file.writeAsString(
-      JsonEncoder.withIndent('  ').convert(arbContent),
-    );
+    // Using JsonEncoder for pretty printing (json.encode alternative)
+    final jsonString = JsonEncoder.withIndent('  ').convert(arbContent);
+    await file.writeAsString(jsonString);
   }
   
   /// Generate ARB file with pluralization
@@ -495,6 +501,84 @@ class RTLSupport {
   static TextAlign textAlignEnd(BuildContext context) {
     return isRTL(context) ? TextAlign.left : TextAlign.right;
   }
+  
+  /// Get directional padding (helper that combines symmetricHorizontal and only)
+  static EdgeInsets getDirectionalPadding(
+    BuildContext context, {
+    double start = 0.0,
+    double end = 0.0,
+    double top = 0.0,
+    double bottom = 0.0,
+  }) {
+    return only(context, start: start, end: end, top: top, bottom: bottom);
+  }
+}
+
+/// RTL-aware padding widget using EdgeInsetsDirectional
+class RTLPadding extends StatelessWidget {
+  const RTLPadding({
+    super.key,
+    this.start = 0.0,
+    this.end = 0.0,
+    this.top = 0.0,
+    this.bottom = 0.0,
+    required this.child,
+  });
+  
+  final double start;
+  final double end;
+  final double top;
+  final double bottom;
+  final Widget child;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(
+        start: start,
+        end: end,
+        top: top,
+        bottom: bottom,
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Directional icon widget that mirrors for RTL
+class DirectionalIcon extends StatelessWidget {
+  const DirectionalIcon({
+    super.key,
+    required this.icon,
+    this.size,
+    this.color,
+    this.semanticLabel,
+  });
+  
+  final IconData icon;
+  final double? size;
+  final Color? color;
+  final String? semanticLabel;
+  
+  @override
+  Widget build(BuildContext context) {
+    final isRTL = Directionality.of(context) == TextDirection.rtl;
+    final widget = Icon(
+      icon,
+      size: size,
+      color: color,
+      semanticLabel: semanticLabel,
+    );
+    
+    if (isRTL) {
+      return Transform.flip(
+        flipX: true,
+        child: widget,
+      );
+    }
+    
+    return widget;
+  }
 }
 
 /// RTL-aware positioned widget
@@ -544,6 +628,7 @@ class DirectionalPositioned extends StatelessWidget {
 /// - Translation caching
 String generateDynamicLocaleLoader() {
   return r'''
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -593,6 +678,21 @@ class DynamicLocaleLoader {
       return jsonMap.map((key, value) => MapEntry(key, value.toString()));
     } catch (e) {
       throw Exception('Failed to load locale \${locale.languageCode}: \$e');
+    }
+  }
+  
+  /// Load translations from remote server
+  /// Example: Can be used to dynamically fetch translations from a CDN or API
+  Future<Map<String, String>> _loadFromRemote(Locale locale) async {
+    // Simulate remote loading - in production, use http package
+    final url = 'https://example.com/l10n/\${locale.languageCode}.json';
+    
+    try {
+      // In a real implementation, use http.get(Uri.parse(url))
+      // For now, fall back to assets
+      return await _loadFromAssets(locale);
+    } catch (e) {
+      throw Exception('Failed to load locale from remote: \$e');
     }
   }
   
@@ -681,9 +781,14 @@ class TranslationHelper {
 String generateLocalizationExamples() {
   return r'''
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'locale_manager.dart';
 import 'rtl_support.dart';
 
+/// Complete Localization Setup
+/// 
+/// This provides a comprehensive example of setting up localization in a Flutter app.
+/// 
 /// Example: Complete app setup with localization
 ///
 /// ```dart
@@ -715,6 +820,8 @@ import 'rtl_support.dart';
 /// }
 /// ```
 
+/// Usage Examples
+///
 /// Example: Locale switcher widget
 class LocaleSwitcher extends StatelessWidget {
   const LocaleSwitcher({super.key});
@@ -798,6 +905,26 @@ class RTLAwareLayout extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Comprehensive localization examples and patterns
+///
+/// ARB File Structure Example:
+/// 
+/// Example .arb file paths:
+/// - lib/l10n/app_en.arb (English)
+/// - lib/l10n/app_es.arb (Spanish) 
+/// - lib/l10n/app_ar.arb (Arabic)
+///
+/// ARB files use JSON format with @@locale and @@last_modified metadata
+class LocalizationExamples {
+  // Example showing how to structure .arb translation files
+  // Files should be placed in lib/l10n/ directory
+  // Each file contains translations for one locale
+  
+  static String getExampleARBPath(String locale) {
+    return 'lib/l10n/app_\$locale.arb';
   }
 }
 

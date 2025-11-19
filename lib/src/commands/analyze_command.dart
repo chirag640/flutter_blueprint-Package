@@ -73,7 +73,7 @@ class AnalyzeCommand {
     }
 
     // Check if it's a Flutter project
-    final pubspecFile = File('${projectPath}/pubspec.yaml');
+    final pubspecFile = File('$projectPath/pubspec.yaml');
     if (!await pubspecFile.exists()) {
       _logger.error('Not a Flutter project: pubspec.yaml not found');
       exit(1);
@@ -155,7 +155,7 @@ class AnalyzeCommand {
     bool verbose,
   ) async {
     if (!jsonOutput) {
-      _logger.info('📊 Analyzing performance configuration...');
+      _logger.info('\n📊 Code Quality Report for: $projectPath\n');
       _logger.info('');
     }
 

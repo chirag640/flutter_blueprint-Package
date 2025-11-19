@@ -199,7 +199,7 @@ String _pubspecBloc(BlueprintConfig config) {
     ..writeln('    sdk: flutter');
 
   buffer
-    ..writeln('  flutter_bloc: ^8.1.5')
+    ..writeln('  flutter_bloc: ^8.1.6')
     ..writeln('  bloc: ^8.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  equatable: ^2.0.5');

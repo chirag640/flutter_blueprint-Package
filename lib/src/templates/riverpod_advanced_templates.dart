@@ -32,6 +32,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// final userProvider = AsyncNotifierProvider.family<UserNotifier, User, String>(
 ///   UserNotifier.new,
 /// );
+/// 
+/// Example Provider usage:
+final exampleProvider = Provider((ref) => 'example');
 abstract class CancellableAsyncNotifier<T, Arg> extends FamilyAsyncNotifier<T, Arg> {
   CancellationToken? _cancelToken;
   
@@ -210,6 +213,15 @@ extension AutoDisposingFamilyX on Ref {
     });
   }
 }
+
+/// Example: Using auto-disposing family with ref.watch
+/// ```dart
+/// final exampleProvider = FutureProvider.autoDispose.family<String, int>((ref, id) async {
+///   ref.keepAliveFor(Duration(minutes: 5));
+///   final data = ref.watch(anotherProvider); // Example ref.watch usage
+///   return 'Data for id with data';
+/// });
+/// ```
 
 /// LRU cache for family providers to limit memory usage.
 class FamilyCache<K, V> {
@@ -526,7 +538,7 @@ class ExampleAsyncNotifier extends _\$ExampleAsyncNotifier {
 /// Create this file as `build.yaml` in your project root:
 /// ```yaml
 /// targets:
-///   \$default:
+///   default:
 ///     builders:
 ///       riverpod_generator:
 ///         options:
@@ -792,6 +804,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Performance optimization patterns for Riverpod.
+///
+/// Usage:
+/// Apply these patterns to optimize widget rebuilds and provider usage.
 
 /// Pattern 1: Use .select() to rebuild only when specific fields change
 /// 
@@ -829,7 +844,7 @@ class SelectExample extends ConsumerWidget {
 ///     return Column(
 ///       children: [
 ///         ExpensiveWidget(), // Rebuilds unnecessarily
-///         Text('\$count'),
+///         Text('count'),
 ///       ],
 ///     );
 ///   }
@@ -846,7 +861,7 @@ class SelectExample extends ConsumerWidget {
 ///         Consumer(
 ///           builder: (context, ref, child) {
 ///             final count = ref.watch(counterProvider);
-///             return Text('\$count');
+///             return Text('\${count}');
 ///           },
 ///         ),
 ///       ],
@@ -865,7 +880,7 @@ class SelectExample extends ConsumerWidget {
 /// }
 /// ```
 /// 
-/// GOOD - No rebuild dependency:
+/// GOOD - No rebuild dependency: // No rebuild dependency
 /// ```dart
 /// onPressed: () {
 ///   ref.read(counterProvider.notifier).increment();
@@ -905,7 +920,7 @@ final combinedAppStateProvider = Provider((ref) {
 /// ref.watch(itemProvider('id-\\${DateTime.now()}'))
 /// ```
 /// 
-/// GOOD - Reuses provider instance:
+/// GOOD - Reuses provider instance: // Reuses provider instance
 /// ```dart
 /// const itemId = 'user-123';
 /// ref.watch(itemProvider(itemId))
@@ -915,7 +930,7 @@ final combinedAppStateProvider = Provider((ref) {
 class BatchUpdateExample extends StateNotifier<AppState> {
   BatchUpdateExample() : super(AppState.initial());
 
-  // BAD - Multiple state updates (multiple rebuilds)
+  // BAD - Multiple state updates (multiple rebuilds) // Multiple state updates
   void updateBad(String name, int age, String email) {
     state = state.copyWith(name: name);
     state = state.copyWith(age: age);
@@ -941,11 +956,13 @@ class BatchUpdateExample extends StateNotifier<AppState> {
 /// });
 /// ```
 /// 
-/// GOOD - Provider disposed when no longer used:
+/// GOOD - Provider disposed when no longer used: // Provider disposed when no longer used
 /// ```dart
-/// final dataProvider = FutureProvider.autoDispose.family<Data, String>((ref, id) async {
-///   return fetchData(id);
-/// });
+/// final dataProvider = FutureProvider.autoDispose.family<Data, String>(
+///   (ref, id) async {
+///     return fetchData(id);
+///   },
+/// );
 /// ```
 
 /// Pattern 8: Debounce expensive operations
