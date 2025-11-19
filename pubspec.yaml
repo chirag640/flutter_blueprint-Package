@@ -1,5 +1,5 @@
 name: flutter_blueprint
-description: "A powerful CLI tool for scaffolding production-ready Flutter projects with best practices, multiple platforms (mobile, web, desktop), advanced state management patterns, security features, memory optimization, advanced Riverpod patterns, advanced localization, advanced authentication (JWT tokens, OAuth 2.0, biometric, session management, secure storage), and offline-first architecture (sync queue, conflict resolution, background sync, network monitoring). Flutter 3.38 & Dart 3.10 compatible with Material 3 support."
+description: "Production-ready Flutter CLI scaffolding tool with multi-platform support, advanced state management (Provider/Riverpod/Bloc), security, authentication, offline-first architecture, localization, and Material 3. Flutter 3.38 & Dart 3.10 compatible."
 version: 1.7.1
 homepage: https://github.com/chirag640/flutter_blueprint-Package
 repository: https://github.com/chirag640/flutter_blueprint-Package
