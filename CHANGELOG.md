@@ -1,5 +1,78 @@
 # Changelog
 
+## 1.7.0
+
+### Offline-First Architecture
+
+- **OfflineLevel enum**: none, basic, advanced levels for offline capabilities
+- **Sync Queue Manager**: Operation queue with retry and persistence
+  - Operation queuing with priority support
+  - Automatic retry logic with configurable max retries
+  - Network detection before sync attempts
+  - Persistent storage using SharedPreferences
+  - Event stream for sync status monitoring (enqueued, processing, completed, failed, retry)
+  - Queue management methods (enqueue, enqueueAll, processQueue, clear, remove)
+  - Configurable retry settings (maxRetries, retryDelay)
+  - SyncOperation class with JSON serialization
+- **Conflict Resolver**: Multiple strategies for data synchronization
+  - lastWriteWins, firstWriteWins, localWins, remoteWins strategies
+  - Custom resolver function support
+  - Manual resolution for complex conflicts
+  - Timestamp-based conflict detection
+  - Field-level merge with timestamps
+  - Deep equality checking for nested Maps
+  - ConflictResolution result with metadata
+- **Background Sync Coordinator**: Periodic synchronization
+  - Task registration and management
+  - Periodic sync scheduling with configurable frequency
+  - On-demand sync triggering
+  - Battery and network constraints
+  - Last sync time tracking
+  - Multiple sync task support
+  - Sync status monitoring (isSyncing, lastSyncTime)
+- **Offline Repository Pattern**: Local-first data access
+  - Generic repository base class
+  - LocalDataSource and RemoteDataSource interfaces
+  - Local-first getAll/getById with background sync
+  - Create/update/delete with sync queue integration
+  - Automatic sync coordination
+  - Cache-then-network pattern
+  - Graceful remote fallback
+- **Network Monitor**: Real-time connectivity tracking
+  - Connectivity status monitoring with connectivity_plus
+  - Network type detection (wifi, mobile, ethernet, none)
+  - Stream-based status updates
+  - Connection waiting with timeout support
+  - Status getters (isConnected, isWifi, isMobile)
+  - NetworkStatus and NetworkType classes
+- **Sync Coordinator**: Orchestrates all offline components
+  - Multi-component initialization
+  - Auto-sync on network restore
+  - Multiple repository coordination
+  - Background sync integration
+  - SyncStatistics for monitoring
+  - Force sync capability
+  - Auto-sync toggle
+- **Offline Examples**: Complete implementation guide
+  - PostRepository example
+  - Offline-first UI with sync status
+  - 10+ best practices
+  - 10+ common pitfalls
+  - ChangeNotifier integration
+
+### CLI Integration
+
+- `--offline-level` flag: Choose offline-first level (none/basic/advanced)
+- `--sync-interval` flag: Set background sync interval in minutes
+- `--background-sync` flag: Enable periodic background synchronization
+- `--conflict-resolution` flag: Enable conflict resolution strategies
+- Interactive wizard with offline configuration prompts
+- Configuration summary showing offline features
+
+### Testing
+
+- 128 comprehensive tests for offline-first templates (100% pass rate)
+
 ## 1.6.0
 
 ### Advanced Authentication

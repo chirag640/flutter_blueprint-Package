@@ -216,6 +216,25 @@ enum AuthLevel {
   }
 }
 
+/// Offline-first architecture levels.
+enum OfflineLevel {
+  none,
+  basic,
+  advanced;
+
+  String get label => name;
+
+  static OfflineLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in OfflineLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported offline level: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -253,6 +272,11 @@ class BlueprintConfig {
     this.enableOAuth = false,
     this.enableBiometric = false,
     this.enableRefreshToken = true,
+    this.offlineLevel = OfflineLevel.none,
+    this.enableSyncQueue = false,
+    this.enableBackgroundSync = false,
+    this.enableConflictResolution = false,
+    this.syncInterval = 60,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -332,6 +356,21 @@ class BlueprintConfig {
 
   /// Whether to enable automatic token refresh.
   final bool enableRefreshToken;
+
+  /// The offline-first architecture level to apply (none, basic, advanced).
+  final OfflineLevel offlineLevel;
+
+  /// Whether to enable sync queue for offline operations.
+  final bool enableSyncQueue;
+
+  /// Whether to enable background synchronization.
+  final bool enableBackgroundSync;
+
+  /// Whether to enable conflict resolution strategies.
+  final bool enableConflictResolution;
+
+  /// Sync interval in minutes for background sync.
+  final int syncInterval;
 
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
@@ -426,6 +465,23 @@ class BlueprintConfig {
   /// Check if secure storage should be enabled (basic and advanced)
   bool get includeSecureStorage => includeAdvancedAuth;
 
+  /// Check if offline-first features are included
+  bool get includeOfflineFirst => offlineLevel != OfflineLevel.none;
+
+  /// Check if sync queue should be enabled
+  bool get includeSyncQueue => enableSyncQueue && includeOfflineFirst;
+
+  /// Check if background sync should be enabled (advanced only)
+  bool get includeBackgroundSync =>
+      enableBackgroundSync && offlineLevel == OfflineLevel.advanced;
+
+  /// Check if conflict resolution should be enabled (advanced only)
+  bool get includeConflictResolution =>
+      enableConflictResolution && offlineLevel == OfflineLevel.advanced;
+
+  /// Check if network monitoring should be enabled (basic and advanced)
+  bool get includeNetworkMonitor => includeOfflineFirst;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -466,6 +522,11 @@ class BlueprintConfig {
     bool? enableOAuth,
     bool? enableBiometric,
     bool? enableRefreshToken,
+    OfflineLevel? offlineLevel,
+    bool? enableSyncQueue,
+    bool? enableBackgroundSync,
+    bool? enableConflictResolution,
+    int? syncInterval,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -495,6 +556,12 @@ class BlueprintConfig {
       enableOAuth: enableOAuth ?? this.enableOAuth,
       enableBiometric: enableBiometric ?? this.enableBiometric,
       enableRefreshToken: enableRefreshToken ?? this.enableRefreshToken,
+      offlineLevel: offlineLevel ?? this.offlineLevel,
+      enableSyncQueue: enableSyncQueue ?? this.enableSyncQueue,
+      enableBackgroundSync: enableBackgroundSync ?? this.enableBackgroundSync,
+      enableConflictResolution:
+          enableConflictResolution ?? this.enableConflictResolution,
+      syncInterval: syncInterval ?? this.syncInterval,
     );
   }
 
@@ -520,6 +587,11 @@ class BlueprintConfig {
       'enable_oauth': enableOAuth,
       'enable_biometric': enableBiometric,
       'enable_refresh_token': enableRefreshToken,
+      'offline_level': offlineLevel.label,
+      'enable_sync_queue': enableSyncQueue,
+      'enable_background_sync': enableBackgroundSync,
+      'enable_conflict_resolution': enableConflictResolution,
+      'sync_interval': syncInterval,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -603,6 +675,15 @@ class BlueprintConfig {
       enableBiometric: _readBool(map['enable_biometric'], fallback: false),
       enableRefreshToken:
           _readBool(map['enable_refresh_token'], fallback: true),
+      offlineLevel: OfflineLevel.parse(
+        (map['offline_level'] ?? 'none') as String,
+      ),
+      enableSyncQueue: _readBool(map['enable_sync_queue'], fallback: false),
+      enableBackgroundSync:
+          _readBool(map['enable_background_sync'], fallback: false),
+      enableConflictResolution:
+          _readBool(map['enable_conflict_resolution'], fallback: false),
+      syncInterval: (map['sync_interval'] ?? 60) as int,
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),

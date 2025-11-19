@@ -6,6 +6,7 @@ import 'authentication_templates.dart' as auth;
 import 'hive_templates.dart';
 import 'localization_advanced_templates.dart';
 import 'memory_templates.dart';
+import 'offline_first_templates.dart';
 import 'pagination_templates.dart';
 import 'security_templates.dart';
 import 'template_bundle.dart';
@@ -340,6 +341,36 @@ TemplateBundle buildBlocMobileBundle() {
           path: p.join('lib', 'core', 'auth', 'auth_examples.dart'),
           build: _authExamples,
           shouldGenerate: (config) => config.includeAdvancedAuth),
+
+      // Offline-first
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'sync_queue.dart'),
+          build: _syncQueue,
+          shouldGenerate: (config) => config.includeSyncQueue),
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'conflict_resolver.dart'),
+          build: _conflictResolver,
+          shouldGenerate: (config) => config.includeConflictResolution),
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'background_sync.dart'),
+          build: _backgroundSync,
+          shouldGenerate: (config) => config.includeBackgroundSync),
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'offline_repository.dart'),
+          build: _offlineRepository,
+          shouldGenerate: (config) => config.includeOfflineFirst),
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'network_monitor.dart'),
+          build: _networkMonitor,
+          shouldGenerate: (config) => config.includeNetworkMonitor),
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'sync_coordinator.dart'),
+          build: _syncCoordinator,
+          shouldGenerate: (config) => config.includeOfflineFirst),
+      TemplateFile(
+          path: p.join('lib', 'core', 'offline', 'offline_examples.dart'),
+          build: _offlineExamples,
+          shouldGenerate: (config) => config.includeOfflineFirst),
 
       // Environment
       TemplateFile(
@@ -2194,3 +2225,13 @@ String _biometricAuthHandler(BlueprintConfig config) =>
 String _secureCredentialStorage(BlueprintConfig config) =>
     auth.generateSecureStorage();
 String _authExamples(BlueprintConfig config) => auth.generateAuthExamples();
+
+// Offline-first builder methods
+String _syncQueue(BlueprintConfig config) => generateSyncQueue();
+String _conflictResolver(BlueprintConfig config) => generateConflictResolver();
+String _backgroundSync(BlueprintConfig config) => generateBackgroundSync();
+String _offlineRepository(BlueprintConfig config) =>
+    generateOfflineRepository();
+String _networkMonitor(BlueprintConfig config) => generateNetworkMonitor();
+String _syncCoordinator(BlueprintConfig config) => generateSyncCoordinator();
+String _offlineExamples(BlueprintConfig config) => generateOfflineExamples();

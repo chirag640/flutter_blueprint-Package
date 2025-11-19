@@ -299,6 +299,28 @@ class CliRunner {
         help: 'Enable automatic token refresh',
         defaultsTo: null,
       )
+      // Offline-first flags
+      ..addOption(
+        'offline-level',
+        help: 'Offline-first architecture level (none, basic, advanced)',
+        allowed: ['none', 'basic', 'advanced'],
+        defaultsTo: null,
+      )
+      ..addOption(
+        'sync-interval',
+        help: 'Background sync interval in minutes',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'background-sync',
+        help: 'Enable background synchronization',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'conflict-resolution',
+        help: 'Enable conflict resolution strategies',
+        defaultsTo: null,
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -834,6 +856,54 @@ class CliRunner {
       }
     }
 
+    // Offline-first architecture
+    OfflineLevel offlineLevel = OfflineLevel.none;
+    bool enableBackgroundSync = false;
+    bool enableConflictResolution = false;
+    int syncInterval = 60;
+
+    _logger.info('');
+    final includeOfflineFirst = await _prompter.confirm(
+      '📴 Enable offline-first architecture?',
+      defaultValue: false,
+    );
+
+    if (includeOfflineFirst) {
+      _logger.info('');
+      final offlineLevelChoice = await _prompter.choose(
+        '📴 Choose offline-first level',
+        ['basic', 'advanced'],
+        defaultValue: 'basic',
+      );
+      offlineLevel = OfflineLevel.parse(offlineLevelChoice);
+
+      // Prompt for background sync (advanced only)
+      if (offlineLevel == OfflineLevel.advanced) {
+        _logger.info('');
+        enableBackgroundSync = await _prompter.confirm(
+          '🔄 Enable background synchronization?',
+          defaultValue: true,
+        );
+
+        if (enableBackgroundSync) {
+          _logger.info('');
+          final intervalInput = await _prompter.prompt(
+            '⏱️  Background sync interval (minutes)',
+            defaultValue: '60',
+          );
+          syncInterval = int.tryParse(intervalInput) ?? 60;
+          if (syncInterval < 1) syncInterval = 60;
+        }
+
+        // Prompt for conflict resolution
+        _logger.info('');
+        enableConflictResolution = await _prompter.confirm(
+          '⚔️  Enable conflict resolution strategies?',
+          defaultValue: true,
+        );
+      }
+    }
+
     // Show summary
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
@@ -891,6 +961,15 @@ class CliRunner {
         _logger.info('   Auto token refresh: ✅');
       }
     }
+    if (offlineLevel != OfflineLevel.none) {
+      _logger.info('   Offline-first: ✅ (${offlineLevel.label})');
+      if (enableBackgroundSync) {
+        _logger.info('   Background sync: ✅ (every $syncInterval min)');
+      }
+      if (enableConflictResolution) {
+        _logger.info('   Conflict resolution: ✅');
+      }
+    }
     _logger.info('');
 
     // Create config
@@ -922,6 +1001,11 @@ class CliRunner {
       enableOAuth: enableOAuth,
       enableBiometric: enableBiometric,
       enableRefreshToken: enableRefreshToken,
+      offlineLevel: offlineLevel,
+      enableSyncQueue: enableBackgroundSync || enableConflictResolution,
+      enableBackgroundSync: enableBackgroundSync,
+      enableConflictResolution: enableConflictResolution,
+      syncInterval: syncInterval,
     );
 
     // Ask if they want to see preview
@@ -1277,6 +1361,38 @@ class CliRunner {
     final refreshTokenFlag = results['refresh-token'] as bool?;
     final bool enableRefreshToken = refreshTokenFlag ?? true;
 
+    // Offline-first configuration
+    final offlineArg = results['offline-level'] as String?;
+    final OfflineLevel offlineLevel;
+
+    if (offlineArg != null) {
+      offlineLevel = OfflineLevel.parse(offlineArg);
+    } else {
+      offlineLevel = OfflineLevel.none;
+    }
+
+    // Sync interval (in minutes)
+    final syncIntervalArg = results['sync-interval'] as String?;
+    final int syncInterval;
+
+    if (syncIntervalArg != null) {
+      syncInterval = int.tryParse(syncIntervalArg) ?? 60;
+      if (syncInterval < 1) {
+        _logger.error('❌ Sync interval must be at least 1 minute');
+        exit(1);
+      }
+    } else {
+      syncInterval = 60;
+    }
+
+    // Background sync flag
+    final backgroundSyncFlag = results['background-sync'] as bool?;
+    final bool enableBackgroundSync = backgroundSyncFlag ?? false;
+
+    // Conflict resolution flag
+    final conflictResolutionFlag = results['conflict-resolution'] as bool?;
+    final bool enableConflictResolution = conflictResolutionFlag ?? false;
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -1314,6 +1430,11 @@ class CliRunner {
       enableOAuth: enableOAuth,
       enableBiometric: enableBiometric,
       enableRefreshToken: enableRefreshToken,
+      offlineLevel: offlineLevel,
+      enableSyncQueue: enableBackgroundSync || enableConflictResolution,
+      enableBackgroundSync: enableBackgroundSync,
+      enableConflictResolution: enableConflictResolution,
+      syncInterval: syncInterval,
     );
   }
 
