@@ -5,15 +5,14 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
+import 'version_reader.dart';
+
 class UpdateChecker {
   static const String _pubApiUrl = 'https://pub.dev/api/packages/';
   static const String _packageName = 'flutter_blueprint';
   static const String _lastCheckKey = 'last_update_check';
   static const Duration _checkInterval = Duration(days: 1);
   static const Duration _requestTimeout = Duration(seconds: 5);
-
-  // This should be updated with each new version
-  static const String _currentVersion = '0.8.4';
 
   /// Check for updates, respecting the check interval to avoid excessive API calls
   Future<UpdateInfo?> checkForUpdates() async {
@@ -30,7 +29,9 @@ class UpdateChecker {
       final latestVersionStr = await _getLatestVersion();
       if (latestVersionStr == null) return null;
 
-      final currentVersion = Version.parse(_currentVersion);
+      // Get current version from pubspec.yaml
+      final currentVersionStr = await VersionReader.getVersion();
+      final currentVersion = Version.parse(currentVersionStr);
       final latestVersion = Version.parse(latestVersionStr);
 
       // Save the check time
@@ -39,7 +40,7 @@ class UpdateChecker {
       if (latestVersion > currentVersion) {
         return UpdateInfo(
           latestVersion: latestVersionStr,
-          currentVersion: _currentVersion,
+          currentVersion: currentVersionStr,
         );
       }
     } catch (e) {

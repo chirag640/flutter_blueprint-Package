@@ -31,6 +31,17 @@
 - Performance analyzer includes Impeller-specific monitoring
 - Ready for Dart 3.10 features (dot shorthands, enhanced pattern matching)
 
+### Bug Fixes
+
+- **Dynamic Version Reading**: Fixed version mismatch issues between `pubspec.yaml` and hardcoded version strings
+  - Created new `VersionReader` utility class to automatically read version from `pubspec.yaml`
+  - Updated `update_checker.dart` to use dynamic version reading
+  - Updated `cli_runner.dart` --version flag to use dynamic version reading
+  - Eliminated manual version synchronization requirement
+  - Version is now cached for performance after first read
+  - Graceful fallback to hardcoded version if file reading fails
+  - No more false "Update Available" notifications due to version mismatches
+
 ## 1.7.0
 
 ### Offline-First Architecture

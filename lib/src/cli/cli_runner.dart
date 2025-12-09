@@ -20,6 +20,7 @@ import '../utils/input_validator.dart';
 import '../utils/project_preview.dart';
 import '../utils/dependency_manager.dart';
 import '../utils/update_checker.dart';
+import '../utils/version_reader.dart';
 
 /// Main CLI entry point that parses arguments and delegates to commands.
 class CliRunner {
@@ -63,7 +64,8 @@ class CliRunner {
       }
 
       if (results['version'] as bool) {
-        _logger.info('flutter_blueprint version 0.8.4');
+        final version = await VersionReader.getVersion();
+        _logger.info('flutter_blueprint version $version');
         _showUpdateNotification(updateInfo);
         return;
       }
