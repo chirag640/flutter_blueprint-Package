@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.7.2
+
+### Simplified Project Structure (Simple Mode)
+
+- **Production-Ready Simple Mode**: Consolidated and improved "Simple Mode" templates to be fully production-ready.
+  - Generates a streamlined project structure for smaller to medium-sized apps
+  - Includes essential features without the complexity of the full enterprise architecture
+  - Perfect for MVPs and simpler use cases
+- **Documentation Updates**:
+  - Updated `README.md` to clarify the benefits and generated structure of Simple Mode
+  - Improved `pubspec.yaml` metadata
+
+### Features
+
+- **Refined Mobile Templates**: Enhanced Provider, Riverpod, and BLoC templates in Simple Mode to use latest best practices.
+- **Improved Code Quality**: Consolidated code aggregation logic to ensure cleaner generated files.
+
 ## 1.7.1
 
 ### Flutter 3.38 & Dart 3.10 Compatibility

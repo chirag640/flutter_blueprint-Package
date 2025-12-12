@@ -230,99 +230,6 @@ class CliRunner {
             'Include analytics and crash reporting (firebase, sentry, or none)',
         allowed: ['firebase', 'sentry', 'none'],
       )
-      ..addOption(
-        'security',
-        help: 'Security level (none, basic, standard, enterprise)',
-        allowed: ['none', 'basic', 'standard', 'enterprise'],
-      )
-      ..addOption(
-        'memory',
-        help:
-            'Memory management level (none, basic, advanced) - includes disposable patterns, profiling, and leak detection',
-        allowed: ['none', 'basic', 'advanced'],
-      )
-      ..addOption(
-        'max-cache-size',
-        help: 'Maximum image cache size in MB (default: 100)',
-      )
-      ..addOption(
-        'riverpod-level',
-        help:
-            'Advanced Riverpod patterns level (none, basic, advanced) - includes AsyncNotifier, family providers, composition patterns',
-        allowed: ['none', 'basic', 'advanced'],
-      )
-      ..addFlag(
-        'code-generation',
-        help: 'Enable Riverpod code generation setup (riverpod_generator)',
-        defaultsTo: null,
-      )
-      ..addOption(
-        'localization-level',
-        help:
-            'Advanced localization level (none, basic, advanced) - includes ARB generator, RTL support, dynamic loading',
-        allowed: ['none', 'basic', 'advanced'],
-      )
-      ..addOption(
-        'supported-locales',
-        help: 'Comma-separated list of locale codes (e.g., en,es,ar)',
-      )
-      ..addOption(
-        'default-locale',
-        help: 'Default locale code (must be in supported locales)',
-      )
-      ..addFlag(
-        'rtl',
-        help: 'Enable Right-to-Left (RTL) language support',
-        defaultsTo: null,
-      )
-      ..addOption(
-        'auth-level',
-        help:
-            'Advanced authentication level (none, basic, advanced) - includes JWT, OAuth, biometric, session management',
-        allowed: ['none', 'basic', 'advanced'],
-      )
-      ..addFlag(
-        'jwt',
-        help: 'Enable JWT token management',
-        defaultsTo: null,
-      )
-      ..addFlag(
-        'oauth',
-        help: 'Enable OAuth 2.0 integration',
-        defaultsTo: null,
-      )
-      ..addFlag(
-        'biometric',
-        help: 'Enable biometric authentication',
-        defaultsTo: null,
-      )
-      ..addFlag(
-        'refresh-token',
-        help: 'Enable automatic token refresh',
-        defaultsTo: null,
-      )
-      // Offline-first flags
-      ..addOption(
-        'offline-level',
-        help: 'Offline-first architecture level (none, basic, advanced)',
-        allowed: ['none', 'basic', 'advanced'],
-        defaultsTo: null,
-      )
-      ..addOption(
-        'sync-interval',
-        help: 'Background sync interval in minutes',
-        defaultsTo: null,
-      )
-      ..addFlag(
-        'background-sync',
-        help: 'Enable background synchronization',
-        defaultsTo: null,
-      )
-      ..addFlag(
-        'conflict-resolution',
-        help: 'Enable conflict resolution strategies',
-        defaultsTo: null,
-      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -478,16 +385,6 @@ class CliRunner {
           includeHive: config.includeHive,
           includeAnalytics: config.includeAnalytics,
           analyticsProvider: config.analyticsProvider.label,
-          securityLevel: config.securityLevel.label,
-          memoryLevel: config.memoryLevel.label,
-          riverpodLevel: config.riverpodLevel.label,
-          enableCodeGeneration: config.enableCodeGeneration,
-          localizationLevel: config.localizationLevel.label,
-          authLevel: config.authLevel.label,
-          enableJWT: config.enableJWT,
-          enableOAuth: config.enableOAuth,
-          enableBiometric: config.enableBiometric,
-          offlineLevel: config.offlineLevel.label,
         );
       } finally {
         depManager.close();
@@ -693,8 +590,6 @@ class CliRunner {
         selectedFeatures.any((f) => f.contains('Pagination'));
     final includeAnalytics =
         selectedFeatures.any((f) => f.contains('Analytics'));
-    final includeSecurity = selectedFeatures.any((f) => f.contains('Security'));
-    final includeMemory = selectedFeatures.any((f) => f.contains('Memory'));
 
     // If analytics selected, prompt for provider
     AnalyticsProvider analyticsProvider = AnalyticsProvider.none;
@@ -706,227 +601,6 @@ class CliRunner {
         defaultValue: 'firebase',
       );
       analyticsProvider = AnalyticsProvider.parse(providerChoice);
-    }
-
-    // If security selected, prompt for level
-    SecurityLevel securityLevel = SecurityLevel.none;
-    if (includeSecurity) {
-      _logger.info('');
-      final levelChoice = await _prompter.choose(
-        '🔒 Choose security level',
-        ['basic', 'standard', 'enterprise'],
-        defaultValue: 'standard',
-      );
-      securityLevel = SecurityLevel.parse(levelChoice);
-    }
-
-    // If memory management selected, prompt for level
-    MemoryLevel memoryLevel = MemoryLevel.none;
-    int maxImageCacheSize = 100;
-    if (includeMemory) {
-      _logger.info('');
-      final levelChoice = await _prompter.choose(
-        '🧠 Choose memory management level',
-        ['basic', 'advanced'],
-        defaultValue: 'basic',
-      );
-      memoryLevel = MemoryLevel.parse(levelChoice);
-
-      // Prompt for cache size if memory features enabled
-      _logger.info('');
-      final cacheSizeStr = await _prompter.prompt(
-        '💾 Maximum image cache size (MB)',
-        defaultValue: '100',
-      );
-      try {
-        maxImageCacheSize = int.parse(cacheSizeStr);
-        if (maxImageCacheSize <= 0) {
-          maxImageCacheSize = 100;
-        }
-      } catch (e) {
-        maxImageCacheSize = 100;
-      }
-    }
-
-    // Advanced Riverpod patterns (only if Riverpod is selected)
-    RiverpodLevel riverpodLevel = RiverpodLevel.none;
-    bool enableCodeGeneration = false;
-    if (stateMgmt == StateManagement.riverpod) {
-      _logger.info('');
-      final includeRiverpod = await _prompter.confirm(
-        '🔷 Enable advanced Riverpod patterns?',
-        defaultValue: false,
-      );
-
-      if (includeRiverpod) {
-        _logger.info('');
-        final levelChoice = await _prompter.choose(
-          '🔷 Choose Riverpod patterns level',
-          ['basic', 'advanced'],
-          defaultValue: 'basic',
-        );
-        riverpodLevel = RiverpodLevel.parse(levelChoice);
-
-        // Prompt for code generation
-        _logger.info('');
-        enableCodeGeneration = await _prompter.confirm(
-          '⚙️  Enable Riverpod code generation (riverpod_generator)?',
-          defaultValue: false,
-        );
-      }
-    }
-
-    // Advanced localization
-    LocalizationLevel localizationLevel = LocalizationLevel.none;
-    List<String> supportedLocales = ['en', 'es'];
-    String defaultLocale = 'en';
-    bool enableRTL = false;
-
-    if (includeLocalization) {
-      _logger.info('');
-      final includeAdvancedLoc = await _prompter.confirm(
-        '🌍 Enable advanced localization features?',
-        defaultValue: false,
-      );
-
-      if (includeAdvancedLoc) {
-        _logger.info('');
-        final levelChoice = await _prompter.choose(
-          '🌍 Choose localization level',
-          ['basic', 'advanced'],
-          defaultValue: 'basic',
-        );
-        localizationLevel = LocalizationLevel.parse(levelChoice);
-
-        // Prompt for RTL support
-        _logger.info('');
-        enableRTL = await _prompter.confirm(
-          '↔️  Enable Right-to-Left (RTL) language support?',
-          defaultValue: false,
-        );
-
-        // Prompt for supported locales
-        _logger.info('');
-        final localesInput = await _prompter.prompt(
-          '🗺️  Enter supported locales (comma-separated, e.g., en,es,ar)',
-          defaultValue: 'en,es',
-        );
-        if (localesInput.isNotEmpty) {
-          supportedLocales =
-              localesInput.split(',').map((e) => e.trim()).toList();
-        }
-
-        // Prompt for default locale
-        if (supportedLocales.isNotEmpty) {
-          _logger.info('');
-          defaultLocale = await _prompter.choose(
-            '🌐 Choose default locale',
-            supportedLocales,
-            defaultValue: supportedLocales.first,
-          );
-        }
-      }
-    }
-
-    // Advanced authentication
-    AuthLevel authLevel = AuthLevel.none;
-    bool enableJWT = false;
-    bool enableOAuth = false;
-    bool enableBiometric = false;
-    bool enableRefreshToken = true;
-
-    _logger.info('');
-    final includeAdvancedAuth = await _prompter.confirm(
-      '🔐 Enable advanced authentication features?',
-      defaultValue: false,
-    );
-
-    if (includeAdvancedAuth) {
-      _logger.info('');
-      final levelChoice = await _prompter.choose(
-        '🔐 Choose authentication level',
-        ['basic', 'advanced'],
-        defaultValue: 'basic',
-      );
-      authLevel = AuthLevel.parse(levelChoice);
-
-      // Prompt for JWT
-      _logger.info('');
-      enableJWT = await _prompter.confirm(
-        '🎫 Enable JWT token management?',
-        defaultValue: true,
-      );
-
-      // Prompt for OAuth
-      _logger.info('');
-      enableOAuth = await _prompter.confirm(
-        '🔑 Enable OAuth 2.0 integration?',
-        defaultValue: false,
-      );
-
-      // Prompt for biometric
-      _logger.info('');
-      enableBiometric = await _prompter.confirm(
-        '👤 Enable biometric authentication (fingerprint/face)?',
-        defaultValue: false,
-      );
-
-      // Prompt for refresh token
-      if (enableJWT) {
-        _logger.info('');
-        enableRefreshToken = await _prompter.confirm(
-          '🔄 Enable automatic token refresh?',
-          defaultValue: true,
-        );
-      }
-    }
-
-    // Offline-first architecture
-    OfflineLevel offlineLevel = OfflineLevel.none;
-    bool enableBackgroundSync = false;
-    bool enableConflictResolution = false;
-    int syncInterval = 60;
-
-    _logger.info('');
-    final includeOfflineFirst = await _prompter.confirm(
-      '📴 Enable offline-first architecture?',
-      defaultValue: false,
-    );
-
-    if (includeOfflineFirst) {
-      _logger.info('');
-      final offlineLevelChoice = await _prompter.choose(
-        '📴 Choose offline-first level',
-        ['basic', 'advanced'],
-        defaultValue: 'basic',
-      );
-      offlineLevel = OfflineLevel.parse(offlineLevelChoice);
-
-      // Prompt for background sync (advanced only)
-      if (offlineLevel == OfflineLevel.advanced) {
-        _logger.info('');
-        enableBackgroundSync = await _prompter.confirm(
-          '🔄 Enable background synchronization?',
-          defaultValue: true,
-        );
-
-        if (enableBackgroundSync) {
-          _logger.info('');
-          final intervalInput = await _prompter.prompt(
-            '⏱️  Background sync interval (minutes)',
-            defaultValue: '60',
-          );
-          syncInterval = int.tryParse(intervalInput) ?? 60;
-          if (syncInterval < 1) syncInterval = 60;
-        }
-
-        // Prompt for conflict resolution
-        _logger.info('');
-        enableConflictResolution = await _prompter.confirm(
-          '⚔️  Enable conflict resolution strategies?',
-          defaultValue: true,
-        );
-      }
     }
 
     // Show summary
@@ -949,52 +623,6 @@ class CliRunner {
     _logger.info('   Pagination: ${includePagination ? '✅' : '❌'}');
     _logger.info(
         '   Analytics: ${includeAnalytics ? "✅ (${analyticsProvider.label})" : '❌'}');
-    _logger.info(
-        '   Security: ${includeSecurity ? "✅ (${securityLevel.label})" : '❌'}');
-    _logger.info(
-        '   Memory: ${memoryLevel != MemoryLevel.none ? "✅ (${memoryLevel.label})" : '❌'}');
-    if (stateMgmt == StateManagement.riverpod) {
-      _logger.info(
-          '   Riverpod patterns: ${riverpodLevel != RiverpodLevel.none ? "✅ (${riverpodLevel.label})" : '❌'}');
-      if (enableCodeGeneration) {
-        _logger.info('   Code generation: ✅');
-      }
-    }
-    if (includeLocalization) {
-      _logger.info(
-          '   Advanced localization: ${localizationLevel != LocalizationLevel.none ? "✅ (${localizationLevel.label})" : '❌'}');
-      if (localizationLevel != LocalizationLevel.none) {
-        _logger.info('   Supported locales: ${supportedLocales.join(", ")}');
-        _logger.info('   Default locale: $defaultLocale');
-        if (enableRTL) {
-          _logger.info('   RTL support: ✅');
-        }
-      }
-    }
-    if (authLevel != AuthLevel.none) {
-      _logger.info('   Advanced authentication: ✅ (${authLevel.label})');
-      if (enableJWT) {
-        _logger.info('   JWT token management: ✅');
-      }
-      if (enableOAuth) {
-        _logger.info('   OAuth 2.0: ✅');
-      }
-      if (enableBiometric) {
-        _logger.info('   Biometric auth: ✅');
-      }
-      if (enableRefreshToken && enableJWT) {
-        _logger.info('   Auto token refresh: ✅');
-      }
-    }
-    if (offlineLevel != OfflineLevel.none) {
-      _logger.info('   Offline-first: ✅ (${offlineLevel.label})');
-      if (enableBackgroundSync) {
-        _logger.info('   Background sync: ✅ (every $syncInterval min)');
-      }
-      if (enableConflictResolution) {
-        _logger.info('   Conflict resolution: ✅');
-      }
-    }
     _logger.info('');
 
     // Create config
@@ -1012,25 +640,6 @@ class CliRunner {
       includePagination: includePagination,
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
-      securityLevel: securityLevel,
-      memoryLevel: memoryLevel,
-      maxImageCacheSize: maxImageCacheSize,
-      riverpodLevel: riverpodLevel,
-      enableCodeGeneration: enableCodeGeneration,
-      localizationLevel: localizationLevel,
-      supportedLocales: supportedLocales,
-      defaultLocale: defaultLocale,
-      enableRTL: enableRTL,
-      authLevel: authLevel,
-      enableJWT: enableJWT,
-      enableOAuth: enableOAuth,
-      enableBiometric: enableBiometric,
-      enableRefreshToken: enableRefreshToken,
-      offlineLevel: offlineLevel,
-      enableSyncQueue: enableBackgroundSync || enableConflictResolution,
-      enableBackgroundSync: enableBackgroundSync,
-      enableConflictResolution: enableConflictResolution,
-      syncInterval: syncInterval,
     );
 
     // Ask if they want to see preview
@@ -1055,22 +664,12 @@ class CliRunner {
       final depManager = DependencyManager(logger: _logger);
       try {
         await depManager.getRecommendedDependencies(
-          stateManagement: stateMgmt.label,
-          includeApi: includeApi,
-          includeLocalization: includeLocalization,
-          includeHive: includeHive,
-          includeAnalytics: includeAnalytics,
-          analyticsProvider: analyticsProvider.label,
-          securityLevel: securityLevel.label,
-          memoryLevel: memoryLevel.label,
-          riverpodLevel: riverpodLevel.label,
-          enableCodeGeneration: enableCodeGeneration,
-          localizationLevel: localizationLevel.label,
-          authLevel: authLevel.label,
-          enableJWT: enableJWT,
-          enableOAuth: enableOAuth,
-          enableBiometric: enableBiometric,
-          offlineLevel: offlineLevel.label,
+          stateManagement: config.stateManagement.label,
+          includeApi: config.includeApi,
+          includeLocalization: config.includeLocalization,
+          includeHive: config.includeHive,
+          includeAnalytics: config.includeAnalytics,
+          analyticsProvider: config.analyticsProvider.label,
         );
       } finally {
         depManager.close();
@@ -1279,168 +878,6 @@ class CliRunner {
       analyticsProvider = AnalyticsProvider.none;
     }
 
-    // Security configuration
-    final securityArg = results['security'] as String?;
-    final SecurityLevel securityLevel;
-
-    if (securityArg != null) {
-      securityLevel = SecurityLevel.parse(securityArg);
-    } else {
-      securityLevel = SecurityLevel.none;
-    }
-
-    // Memory management configuration
-    final memoryArg = results['memory'] as String?;
-    final MemoryLevel memoryLevel;
-
-    if (memoryArg != null) {
-      memoryLevel = MemoryLevel.parse(memoryArg);
-    } else {
-      memoryLevel = MemoryLevel.none;
-    }
-
-    // Max image cache size
-    final maxCacheSizeArg = results['max-cache-size'] as String?;
-    final int maxImageCacheSize;
-
-    if (maxCacheSizeArg != null) {
-      try {
-        maxImageCacheSize = int.parse(maxCacheSizeArg);
-        if (maxImageCacheSize <= 0) {
-          _logger.error('❌ Max cache size must be positive');
-          exit(1);
-        }
-      } catch (e) {
-        _logger.error('❌ Invalid max cache size: $maxCacheSizeArg');
-        exit(1);
-      }
-    } else {
-      maxImageCacheSize = 100; // Default 100MB
-    }
-
-    // Advanced Riverpod patterns configuration
-    final riverpodArg = results['riverpod-level'] as String?;
-    final RiverpodLevel riverpodLevel;
-
-    if (riverpodArg != null && stateMgmt == StateManagement.riverpod) {
-      riverpodLevel = RiverpodLevel.parse(riverpodArg);
-    } else {
-      riverpodLevel = RiverpodLevel.none;
-    }
-
-    // Code generation flag
-    final codeGenFlag = results['code-generation'] as bool?;
-    final bool enableCodeGeneration;
-
-    if (codeGenFlag != null && stateMgmt == StateManagement.riverpod) {
-      enableCodeGeneration = codeGenFlag;
-    } else {
-      enableCodeGeneration = false;
-    }
-
-    // Advanced localization configuration
-    final localizationArg = results['localization-level'] as String?;
-    final LocalizationLevel localizationLevel;
-
-    if (localizationArg != null) {
-      localizationLevel = LocalizationLevel.parse(localizationArg);
-    } else {
-      localizationLevel = LocalizationLevel.none;
-    }
-
-    // Supported locales
-    final supportedLocalesArg = results['supported-locales'] as String?;
-    final List<String> supportedLocales;
-
-    if (supportedLocalesArg != null && supportedLocalesArg.isNotEmpty) {
-      supportedLocales =
-          supportedLocalesArg.split(',').map((e) => e.trim()).toList();
-      if (supportedLocales.isEmpty) {
-        _logger.error('❌ Supported locales list cannot be empty');
-        exit(1);
-      }
-    } else {
-      supportedLocales = ['en', 'es']; // Default locales
-    }
-
-    // Default locale
-    final defaultLocaleArg = results['default-locale'] as String?;
-    final String defaultLocale;
-
-    if (defaultLocaleArg != null && defaultLocaleArg.isNotEmpty) {
-      if (!supportedLocales.contains(defaultLocaleArg)) {
-        _logger.error(
-          '❌ Default locale "$defaultLocaleArg" must be in supported locales: ${supportedLocales.join(", ")}',
-        );
-        exit(1);
-      }
-      defaultLocale = defaultLocaleArg;
-    } else {
-      defaultLocale = supportedLocales.first; // Use first supported locale
-    }
-
-    // RTL support flag
-    final rtlFlag = results['rtl'] as bool?;
-    final bool enableRTL = rtlFlag ?? false;
-
-    // Advanced authentication configuration
-    final authArg = results['auth-level'] as String?;
-    final AuthLevel authLevel;
-
-    if (authArg != null) {
-      authLevel = AuthLevel.parse(authArg);
-    } else {
-      authLevel = AuthLevel.none;
-    }
-
-    // JWT flag
-    final jwtFlag = results['jwt'] as bool?;
-    final bool enableJWT = jwtFlag ?? false;
-
-    // OAuth flag
-    final oauthFlag = results['oauth'] as bool?;
-    final bool enableOAuth = oauthFlag ?? false;
-
-    // Biometric flag
-    final biometricFlag = results['biometric'] as bool?;
-    final bool enableBiometric = biometricFlag ?? false;
-
-    // Refresh token flag
-    final refreshTokenFlag = results['refresh-token'] as bool?;
-    final bool enableRefreshToken = refreshTokenFlag ?? true;
-
-    // Offline-first configuration
-    final offlineArg = results['offline-level'] as String?;
-    final OfflineLevel offlineLevel;
-
-    if (offlineArg != null) {
-      offlineLevel = OfflineLevel.parse(offlineArg);
-    } else {
-      offlineLevel = OfflineLevel.none;
-    }
-
-    // Sync interval (in minutes)
-    final syncIntervalArg = results['sync-interval'] as String?;
-    final int syncInterval;
-
-    if (syncIntervalArg != null) {
-      syncInterval = int.tryParse(syncIntervalArg) ?? 60;
-      if (syncInterval < 1) {
-        _logger.error('❌ Sync interval must be at least 1 minute');
-        exit(1);
-      }
-    } else {
-      syncInterval = 60;
-    }
-
-    // Background sync flag
-    final backgroundSyncFlag = results['background-sync'] as bool?;
-    final bool enableBackgroundSync = backgroundSyncFlag ?? false;
-
-    // Conflict resolution flag
-    final conflictResolutionFlag = results['conflict-resolution'] as bool?;
-    final bool enableConflictResolution = conflictResolutionFlag ?? false;
-
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -1464,25 +901,6 @@ class CliRunner {
       includePagination: includePagination,
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
-      securityLevel: securityLevel,
-      memoryLevel: memoryLevel,
-      maxImageCacheSize: maxImageCacheSize,
-      riverpodLevel: riverpodLevel,
-      enableCodeGeneration: enableCodeGeneration,
-      localizationLevel: localizationLevel,
-      supportedLocales: supportedLocales,
-      defaultLocale: defaultLocale,
-      enableRTL: enableRTL,
-      authLevel: authLevel,
-      enableJWT: enableJWT,
-      enableOAuth: enableOAuth,
-      enableBiometric: enableBiometric,
-      enableRefreshToken: enableRefreshToken,
-      offlineLevel: offlineLevel,
-      enableSyncQueue: enableBackgroundSync || enableConflictResolution,
-      enableBackgroundSync: enableBackgroundSync,
-      enableConflictResolution: enableConflictResolution,
-      syncInterval: syncInterval,
     );
   }
 

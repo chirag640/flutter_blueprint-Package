@@ -484,28 +484,6 @@ String _buildUniversalPubspec(BlueprintConfig config) {
     dependencies.add('  path_provider: ^2.1.5');
   }
 
-  // Authentication packages
-  if (config.enableJWT) {
-    dependencies.add('  jwt_decoder: ^2.0.1');
-  }
-  if (config.enableOAuth) {
-    dependencies.add('  http: ^1.2.2');
-    dependencies.add('  url_launcher: ^6.3.1');
-    dependencies.add('  crypto: ^3.0.5');
-  }
-  if (config.enableBiometric) {
-    dependencies.add('  local_auth: ^2.3.0');
-    dependencies.add('  local_auth_android: ^1.0.56');
-    dependencies.add('  local_auth_darwin: ^1.3.1');
-  }
-
-  // Riverpod code generation
-  if (config.enableCodeGeneration &&
-      config.stateManagement == StateManagement.riverpod) {
-    dependencies.add('  build_runner: ^2.4.9');
-    dependencies.add('  riverpod_generator: ^2.6.2');
-  }
-
   // Dev dependencies
   final devDependencies = <String>[];
   devDependencies.add('  flutter_test:\n    sdk: flutter');

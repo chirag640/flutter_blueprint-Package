@@ -2,15 +2,10 @@ import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
 import 'analytics_templates.dart';
-import 'authentication_templates.dart' as auth;
 import 'hive_templates.dart';
-import 'localization_advanced_templates.dart';
-import 'memory_templates.dart';
-import 'offline_first_templates.dart';
 import 'pagination_templates.dart';
-import 'riverpod_advanced_templates.dart';
-import 'security_templates.dart';
 import 'template_bundle.dart';
+import 'shared_templates.dart';
 
 /// Builds a Riverpod-based mobile template with professional architecture
 TemplateBundle buildRiverpodMobileBundle() {
@@ -197,96 +192,6 @@ TemplateBundle buildRiverpodMobileBundle() {
           build: _errorBoundary,
           shouldGenerate: (config) => config.includeAnalytics),
 
-      // Core: Security
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'certificate_pinner.dart'),
-          build: _certificatePinner,
-          shouldGenerate: (config) => config.enableCertificatePinning),
-      TemplateFile(
-          path:
-              p.join('lib', 'core', 'security', 'device_security_checker.dart'),
-          build: _deviceSecurityChecker,
-          shouldGenerate: (config) => config.enableRootDetection),
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'biometric_auth.dart'),
-          build: _biometricAuth,
-          shouldGenerate: (config) => config.enableBiometricAuth),
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'api_key_manager.dart'),
-          build: _apiKeyManager,
-          shouldGenerate: (config) => config.enableApiKeyObfuscation),
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'encrypted_storage.dart'),
-          build: _encryptedStorage,
-          shouldGenerate: (config) => config.enableEncryptedStorage),
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'screenshot_protection.dart'),
-          build: _screenshotProtection,
-          shouldGenerate: (config) => config.enableScreenshotProtection),
-      TemplateFile(
-          path:
-              p.join('lib', 'core', 'security', 'network_security_config.dart'),
-          build: _networkSecurityConfig,
-          shouldGenerate: (config) => config.includeSecurity),
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'security_interceptor.dart'),
-          build: _securityInterceptor,
-          shouldGenerate: (config) => config.includeSecurity),
-      TemplateFile(
-          path: p.join('lib', 'core', 'security', 'secure_http_client.dart'),
-          build: _secureHttpClient,
-          shouldGenerate: (config) => config.enableCertificatePinning),
-
-      // Memory Management templates
-      TemplateFile(
-          path: p.join('lib', 'core', 'memory', 'disposable_riverpod.dart'),
-          build: _disposableRiverpod,
-          shouldGenerate: (config) => config.includeMemoryManagement),
-      TemplateFile(
-          path: p.join('lib', 'core', 'memory', 'memory_profiler.dart'),
-          build: _memoryProfiler,
-          shouldGenerate: (config) => config.enableMemoryProfiling),
-      TemplateFile(
-          path: p.join('lib', 'core', 'memory', 'image_cache_manager.dart'),
-          build: _imageCacheManager,
-          shouldGenerate: (config) => config.enableImageCaching),
-      TemplateFile(
-          path: p.join(
-              'lib', 'core', 'memory', 'stream_subscription_manager.dart'),
-          build: _streamSubscriptionManager,
-          shouldGenerate: (config) => config.includeMemoryManagement),
-      TemplateFile(
-          path: p.join('lib', 'core', 'memory', 'memory_leak_detector.dart'),
-          build: _memoryLeakDetector,
-          shouldGenerate: (config) => config.enableLeakDetection),
-
-      // Advanced Riverpod Patterns
-      TemplateFile(
-          path: p.join(
-              'lib', 'core', 'patterns', 'cancellable_async_notifier.dart'),
-          build: _cancellableAsyncNotifier,
-          shouldGenerate: (config) => config.includeAdvancedRiverpod),
-      TemplateFile(
-          path: p.join('lib', 'core', 'patterns', 'auto_disposing_family.dart'),
-          build: _autoDisposingFamily,
-          shouldGenerate: (config) => config.includeAdvancedRiverpod),
-      TemplateFile(
-          path: p.join('lib', 'core', 'patterns', 'provider_composition.dart'),
-          build: _providerComposition,
-          shouldGenerate: (config) => config.includeAdvancedRiverpod),
-      TemplateFile(
-          path: p.join('lib', 'core', 'patterns', 'riverpod_examples.dart'),
-          build: _riverpodExamples,
-          shouldGenerate: (config) => config.enableProviderComposition),
-      TemplateFile(
-          path: p.join('lib', 'core', 'patterns', 'performance_patterns.dart'),
-          build: _performancePatterns,
-          shouldGenerate: (config) => config.enablePerformancePatterns),
-      TemplateFile(
-          path: 'build.yaml',
-          build: _buildYaml,
-          shouldGenerate: (config) => config.enableCodeGeneration),
-
       // Core: Providers (Global Riverpod providers)
       TemplateFile(
           path: p.join('lib', 'core', 'providers', 'app_providers.dart'),
@@ -315,87 +220,6 @@ TemplateBundle buildRiverpodMobileBundle() {
           path: p.join('assets', 'l10n', 'hi.arb'),
           build: _hiLocalization,
           shouldGenerate: (config) => config.includeLocalization),
-
-      // Advanced Localization templates
-      TemplateFile(
-          path: p.join('lib', 'core', 'localization', 'locale_manager.dart'),
-          build: _advancedLocaleManager,
-          shouldGenerate: (config) => config.includeAdvancedLocalization),
-      TemplateFile(
-          path: p.join('lib', 'core', 'localization', 'arb_generator.dart'),
-          build: _arbGenerator,
-          shouldGenerate: (config) => config.enableARBGenerator),
-      TemplateFile(
-          path: p.join('lib', 'core', 'localization', 'rtl_support.dart'),
-          build: _rtlSupport,
-          shouldGenerate: (config) => config.includeRTLSupport),
-      TemplateFile(
-          path: p.join(
-              'lib', 'core', 'localization', 'dynamic_locale_loader.dart'),
-          build: _dynamicLocaleLoader,
-          shouldGenerate: (config) => config.enableDynamicLocaleLoader),
-      TemplateFile(
-          path: p.join(
-              'lib', 'core', 'localization', 'localization_examples.dart'),
-          build: _localizationExamples,
-          shouldGenerate: (config) => config.includeAdvancedLocalization),
-
-      // Authentication
-      TemplateFile(
-          path: p.join('lib', 'core', 'auth', 'jwt_handler.dart'),
-          build: _jwtHandler,
-          shouldGenerate: (config) => config.includeJWTHandling),
-      TemplateFile(
-          path: p.join('lib', 'core', 'auth', 'oauth_helper.dart'),
-          build: _oauthHelper,
-          shouldGenerate: (config) => config.includeOAuthFlow),
-      TemplateFile(
-          path: p.join('lib', 'core', 'auth', 'session_manager.dart'),
-          build: _sessionManager,
-          shouldGenerate: (config) => config.includeSessionManagement),
-      TemplateFile(
-          path: p.join('lib', 'core', 'auth', 'biometric_auth.dart'),
-          build: _biometricAuthHandler,
-          shouldGenerate: (config) =>
-              config.enableBiometric && config.includeAdvancedAuth),
-      TemplateFile(
-          path: p.join('lib', 'core', 'auth', 'secure_storage.dart'),
-          build: _secureCredentialStorage,
-          shouldGenerate: (config) => config.includeSecureStorage),
-      TemplateFile(
-          path: p.join('lib', 'core', 'auth', 'auth_examples.dart'),
-          build: _authExamples,
-          shouldGenerate: (config) => config.includeAdvancedAuth),
-
-      // Offline-first
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'sync_queue.dart'),
-          build: _syncQueue,
-          shouldGenerate: (config) => config.includeSyncQueue),
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'conflict_resolver.dart'),
-          build: _conflictResolver,
-          shouldGenerate: (config) => config.includeConflictResolution),
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'background_sync.dart'),
-          build: _backgroundSync,
-          shouldGenerate: (config) => config.includeBackgroundSync),
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'offline_repository.dart'),
-          build: _offlineRepository,
-          shouldGenerate: (config) => config.includeOfflineFirst),
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'network_monitor.dart'),
-          build: _networkMonitor,
-          shouldGenerate: (config) => config.includeNetworkMonitor),
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'sync_coordinator.dart'),
-          build: _syncCoordinator,
-          shouldGenerate: (config) => config.includeOfflineFirst),
-      TemplateFile(
-          path: p.join('lib', 'core', 'offline', 'offline_examples.dart'),
-          build: _offlineExamples,
-          shouldGenerate: (config) => config.includeOfflineFirst),
 
       // Environment
       TemplateFile(
@@ -443,12 +267,6 @@ String _pubspec(BlueprintConfig config) {
 
   // Use Riverpod instead of Provider
   buffer.writeln('  flutter_riverpod: ^2.6.1');
-
-  // Add riverpod_annotation for code generation
-  if (config.enableCodeGeneration) {
-    buffer.writeln('  riverpod_annotation: ^2.6.1');
-  }
-
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
   buffer.writeln('  equatable: ^2.0.5');
@@ -475,23 +293,6 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  path_provider: ^2.1.5');
   }
 
-  // Authentication packages
-  if (config.enableJWT) {
-    buffer.writeln('  jwt_decoder: ^2.0.1');
-  }
-  if (config.enableOAuth) {
-    buffer
-      ..writeln('  http: ^1.2.2')
-      ..writeln('  url_launcher: ^6.3.1')
-      ..writeln('  crypto: ^3.0.5');
-  }
-  if (config.enableBiometric) {
-    buffer
-      ..writeln('  local_auth: ^2.3.0')
-      ..writeln('  local_auth_android: ^1.0.56')
-      ..writeln('  local_auth_darwin: ^1.3.1');
-  }
-
   buffer
     ..writeln('')
     ..writeln('dev_dependencies:')
@@ -500,12 +301,6 @@ String _pubspec(BlueprintConfig config) {
     ..writeln('  flutter_lints: ^5.0.0');
   if (config.includeTests) {
     buffer.writeln('  mocktail: ^1.0.3');
-  }
-
-  // Add build_runner and riverpod_generator for code generation
-  if (config.enableCodeGeneration) {
-    buffer.writeln('  build_runner: ^2.4.9');
-    buffer.writeln('  riverpod_generator: ^2.6.2');
   }
 
   buffer
@@ -1662,170 +1457,15 @@ class ApiResponse<T> {
 }
 
 String _authInterceptor(BlueprintConfig config) {
-  return """import 'package:dio/dio.dart';
-
-import '../../storage/local_storage.dart';
-import '../../constants/app_constants.dart';
-import '../../utils/logger.dart';
-
-/// Adds authentication token to requests
-class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._storage);
-  
-  final LocalStorage _storage;
-  
-  @override
-  Future<void> onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
-    final token = _storage.getString(AppConstants.keyAccessToken);
-    
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer \$token';
-      AppLogger.debug('Added auth token to request', 'AuthInterceptor');
-    }
-    
-    handler.next(options);
-  }
-  
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
-      AppLogger.warning('Unauthorized - token might be expired', 'AuthInterceptor');
-      // TODO: Implement token refresh logic here
-    }
-    
-    handler.next(err);
-  }
-}
-""";
+  return generateEnhancedAuthInterceptor(config);
 }
 
 String _retryInterceptor(BlueprintConfig config) {
-  return """import 'package:dio/dio.dart';
-
-import '../../constants/app_constants.dart';
-import '../../utils/logger.dart';
-
-/// Automatically retries failed requests
-class RetryInterceptor extends Interceptor {
-  int _retryCount = 0;
-  
-  @override
-  Future<void> onError(
-    DioException err,
-    ErrorInterceptorHandler handler,
-  ) async {
-    if (_shouldRetry(err) && _retryCount < AppConstants.maxRetries) {
-      _retryCount++;
-      AppLogger.warning(
-        'Retrying request (attempt \$_retryCount/\${AppConstants.maxRetries})',
-        'RetryInterceptor',
-      );
-      
-      try {
-        // Wait before retrying with exponential backoff
-        await Future.delayed(Duration(seconds: _retryCount));
-        
-        final response = await Dio().fetch(err.requestOptions);
-        _retryCount = 0; // Reset on success
-        return handler.resolve(response);
-      } catch (e) {
-        return handler.next(err);
-      }
-    }
-    
-    _retryCount = 0; // Reset counter
-    return handler.next(err);
-  }
-  
-  bool _shouldRetry(DioException err) {
-    return err.type == DioExceptionType.connectionTimeout ||
-        err.type == DioExceptionType.receiveTimeout ||
-        err.type == DioExceptionType.unknown;
-  }
-}
-""";
+  return generateImprovedRetryInterceptor(config);
 }
 
 String _localStorage(BlueprintConfig config) {
-  return """import 'package:shared_preferences/shared_preferences.dart';
-
-/// Wrapper around SharedPreferences for type-safe storage
-class LocalStorage {
-  LocalStorage._();
-  
-  static LocalStorage? _instance;
-  static SharedPreferences? _prefs;
-  
-  static Future<LocalStorage> getInstance() async {
-    _instance ??= LocalStorage._();
-    _prefs ??= await SharedPreferences.getInstance();
-    return _instance!;
-  }
-  
-  // String operations
-  Future<bool> setString(String key, String value) async {
-    return await _prefs!.setString(key, value);
-  }
-  
-  String? getString(String key) {
-    return _prefs!.getString(key);
-  }
-  
-  // Int operations
-  Future<bool> setInt(String key, int value) async {
-    return await _prefs!.setInt(key, value);
-  }
-  
-  int? getInt(String key) {
-    return _prefs!.getInt(key);
-  }
-  
-  // Bool operations
-  Future<bool> setBool(String key, bool value) async {
-    return await _prefs!.setBool(key, value);
-  }
-  
-  bool? getBool(String key) {
-    return _prefs!.getBool(key);
-  }
-  
-  // Double operations
-  Future<bool> setDouble(String key, double value) async {
-    return await _prefs!.setDouble(key, value);
-  }
-  
-  double? getDouble(String key) {
-    return _prefs!.getDouble(key);
-  }
-  
-  // List operations
-  Future<bool> setStringList(String key, List<String> value) async {
-    return await _prefs!.setStringList(key, value);
-  }
-  
-  List<String>? getStringList(String key) {
-    return _prefs!.getStringList(key);
-  }
-  
-  // Remove operation
-  Future<bool> remove(String key) async {
-    return await _prefs!.remove(key);
-  }
-  
-  // Clear all
-  Future<bool> clear() async {
-    return await _prefs!.clear();
-  }
-  
-  // Check if key exists
-  bool containsKey(String key) {
-    return _prefs!.containsKey(key);
-  }
-}
-""";
+  return generateEnhancedLocalStorage(config);
 }
 
 String _secureStorage(BlueprintConfig config) {
@@ -2139,89 +1779,3 @@ String _firebaseAnalyticsService(BlueprintConfig config) =>
 String _sentryService(BlueprintConfig config) => generateSentryService();
 String _analyticsEvents(BlueprintConfig config) => generateAnalyticsEvents();
 String _errorBoundary(BlueprintConfig config) => generateErrorBoundary();
-
-// Security template wrappers
-String _certificatePinner(BlueprintConfig config) =>
-    generateCertificatePinner();
-String _deviceSecurityChecker(BlueprintConfig config) =>
-    generateDeviceSecurityChecker();
-String _biometricAuth(BlueprintConfig config) => generateBiometricAuth();
-String _apiKeyManager(BlueprintConfig config) => generateApiKeyManager();
-String _encryptedStorage(BlueprintConfig config) => generateEncryptedStorage();
-String _screenshotProtection(BlueprintConfig config) =>
-    generateScreenshotProtection();
-String _networkSecurityConfig(BlueprintConfig config) =>
-    generateNetworkSecurityConfig();
-String _securityInterceptor(BlueprintConfig config) =>
-    generateSecurityInterceptor();
-String _secureHttpClient(BlueprintConfig config) => generateSecureHttpClient();
-
-// Memory management template wrappers
-String _disposableRiverpod(BlueprintConfig config) =>
-    generateDisposableRiverpod();
-String _memoryProfiler(BlueprintConfig config) => generateMemoryProfiler();
-String _imageCacheManager(BlueprintConfig config) =>
-    generateImageCacheManager();
-String _streamSubscriptionManager(BlueprintConfig config) =>
-    generateStreamSubscriptionManager();
-String _memoryLeakDetector(BlueprintConfig config) =>
-    generateMemoryLeakDetector();
-
-// Advanced localization template wrappers
-String _advancedLocaleManager(BlueprintConfig config) =>
-    generateAdvancedLocaleManager();
-String _arbGenerator(BlueprintConfig config) => generateARBGenerator();
-String _rtlSupport(BlueprintConfig config) => generateRTLSupport();
-String _dynamicLocaleLoader(BlueprintConfig config) =>
-    generateDynamicLocaleLoader();
-String _localizationExamples(BlueprintConfig config) =>
-    generateLocalizationExamples();
-
-// Authentication builder functions
-String _jwtHandler(BlueprintConfig config) => auth.generateJWTHandler();
-String _oauthHelper(BlueprintConfig config) => auth.generateOAuthHelper();
-String _sessionManager(BlueprintConfig config) => auth.generateSessionManager();
-String _biometricAuthHandler(BlueprintConfig config) =>
-    auth.generateBiometricAuth();
-String _secureCredentialStorage(BlueprintConfig config) =>
-    auth.generateSecureStorage();
-String _authExamples(BlueprintConfig config) => auth.generateAuthExamples();
-
-// Offline-first builder methods
-String _syncQueue(BlueprintConfig config) => generateSyncQueue();
-String _conflictResolver(BlueprintConfig config) => generateConflictResolver();
-String _backgroundSync(BlueprintConfig config) => generateBackgroundSync();
-String _offlineRepository(BlueprintConfig config) =>
-    generateOfflineRepository();
-String _networkMonitor(BlueprintConfig config) => generateNetworkMonitor();
-String _syncCoordinator(BlueprintConfig config) => generateSyncCoordinator();
-String _offlineExamples(BlueprintConfig config) => generateOfflineExamples();
-
-// Advanced Riverpod pattern template wrappers
-String _cancellableAsyncNotifier(BlueprintConfig config) =>
-    generateAsyncNotifierPattern();
-String _autoDisposingFamily(BlueprintConfig config) =>
-    generateAutoDisposingFamily();
-String _providerComposition(BlueprintConfig config) =>
-    generateProviderComposition();
-String _riverpodExamples(BlueprintConfig config) => generateAdvancedExamples();
-String _performancePatterns(BlueprintConfig config) =>
-    generatePerformancePatterns();
-String _buildYaml(BlueprintConfig config) {
-  return '''
-targets:
-  \$default:
-    builders:
-      riverpod_generator:
-        options:
-          # Generate code for all files
-          generate_for:
-            include:
-              - lib/**
-              - test/**
-            exclude:
-              - lib/generated/**
-              - lib/**/*.g.dart
-              - lib/**/*.freezed.dart
-''';
-}

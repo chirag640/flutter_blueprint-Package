@@ -120,121 +120,6 @@ enum AnalyticsProvider {
   }
 }
 
-/// Security levels for application hardening.
-enum SecurityLevel {
-  none,
-  basic,
-  standard,
-  enterprise;
-
-  String get label => name;
-
-  static SecurityLevel parse(String value) {
-    final normalized = value.trim().toLowerCase();
-    for (final candidate in SecurityLevel.values) {
-      if (candidate.name == normalized) {
-        return candidate;
-      }
-    }
-    throw ArgumentError('Unsupported security level: $value');
-  }
-}
-
-/// Memory management and performance optimization levels.
-enum MemoryLevel {
-  none,
-  basic,
-  advanced;
-
-  String get label => name;
-
-  static MemoryLevel parse(String value) {
-    final normalized = value.trim().toLowerCase();
-    for (final candidate in MemoryLevel.values) {
-      if (candidate.name == normalized) {
-        return candidate;
-      }
-    }
-    throw ArgumentError('Unsupported memory level: $value');
-  }
-}
-
-/// Advanced Riverpod pattern levels.
-enum RiverpodLevel {
-  none,
-  basic,
-  advanced;
-
-  String get label => name;
-
-  static RiverpodLevel parse(String value) {
-    final normalized = value.trim().toLowerCase();
-    for (final candidate in RiverpodLevel.values) {
-      if (candidate.name == normalized) {
-        return candidate;
-      }
-    }
-    throw ArgumentError('Unsupported Riverpod level: $value');
-  }
-}
-
-/// Advanced localization pattern levels.
-enum LocalizationLevel {
-  none,
-  basic,
-  advanced;
-
-  String get label => name;
-
-  static LocalizationLevel parse(String value) {
-    final normalized = value.trim().toLowerCase();
-    for (final candidate in LocalizationLevel.values) {
-      if (candidate.name == normalized) {
-        return candidate;
-      }
-    }
-    throw ArgumentError('Unsupported localization level: $value');
-  }
-}
-
-/// Advanced authentication pattern levels.
-enum AuthLevel {
-  none,
-  basic,
-  advanced;
-
-  String get label => name;
-
-  static AuthLevel parse(String value) {
-    final normalized = value.trim().toLowerCase();
-    for (final candidate in AuthLevel.values) {
-      if (candidate.name == normalized) {
-        return candidate;
-      }
-    }
-    throw ArgumentError('Unsupported auth level: $value');
-  }
-}
-
-/// Offline-first architecture levels.
-enum OfflineLevel {
-  none,
-  basic,
-  advanced;
-
-  String get label => name;
-
-  static OfflineLevel parse(String value) {
-    final normalized = value.trim().toLowerCase();
-    for (final candidate in OfflineLevel.values) {
-      if (candidate.name == normalized) {
-        return candidate;
-      }
-    }
-    throw ArgumentError('Unsupported offline level: $value');
-  }
-}
-
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -258,25 +143,6 @@ class BlueprintConfig {
     this.includePagination = false,
     this.includeAnalytics = false,
     this.analyticsProvider = AnalyticsProvider.none,
-    this.securityLevel = SecurityLevel.none,
-    this.memoryLevel = MemoryLevel.none,
-    this.maxImageCacheSize = 100,
-    this.riverpodLevel = RiverpodLevel.none,
-    this.enableCodeGeneration = false,
-    this.localizationLevel = LocalizationLevel.none,
-    this.supportedLocales = const ['en', 'es'],
-    this.defaultLocale = 'en',
-    this.enableRTL = false,
-    this.authLevel = AuthLevel.none,
-    this.enableJWT = false,
-    this.enableOAuth = false,
-    this.enableBiometric = false,
-    this.enableRefreshToken = true,
-    this.offlineLevel = OfflineLevel.none,
-    this.enableSyncQueue = false,
-    this.enableBackgroundSync = false,
-    this.enableConflictResolution = false,
-    this.syncInterval = 60,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -309,178 +175,14 @@ class BlueprintConfig {
   /// Whether to include pagination utilities (controller, widgets, skeleton loaders).
   final bool includePagination;
 
-  /// Whether to include analytics and crash reporting.
+  ///Whether to include analytics and crash reporting.
   final bool includeAnalytics;
 
   /// The analytics provider to use (Firebase, Sentry, or none).
   final AnalyticsProvider analyticsProvider;
 
-  /// The security level to apply (none, basic, standard, enterprise).
-  final SecurityLevel securityLevel;
-
-  /// The memory management level to apply (none, basic, advanced).
-  final MemoryLevel memoryLevel;
-
-  /// Maximum image cache size in MB (default: 100).
-  final int maxImageCacheSize;
-
-  /// The advanced Riverpod pattern level to apply (none, basic, advanced).
-  final RiverpodLevel riverpodLevel;
-
-  /// Whether to enable Riverpod code generation setup.
-  final bool enableCodeGeneration;
-
-  /// The advanced localization pattern level to apply (none, basic, advanced).
-  final LocalizationLevel localizationLevel;
-
-  /// List of supported locale codes (e.g., ['en', 'es', 'ar']).
-  final List<String> supportedLocales;
-
-  /// The default locale code (must be in supportedLocales).
-  final String defaultLocale;
-
-  /// Whether to enable Right-to-Left (RTL) language support.
-  final bool enableRTL;
-
-  /// The advanced authentication pattern level to apply (none, basic, advanced).
-  final AuthLevel authLevel;
-
-  /// Whether to enable JWT token management.
-  final bool enableJWT;
-
-  /// Whether to enable OAuth 2.0 integration.
-  final bool enableOAuth;
-
-  /// Whether to enable biometric authentication.
-  final bool enableBiometric;
-
-  /// Whether to enable automatic token refresh.
-  final bool enableRefreshToken;
-
-  /// The offline-first architecture level to apply (none, basic, advanced).
-  final OfflineLevel offlineLevel;
-
-  /// Whether to enable sync queue for offline operations.
-  final bool enableSyncQueue;
-
-  /// Whether to enable background synchronization.
-  final bool enableBackgroundSync;
-
-  /// Whether to enable conflict resolution strategies.
-  final bool enableConflictResolution;
-
-  /// Sync interval in minutes for background sync.
-  final int syncInterval;
-
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
-
-  /// Check if security features are included
-  bool get includeSecurity => securityLevel != SecurityLevel.none;
-
-  /// Check if certificate pinning should be enabled (enterprise only)
-  bool get enableCertificatePinning =>
-      securityLevel == SecurityLevel.enterprise;
-
-  /// Check if root detection should be enabled (standard and enterprise)
-  bool get enableRootDetection =>
-      securityLevel == SecurityLevel.standard ||
-      securityLevel == SecurityLevel.enterprise;
-
-  /// Check if biometric auth should be enabled (standard and enterprise)
-  bool get enableBiometricAuth =>
-      securityLevel == SecurityLevel.standard ||
-      securityLevel == SecurityLevel.enterprise;
-
-  /// Check if API key obfuscation should be enabled (enterprise only)
-  bool get enableApiKeyObfuscation => securityLevel == SecurityLevel.enterprise;
-
-  /// Check if encrypted storage should be enabled (all levels)
-  bool get enableEncryptedStorage => includeSecurity;
-
-  /// Check if screenshot protection should be enabled (enterprise only)
-  bool get enableScreenshotProtection =>
-      securityLevel == SecurityLevel.enterprise;
-
-  /// Check if memory management features are included
-  bool get includeMemoryManagement => memoryLevel != MemoryLevel.none;
-
-  /// Check if memory profiling should be enabled (advanced only)
-  bool get enableMemoryProfiling => memoryLevel == MemoryLevel.advanced;
-
-  /// Check if image caching should be enabled (basic and advanced)
-  bool get enableImageCaching => includeMemoryManagement;
-
-  /// Check if leak detection should be enabled (advanced only)
-  bool get enableLeakDetection => memoryLevel == MemoryLevel.advanced;
-
-  /// Check if advanced Riverpod patterns are included
-  bool get includeAdvancedRiverpod =>
-      riverpodLevel != RiverpodLevel.none &&
-      stateManagement == StateManagement.riverpod;
-
-  /// Check if AsyncNotifier patterns should be included
-  bool get enableAsyncNotifierPatterns => includeAdvancedRiverpod;
-
-  /// Check if auto-disposing family providers should be included
-  bool get enableAutoDisposingFamily => includeAdvancedRiverpod;
-
-  /// Check if provider composition patterns should be included
-  bool get enableProviderComposition => includeAdvancedRiverpod;
-
-  /// Check if performance optimization patterns should be included
-  bool get enablePerformancePatterns =>
-      riverpodLevel == RiverpodLevel.advanced &&
-      stateManagement == StateManagement.riverpod;
-
-  /// Check if advanced localization features are included
-  bool get includeAdvancedLocalization =>
-      localizationLevel != LocalizationLevel.none;
-
-  /// Check if ARB file generation should be enabled (basic and advanced)
-  bool get enableARBGenerator => includeAdvancedLocalization;
-
-  /// Check if dynamic locale loading should be enabled (advanced only)
-  bool get enableDynamicLocaleLoader =>
-      localizationLevel == LocalizationLevel.advanced;
-
-  /// Check if RTL support widgets should be included
-  bool get includeRTLSupport => enableRTL && includeAdvancedLocalization;
-
-  /// Check if locale persistence should be enabled (basic and advanced)
-  bool get enableLocalePersistence => includeAdvancedLocalization;
-
-  /// Check if advanced authentication features are included
-  bool get includeAdvancedAuth => authLevel != AuthLevel.none;
-
-  /// Check if JWT token handling should be enabled
-  bool get includeJWTHandling => enableJWT && includeAdvancedAuth;
-
-  /// Check if OAuth integration should be enabled
-  bool get includeOAuthFlow => enableOAuth && includeAdvancedAuth;
-
-  /// Check if session management should be enabled (basic and advanced)
-  bool get includeSessionManagement => includeAdvancedAuth;
-
-  /// Check if secure storage should be enabled (basic and advanced)
-  bool get includeSecureStorage => includeAdvancedAuth;
-
-  /// Check if offline-first features are included
-  bool get includeOfflineFirst => offlineLevel != OfflineLevel.none;
-
-  /// Check if sync queue should be enabled
-  bool get includeSyncQueue => enableSyncQueue && includeOfflineFirst;
-
-  /// Check if background sync should be enabled (advanced only)
-  bool get includeBackgroundSync =>
-      enableBackgroundSync && offlineLevel == OfflineLevel.advanced;
-
-  /// Check if conflict resolution should be enabled (advanced only)
-  bool get includeConflictResolution =>
-      enableConflictResolution && offlineLevel == OfflineLevel.advanced;
-
-  /// Check if network monitoring should be enabled (basic and advanced)
-  bool get includeNetworkMonitor => includeOfflineFirst;
 
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
@@ -497,54 +199,9 @@ class BlueprintConfig {
   List<String> validate() {
     final errors = <String>[];
 
-    // Validate offline-first dependencies
-    if (enableBackgroundSync && offlineLevel == OfflineLevel.none) {
-      errors.add(
-          '❌ Background sync requires offline-level to be basic or advanced');
-    }
-
-    if (enableConflictResolution && offlineLevel != OfflineLevel.advanced) {
-      errors.add('❌ Conflict resolution requires offline-level to be advanced');
-    }
-
-    // Validate authentication dependencies
-    if (enableBiometric && authLevel == AuthLevel.none) {
-      errors
-          .add('❌ Biometric auth requires auth-level to be basic or advanced');
-    }
-
-    if (enableJWT && !includeApi) {
-      errors.add('⚠️  JWT handling works best with API support enabled');
-    }
-
-    if (enableOAuth && !includeApi) {
-      errors.add('⚠️  OAuth integration works best with API support enabled');
-    }
-
-    // Validate Riverpod dependencies
-    if (enableCodeGeneration && stateManagement != StateManagement.riverpod) {
-      errors.add('❌ Code generation requires Riverpod state management');
-    }
-
-    if (riverpodLevel != RiverpodLevel.none &&
-        stateManagement != StateManagement.riverpod) {
-      errors.add(
-          '❌ Advanced Riverpod patterns require Riverpod state management');
-    }
-
-    // Validate localization dependencies
-    if (enableRTL && !includeLocalization) {
-      errors.add('❌ RTL support requires localization to be enabled');
-    }
-
-    if (!supportedLocales.contains(defaultLocale)) {
-      errors.add(
-          '❌ Default locale "$defaultLocale" must be in supported locales');
-    }
-
-    // Validate sync interval
-    if (syncInterval < 1) {
-      errors.add('❌ Sync interval must be at least 1 minute');
+    // Validate platforms
+    if (platforms.isEmpty) {
+      errors.add('❌ At least one platform must be selected');
     }
 
     return errors;
@@ -567,25 +224,6 @@ class BlueprintConfig {
     bool? includePagination,
     bool? includeAnalytics,
     AnalyticsProvider? analyticsProvider,
-    SecurityLevel? securityLevel,
-    MemoryLevel? memoryLevel,
-    int? maxImageCacheSize,
-    RiverpodLevel? riverpodLevel,
-    bool? enableCodeGeneration,
-    LocalizationLevel? localizationLevel,
-    List<String>? supportedLocales,
-    String? defaultLocale,
-    bool? enableRTL,
-    AuthLevel? authLevel,
-    bool? enableJWT,
-    bool? enableOAuth,
-    bool? enableBiometric,
-    bool? enableRefreshToken,
-    OfflineLevel? offlineLevel,
-    bool? enableSyncQueue,
-    bool? enableBackgroundSync,
-    bool? enableConflictResolution,
-    int? syncInterval,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -601,26 +239,6 @@ class BlueprintConfig {
       includePagination: includePagination ?? this.includePagination,
       includeAnalytics: includeAnalytics ?? this.includeAnalytics,
       analyticsProvider: analyticsProvider ?? this.analyticsProvider,
-      securityLevel: securityLevel ?? this.securityLevel,
-      memoryLevel: memoryLevel ?? this.memoryLevel,
-      maxImageCacheSize: maxImageCacheSize ?? this.maxImageCacheSize,
-      riverpodLevel: riverpodLevel ?? this.riverpodLevel,
-      enableCodeGeneration: enableCodeGeneration ?? this.enableCodeGeneration,
-      localizationLevel: localizationLevel ?? this.localizationLevel,
-      supportedLocales: supportedLocales ?? this.supportedLocales,
-      defaultLocale: defaultLocale ?? this.defaultLocale,
-      enableRTL: enableRTL ?? this.enableRTL,
-      authLevel: authLevel ?? this.authLevel,
-      enableJWT: enableJWT ?? this.enableJWT,
-      enableOAuth: enableOAuth ?? this.enableOAuth,
-      enableBiometric: enableBiometric ?? this.enableBiometric,
-      enableRefreshToken: enableRefreshToken ?? this.enableRefreshToken,
-      offlineLevel: offlineLevel ?? this.offlineLevel,
-      enableSyncQueue: enableSyncQueue ?? this.enableSyncQueue,
-      enableBackgroundSync: enableBackgroundSync ?? this.enableBackgroundSync,
-      enableConflictResolution:
-          enableConflictResolution ?? this.enableConflictResolution,
-      syncInterval: syncInterval ?? this.syncInterval,
     );
   }
 
@@ -632,25 +250,6 @@ class BlueprintConfig {
       'state_management': stateManagement.label,
       'ci_provider': ciProvider.label,
       'analytics_provider': analyticsProvider.label,
-      'security_level': securityLevel.label,
-      'memory_level': memoryLevel.label,
-      'max_image_cache_size': maxImageCacheSize,
-      'riverpod_level': riverpodLevel.label,
-      'enable_code_generation': enableCodeGeneration,
-      'localization_level': localizationLevel.label,
-      'supported_locales': supportedLocales,
-      'default_locale': defaultLocale,
-      'enable_rtl': enableRTL,
-      'auth_level': authLevel.label,
-      'enable_jwt': enableJWT,
-      'enable_oauth': enableOAuth,
-      'enable_biometric': enableBiometric,
-      'enable_refresh_token': enableRefreshToken,
-      'offline_level': offlineLevel.label,
-      'enable_sync_queue': enableSyncQueue,
-      'enable_background_sync': enableBackgroundSync,
-      'enable_conflict_resolution': enableConflictResolution,
-      'sync_interval': syncInterval,
       'features': SplayTreeMap<String, dynamic>.from({
         'theme': includeTheme,
         'localization': includeLocalization,
@@ -705,44 +304,6 @@ class BlueprintConfig {
       analyticsProvider: AnalyticsProvider.parse(
         (map['analytics_provider'] ?? 'none') as String,
       ),
-      securityLevel: SecurityLevel.parse(
-        (map['security_level'] ?? 'none') as String,
-      ),
-      memoryLevel: MemoryLevel.parse(
-        (map['memory_level'] ?? 'none') as String,
-      ),
-      maxImageCacheSize: (map['max_image_cache_size'] ?? 100) as int,
-      riverpodLevel: RiverpodLevel.parse(
-        (map['riverpod_level'] ?? 'none') as String,
-      ),
-      enableCodeGeneration:
-          _readBool(map['enable_code_generation'], fallback: false),
-      localizationLevel: LocalizationLevel.parse(
-        (map['localization_level'] ?? 'none') as String,
-      ),
-      supportedLocales: (map['supported_locales'] as List?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          ['en', 'es'],
-      defaultLocale: (map['default_locale'] ?? 'en') as String,
-      enableRTL: _readBool(map['enable_rtl'], fallback: false),
-      authLevel: AuthLevel.parse(
-        (map['auth_level'] ?? 'none') as String,
-      ),
-      enableJWT: _readBool(map['enable_jwt'], fallback: false),
-      enableOAuth: _readBool(map['enable_oauth'], fallback: false),
-      enableBiometric: _readBool(map['enable_biometric'], fallback: false),
-      enableRefreshToken:
-          _readBool(map['enable_refresh_token'], fallback: true),
-      offlineLevel: OfflineLevel.parse(
-        (map['offline_level'] ?? 'none') as String,
-      ),
-      enableSyncQueue: _readBool(map['enable_sync_queue'], fallback: false),
-      enableBackgroundSync:
-          _readBool(map['enable_background_sync'], fallback: false),
-      enableConflictResolution:
-          _readBool(map['enable_conflict_resolution'], fallback: false),
-      syncInterval: (map['sync_interval'] ?? 60) as int,
       includeTheme: _readBool(features['theme'], fallback: true),
       includeLocalization: _readBool(features['localization'], fallback: false),
       includeEnv: _readBool(features['env'], fallback: true),

@@ -52,6 +52,7 @@
 | 🌍 **Advanced Localization**       | 3 levels (none → advanced) with ARB + RTL                       | 5 localization utilities + 12+ languages                                                                        |
 | 🔐 **Advanced Authentication**     | 3 levels (none → advanced) with JWT + OAuth                     | 6 auth utilities (JWT, OAuth, biometric)                                                                        |
 | 📴 **Offline-First Architecture**  | 3 levels (none → advanced) with sync + conflicts                | 7 offline utilities (sync queue, resolver, background sync, repository, network monitor, coordinator, examples) |
+| 🚀 **Simplified Project Structure**| **Simple Mode** for MVPs & smaller apps                         | Streamlined architecture without enterprise complexity                                                          |
 
 ### **Professional Add-ons** (What Makes It Pro)
 
