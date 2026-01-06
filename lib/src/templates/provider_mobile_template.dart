@@ -61,6 +61,16 @@ TemplateBundle buildProviderMobileBundle() {
       TemplateFile(
           path: p.join('lib', 'core', 'utils', 'extensions.dart'),
           build: _extensions),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'dialog_utils.dart'),
+          build: _dialogUtils),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'snackbar_utils.dart'),
+          build: _snackbarUtils),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'network_settings.dart'),
+          build: _networkSettings,
+          shouldGenerate: (config) => config.includeApi),
 
       // Core: Routing
       TemplateFile(
@@ -330,7 +340,24 @@ String _mainDart(BlueprintConfig config) {
   buffer
     ..writeln('')
     ..writeln('Future<void> main() async {')
-    ..writeln('  WidgetsFlutterBinding.ensureInitialized();');
+    ..writeln('  WidgetsFlutterBinding.ensureInitialized();')
+    ..writeln('')
+    ..writeln('  // Configure system UI overlays (Status bar & Navigation bar)')
+    ..writeln('  SystemChrome.setSystemUIOverlayStyle(')
+    ..writeln('    const SystemUiOverlayStyle(')
+    ..writeln('      statusBarColor: Colors.transparent, // Transparent status bar')
+    ..writeln('      statusBarIconBrightness: Brightness.dark, // Dark icons for light theme')
+    ..writeln('      statusBarBrightness: Brightness.light, // For iOS')
+    ..writeln('      systemNavigationBarColor: Colors.white, // Navigation bar color')
+    ..writeln('      systemNavigationBarIconBrightness: Brightness.dark, // Dark icons')
+    ..writeln('    ),')
+    ..writeln('  );')
+    ..writeln('')
+    ..writeln('  // Set preferred orientations if needed')
+    ..writeln('  // await SystemChrome.setPreferredOrientations([')
+    ..writeln('  //   DeviceOrientation.portraitUp,')
+    ..writeln('  //   DeviceOrientation.portraitDown,')
+    ..writeln('  // ]);');
   if (config.includeEnv) {
     buffer.writeln("  await EnvLoader.load();");
   }
@@ -501,7 +528,7 @@ String _routeGuard(BlueprintConfig config) {
 }
 
 String _appTheme(BlueprintConfig config) {
-  return """import 'package:flutter/material.dart';\n\nimport 'typography.dart';\n\nclass AppTheme {\n  const AppTheme._();\n\n  static ThemeData light() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0066FF)),\n      brightness: Brightness.light,\n      textTheme: buildTextTheme(),\n      appBarTheme: const AppBarTheme(centerTitle: true),\n    );\n  }\n\n  static ThemeData dark() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: const Color(0xFF66AAFF),\n        brightness: Brightness.dark,\n      ),\n      textTheme: buildTextTheme(),\n    );\n  }\n}\n""";
+  return """import 'package:flutter/material.dart';\nimport 'package:flutter/services.dart';\nimport 'typography.dart';\nimport 'app_colors.dart';\n\nclass AppTheme {\n  const AppTheme._();\n\n  static ThemeData light() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: AppColors.primary,\n        brightness: Brightness.light,\n        primary: AppColors.primary,\n        secondary: AppColors.secondary,\n        error: AppColors.error,\n        surface: AppColors.surfaceLight,\n        background: AppColors.backgroundLight,\n      ),\n      brightness: Brightness.light,\n      textTheme: buildTextTheme(),\n      useMaterial3: true,\n      appBarTheme: AppBarTheme(\n        centerTitle: true,\n        elevation: 0,\n        backgroundColor: AppColors.primary,\n        foregroundColor: Colors.white,\n        systemOverlayStyle: const SystemUiOverlayStyle(\n          statusBarColor: Colors.transparent,\n          statusBarIconBrightness: Brightness.light, // Light icons on dark AppBar\n          statusBarBrightness: Brightness.dark, // For iOS\n          systemNavigationBarColor: Colors.white,\n          systemNavigationBarIconBrightness: Brightness.dark,\n        ),\n      ),\n      scaffoldBackgroundColor: AppColors.backgroundLight,\n      cardTheme: CardTheme(\n        color: AppColors.surfaceLight,\n        elevation: 2,\n        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),\n      ),\n    );\n  }\n\n  static ThemeData dark() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: AppColors.primaryLight,\n        brightness: Brightness.dark,\n        primary: AppColors.primaryLight,\n        secondary: AppColors.secondaryLight,\n        error: AppColors.error,\n        surface: AppColors.surfaceDark,\n        background: AppColors.backgroundDark,\n      ),\n      brightness: Brightness.dark,\n      textTheme: buildTextTheme(),\n      useMaterial3: true,\n      appBarTheme: AppBarTheme(\n        centerTitle: true,\n        elevation: 0,\n        backgroundColor: AppColors.surfaceDark,\n        foregroundColor: Colors.white,\n        systemOverlayStyle: const SystemUiOverlayStyle(\n          statusBarColor: Colors.transparent,\n          statusBarIconBrightness: Brightness.light, // Light icons for dark theme\n          statusBarBrightness: Brightness.dark, // For iOS\n          systemNavigationBarColor: Color(0xFF1E1E1E),\n          systemNavigationBarIconBrightness: Brightness.light,\n        ),\n      ),\n      scaffoldBackgroundColor: AppColors.backgroundDark,\n      cardTheme: CardTheme(\n        color: AppColors.surfaceDark,\n        elevation: 2,\n        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),\n      ),\n    );\n  }\n}\n""";
 }
 
 String _typography(BlueprintConfig config) {
@@ -606,6 +633,65 @@ class ApiClient {
       queryParameters: queryParameters,
       options: options,
     );
+  }
+  
+  /// Handle API response and convert to ApiResponse with structured error
+  Future<ApiResponse<T>> handleResponse<T>(
+    Future<Response> Function() request,
+    T Function(dynamic data) parser, {
+    String? endpoint,
+    dynamic payload,
+  }) async {
+    try {
+      final response = await request();
+      final data = parser(response.data);
+      return ApiResponse<T>.success(data);
+    } on DioException catch (e, stackTrace) {
+      final error = ApiError(
+        message: _getErrorMessage(e),
+        response: e.response?.data,
+        stackTrace: stackTrace,
+      );
+      
+      return ApiResponse<T>.error(
+        error,
+        endpoint: endpoint ?? e.requestOptions.path,
+        payload: payload ?? e.requestOptions.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e, stackTrace) {
+      final error = ApiError(
+        message: e.toString(),
+        stackTrace: stackTrace,
+      );
+      
+      return ApiResponse<T>.error(
+        error,
+        endpoint: endpoint,
+        payload: payload,
+      );
+    }
+  }
+  
+  /// Get user-friendly error message from DioException
+  String _getErrorMessage(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'Connection timeout. Please check your internet connection.';
+      case DioExceptionType.badResponse:
+        return error.response?.data?['message'] ?? 
+               'Server error: \${error.response?.statusCode}';
+      case DioExceptionType.cancel:
+        return 'Request cancelled';
+      case DioExceptionType.connectionError:
+        return 'No internet connection';
+      case DioExceptionType.badCertificate:
+        return 'Certificate verification failed';
+      case DioExceptionType.unknown:
+        return error.message ?? 'An unknown error occurred';
+    }
   }
 }
 """;
@@ -1096,7 +1182,7 @@ extension ContextExtensions on BuildContext {
   /// Get screen height
   double get height => screenSize.height;
   
-  /// Show snackbar
+  /// Show snackbar (legacy method - use SnackbarUtils for better options)
   void showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
@@ -1105,6 +1191,8 @@ extension ContextExtensions on BuildContext {
       ),
     );
   }
+  
+
 }
 """;
 }
@@ -1449,16 +1537,60 @@ class _CustomTextFieldState extends State<CustomTextField> {
 }
 
 String _apiResponse(BlueprintConfig config) {
-  return """/// Generic API response wrapper
+  return """/// Structured API response wrapper with detailed error information
 class ApiResponse<T> {
-  ApiResponse.success(this.data) : error = null;
-  ApiResponse.error(this.error) : data = null;
-  
+  ApiResponse.success(this.data)
+      : error = null,
+        endpoint = null,
+        payload = null,
+        statusCode = null;
+
+  ApiResponse.error(
+    this.error, {
+    this.endpoint,
+    this.payload,
+    this.statusCode,
+  }) : data = null;
+
   final T? data;
-  final String? error;
-  
-  bool get isSuccess => data != null;
+  final ApiError? error;
+  final String? endpoint;
+  final dynamic payload;
+  final int? statusCode;
+
+  bool get isSuccess => data != null && error == null;
   bool get isError => error != null;
+
+  /// Get formatted error message for display
+  String get errorMessage => error?.message ?? 'Unknown error occurred';
+
+  /// Get detailed error information for logging
+  String get detailedError {
+    if (error == null) return '';
+    final buffer = StringBuffer();
+    buffer.writeln('Error: \${error!.message}');
+    if (endpoint != null) buffer.writeln('Endpoint: \$endpoint');
+    if (statusCode != null) buffer.writeln('Status Code: \$statusCode');
+    if (payload != null) buffer.writeln('Payload: \$payload');
+    if (error!.response != null) buffer.writeln('Response: \${error!.response}');
+    return buffer.toString();
+  }
+}
+
+/// Detailed API error information
+class ApiError {
+  const ApiError({
+    required this.message,
+    this.response,
+    this.stackTrace,
+  });
+
+  final String message;
+  final dynamic response;
+  final StackTrace? stackTrace;
+
+  @override
+  String toString() => message;
 }
 """;
 }
@@ -1705,6 +1837,512 @@ class TestHelpers {
   ]) async {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle(duration);
+  }
+}
+""";
+}
+
+String _dialogUtils(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+/// Global dialog utilities for success/failure messages
+class DialogUtils {
+  DialogUtils._();
+
+  /// Show success dialog
+  static Future<void> showSuccess(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String buttonText = 'OK',
+    VoidCallback? onPressed,
+  }) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: AppColors.success,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.success,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onPressed?.call();
+            },
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show error dialog
+  static Future<void> showError(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String buttonText = 'OK',
+    VoidCallback? onPressed,
+  }) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                color: AppColors.error,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onPressed?.call();
+            },
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show confirmation dialog
+  static Future<bool?> showConfirmation(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String confirmText = 'Confirm',
+    String cancelText = 'Cancel',
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(cancelText),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(confirmText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show loading dialog
+  static void showLoading(BuildContext context, {String message = 'Loading...'}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(message),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Dismiss loading dialog
+  static void dismissLoading(BuildContext context) {
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+}
+""";
+}
+
+String _snackbarUtils(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+/// Global snackbar utilities for quick messages
+class SnackbarUtils {
+  SnackbarUtils._();
+
+  /// Show success snackbar
+  static void showSuccess(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+    SnackBarAction? action,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.success,
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: action,
+      ),
+    );
+  }
+
+  /// Show error snackbar
+  static void showError(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 4),
+    SnackBarAction? action,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.error,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: action,
+      ),
+    );
+  }
+
+  /// Show info snackbar
+  static void showInfo(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+    SnackBarAction? action,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.info,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.info,
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: action,
+      ),
+    );
+  }
+
+  /// Show warning snackbar
+  static void showWarning(
+    BuildContext context,
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+    SnackBarAction? action,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.warning,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.warning,
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: action,
+      ),
+    );
+  }
+
+  /// Show custom snackbar
+  static void showCustom(
+    BuildContext context,
+    String message, {
+    Color? backgroundColor,
+    Color? textColor,
+    IconData? icon,
+    Duration duration = const Duration(seconds: 3),
+    SnackBarAction? action,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                color: textColor ?? Colors.white,
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: textColor ?? Colors.white),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: backgroundColor ?? AppColors.grey,
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: action,
+      ),
+    );
+  }
+}
+""";
+}
+
+String _networkSettings(BlueprintConfig config) {
+  return """import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import '../utils/logger.dart';
+
+/// Network settings and connectivity management
+class NetworkSettings {
+  NetworkSettings._();
+
+  static final Connectivity _connectivity = Connectivity();
+
+  /// Check if device is connected to internet
+  static Future<bool> isConnected() async {
+    try {
+      final result = await _connectivity.checkConnectivity();
+      return !result.contains(ConnectivityResult.none);
+    } catch (e) {
+      AppLogger.error('Error checking connectivity', 'NetworkSettings', e);
+      return false;
+    }
+  }
+
+  /// Get current connection type
+  static Future<ConnectivityResult> getConnectionType() async {
+    try {
+      final results = await _connectivity.checkConnectivity();
+      return results.first;
+    } catch (e) {
+      AppLogger.error('Error getting connection type', 'NetworkSettings', e);
+      return ConnectivityResult.none;
+    }
+  }
+
+  /// Listen to connectivity changes
+  static Stream<List<ConnectivityResult>> get onConnectivityChanged {
+    return _connectivity.onConnectivityChanged;
+  }
+
+  /// Get connection type as string
+  static String getConnectionTypeString(ConnectivityResult result) {
+    switch (result) {
+      case ConnectivityResult.wifi:
+        return 'WiFi';
+      case ConnectivityResult.mobile:
+        return 'Mobile Data';
+      case ConnectivityResult.ethernet:
+        return 'Ethernet';
+      case ConnectivityResult.vpn:
+        return 'VPN';
+      case ConnectivityResult.bluetooth:
+        return 'Bluetooth';
+      case ConnectivityResult.other:
+        return 'Other';
+      case ConnectivityResult.none:
+        return 'No Connection';
+    }
+  }
+
+  /// Show network error dialog
+  static void showNetworkError(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.red),
+            SizedBox(width: 12),
+            Text('No Internet Connection'),
+          ],
+        ),
+        content: const Text(
+          'Please check your internet connection and try again.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Execute function with network check
+  static Future<T?> executeWithNetworkCheck<T>(
+    BuildContext context,
+    Future<T> Function() function, {
+    bool showError = true,
+  }) async {
+    if (!await isConnected()) {
+      if (showError) {
+        showNetworkError(context);
+      }
+      return null;
+    }
+    return await function();
+  }
+
+  /// Network status widget builder
+  static Widget buildNetworkStatusWidget({
+    required Widget child,
+    Widget? offlineWidget,
+  }) {
+    return StreamBuilder<List<ConnectivityResult>>(
+      stream: onConnectivityChanged,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final isOnline = !snapshot.data!.contains(ConnectivityResult.none);
+          if (!isOnline && offlineWidget != null) {
+            return offlineWidget;
+          }
+        }
+        return child;
+      },
+    );
+  }
+
+  /// Network banner widget
+  static Widget buildNetworkBanner({required Widget child}) {
+    return StreamBuilder<List<ConnectivityResult>>(
+      stream: onConnectivityChanged,
+      builder: (context, snapshot) {
+        final isOffline = snapshot.hasData &&
+            snapshot.data!.contains(ConnectivityResult.none);
+
+        return Column(
+          children: [
+            if (isOffline)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(8),
+                color: Colors.red,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.wifi_off, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'No Internet Connection',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(child: child),
+          ],
+        );
+      },
+    );
   }
 }
 """;

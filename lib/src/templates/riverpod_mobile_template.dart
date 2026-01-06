@@ -62,6 +62,16 @@ TemplateBundle buildRiverpodMobileBundle() {
       TemplateFile(
           path: p.join('lib', 'core', 'utils', 'extensions.dart'),
           build: _extensions),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'dialog_utils.dart'),
+          build: _dialogUtils),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'snackbar_utils.dart'),
+          build: _snackbarUtils),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'network_settings.dart'),
+          build: _networkSettings,
+          shouldGenerate: (config) => config.includeApi),
 
       // Core: Routing
       TemplateFile(
@@ -1743,6 +1753,122 @@ class TestHelpers {
   ]) async {
     await tester.pumpWidget(widget);
     await tester.pumpAndSettle(duration);
+  }
+}
+""";
+}
+
+// Import utility functions - same as bloc template
+String _dialogUtils(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+/// Global dialog utilities for success/failure messages
+class DialogUtils {
+  DialogUtils._();
+
+  static Future<void> showSuccess(BuildContext context, {required String title, required String message, String buttonText = 'OK', VoidCallback? onPressed}) {
+    return showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline, color: AppColors.success, size: 32)), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)))]), content: Text(message), actions: [TextButton(onPressed: () { Navigator.of(context).pop(); onPressed?.call(); }, child: Text(buttonText))]));
+  }
+
+  static Future<void> showError(BuildContext context, {required String title, required String message, String buttonText = 'OK', VoidCallback? onPressed}) {
+    return showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.error_outline, color: AppColors.error, size: 32)), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)))]), content: Text(message), actions: [TextButton(onPressed: () { Navigator.of(context).pop(); onPressed?.call(); }, child: Text(buttonText))]));
+  }
+
+  static Future<bool?> showConfirmation(BuildContext context, {required String title, required String message, String confirmText = 'Confirm', String cancelText = 'Cancel'}) {
+    return showDialog<bool>(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Text(title), content: Text(message), actions: [TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(cancelText)), ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: Text(confirmText))]));
+  }
+
+  static void showLoading(BuildContext context, {String message = 'Loading...'}) {
+    showDialog(context: context, barrierDismissible: false, builder: (context) => WillPopScope(onWillPop: () async => false, child: AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), content: Column(mainAxisSize: MainAxisSize.min, children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(message)]))));
+  }
+
+  static void dismissLoading(BuildContext context) => Navigator.of(context, rootNavigator: true).pop();
+}
+""";
+}
+
+String _snackbarUtils(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+/// Global snackbar utilities
+class SnackbarUtils {
+  SnackbarUtils._();
+
+  static void showSuccess(BuildContext context, String message, {Duration duration = const Duration(seconds: 3)}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Row(children: [const Icon(Icons.check_circle, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(message, style: const TextStyle(color: Colors.white)))]), backgroundColor: AppColors.success, duration: duration, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
+  }
+
+  static void showError(BuildContext context, String message, {Duration duration = const Duration(seconds: 4)}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Row(children: [const Icon(Icons.error, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(message, style: const TextStyle(color: Colors.white)))]), backgroundColor: AppColors.error, duration: duration, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
+  }
+
+  static void showInfo(BuildContext context, String message, {Duration duration = const Duration(seconds: 3)}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Row(children: [const Icon(Icons.info, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(message, style: const TextStyle(color: Colors.white)))]), backgroundColor: AppColors.info, duration: duration, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
+  }
+
+  static void showWarning(BuildContext context, String message, {Duration duration = const Duration(seconds: 3)}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Row(children: [const Icon(Icons.warning, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(message, style: const TextStyle(color: Colors.white)))]), backgroundColor: AppColors.warning, duration: duration, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
+  }
+}
+""";
+}
+
+String _networkSettings(BlueprintConfig config) {
+  return """import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import '../utils/logger.dart';
+
+/// Network settings and connectivity management
+class NetworkSettings {
+  NetworkSettings._();
+  static final Connectivity _connectivity = Connectivity();
+
+  static Future<bool> isConnected() async {
+    try {
+      final result = await _connectivity.checkConnectivity();
+      return !result.contains(ConnectivityResult.none);
+    } catch (e) {
+      AppLogger.error('Error checking connectivity', 'NetworkSettings', e);
+      return false;
+    }
+  }
+
+  static Future<ConnectivityResult> getConnectionType() async {
+    try {
+      final results = await _connectivity.checkConnectivity();
+      return results.first;
+    } catch (e) {
+      AppLogger.error('Error getting connection type', 'NetworkSettings', e);
+      return ConnectivityResult.none;
+    }
+  }
+
+  static Stream<List<ConnectivityResult>> get onConnectivityChanged => _connectivity.onConnectivityChanged;
+
+  static String getConnectionTypeString(ConnectivityResult result) {
+    switch (result) {
+      case ConnectivityResult.wifi: return 'WiFi';
+      case ConnectivityResult.mobile: return 'Mobile Data';
+      case ConnectivityResult.ethernet: return 'Ethernet';
+      case ConnectivityResult.vpn: return 'VPN';
+      case ConnectivityResult.bluetooth: return 'Bluetooth';
+      case ConnectivityResult.other: return 'Other';
+      case ConnectivityResult.none: return 'No Connection';
+    }
+  }
+
+  static void showNetworkError(BuildContext context) {
+    showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: const Row(children: [Icon(Icons.wifi_off, color: Colors.red), SizedBox(width: 12), Text('No Internet Connection')]), content: const Text('Please check your internet connection and try again.'), actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))]));
+  }
+
+  static Future<T?> executeWithNetworkCheck<T>(BuildContext context, Future<T> Function() function, {bool showError = true}) async {
+    if (!await isConnected()) {
+      if (showError) showNetworkError(context);
+      return null;
+    }
+    return await function();
   }
 }
 """;
