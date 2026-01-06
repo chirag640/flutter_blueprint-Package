@@ -82,7 +82,42 @@ TemplateBundle buildBlocMobileBundle() {
           build: _routeGuard),
       TemplateFile(
           path: p.join('lib', 'core', 'routing', 'route_names.dart'),
-          build: _routeNames),
+          build: _routeNamesUpdated),
+
+      // Core: Architecture
+      TemplateFile(
+          path: p.join('lib', 'core', 'architecture', 'base_repository.dart'),
+          build: _baseRepository),
+
+      // Core: Blocs/Observers
+      TemplateFile(
+          path: p.join('lib', 'core', 'blocs', 'connectivity_bloc.dart'),
+          build: _connectivityBloc),
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'simple_bloc_observer.dart'),
+          build: _simpleBlocObserver),
+
+      // Features: Auth
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'data', 'repositories',
+              'auth_repository.dart'),
+          build: _authRepository),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'bloc',
+              'auth_event.dart'),
+          build: _authEvent),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'bloc',
+              'auth_state.dart'),
+          build: _authState),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'bloc',
+              'auth_bloc.dart'),
+          build: _authBloc),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'pages',
+              'login_page.dart'),
+          build: _loginPage),
 
       // Core: Theme
       TemplateFile(
@@ -281,7 +316,9 @@ String _pubspec(BlueprintConfig config) {
   // Use BLoC pattern
   buffer
     ..writeln('  flutter_bloc: ^8.1.6')
-    ..writeln('  bloc: ^8.1.4');
+    ..writeln('  bloc: ^8.1.4')
+    ..writeln('  go_router: ^14.2.1')
+    ..writeln('  connectivity_plus: ^6.0.5');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
   buffer.writeln('  equatable: ^2.0.5');
@@ -371,10 +408,21 @@ String _appDart(BlueprintConfig config) {
   final buffer = StringBuffer()
     ..writeln("import 'package:flutter/material.dart';")
     ..writeln("import 'package:flutter_bloc/flutter_bloc.dart';")
+    ..writeln("import '../core/config/app_config.dart';")
     ..writeln("import '../core/routing/app_router.dart';")
+    ..writeln("import '../core/storage/secure_storage.dart';")
+    ..writeln("import '../core/blocs/connectivity_bloc.dart';")
+    ..writeln("import '../core/utils/simple_bloc_observer.dart';")
+    ..writeln(
+        "import '../features/auth/data/repositories/auth_repository.dart';")
+    ..writeln("import '../features/auth/presentation/bloc/auth_bloc.dart';")
     ..writeln("import '../features/home/presentation/bloc/home_bloc.dart';");
+
   if (config.includeTheme) {
     buffer.writeln("import '../core/theme/app_theme.dart';");
+  }
+  if (config.includeApi) {
+    buffer.writeln("import '../core/api/api_client.dart';");
   }
   if (config.includeLocalization) {
     buffer.writeln(
@@ -388,40 +436,80 @@ String _appDart(BlueprintConfig config) {
     ..writeln('')
     ..writeln('  @override')
     ..writeln('  Widget build(BuildContext context) {')
-    ..writeln('    final router = AppRouter();')
-    ..writeln('    ')
-    ..writeln('    return MultiBlocProvider(')
+    ..writeln('    return MultiRepositoryProvider(')
     ..writeln('      providers: [')
-    ..writeln('        BlocProvider(')
-    ..writeln('          create: (context) => HomeBloc(),')
-    ..writeln('        ),')
-    ..writeln('        // Add more BLoCs here')
+    ..writeln('        RepositoryProvider(create: (_) => AppConfig.load()),')
+    ..writeln(
+        '        RepositoryProvider(create: (_) => const SecureStorage()),')
+    ..writeln('        RepositoryProvider<AuthRepository>(')
+    ..writeln(
+        '          create: (context) => AuthRepositoryImpl(context.read<SecureStorage>()),')
+    ..writeln('        ),');
+
+  if (config.includeApi) {
+    buffer.writeln(
+        '        RepositoryProvider(create: (context) => ApiClient(context.read<AppConfig>())),');
+  }
+
+  buffer
     ..writeln('      ],')
-    ..writeln('      child: MaterialApp(')
-    ..writeln("          title: '$title',");
+    ..writeln('      child: MultiBlocProvider(')
+    ..writeln('        providers: [')
+    ..writeln(
+        '          BlocProvider(create: (context) => AuthBloc(authRepository: context.read<AuthRepository>())..add(const AuthStarted())),')
+    ..writeln(
+        '          BlocProvider(create: (context) => ConnectivityBloc()),')
+    ..writeln('          BlocProvider(create: (context) => HomeBloc()),')
+    ..writeln('        ],')
+    ..writeln('        child: const AppView(),')
+    ..writeln('      ),')
+    ..writeln('    );')
+    ..writeln('  }')
+    ..writeln('}')
+    ..writeln()
+    ..writeln('class AppView extends StatefulWidget {')
+    ..writeln('  const AppView({super.key});')
+    ..writeln()
+    ..writeln('  @override')
+    ..writeln('  State<AppView> createState() => _AppViewState();')
+    ..writeln('}')
+    ..writeln()
+    ..writeln('class _AppViewState extends State<AppView> {')
+    ..writeln('  late final AppRouter _appRouter;')
+    ..writeln()
+    ..writeln('  @override')
+    ..writeln('  void initState() {')
+    ..writeln('    super.initState();')
+    ..writeln('    _appRouter = AppRouter(context.read<AuthBloc>());')
+    ..writeln('  }')
+    ..writeln()
+    ..writeln('  @override')
+    ..writeln('  Widget build(BuildContext context) {')
+    ..writeln('    return MaterialApp.router(')
+    ..writeln("      title: '$title',");
+
   if (config.includeTheme) {
     buffer
-      ..writeln('          theme: AppTheme.light(),')
-      ..writeln('          darkTheme: AppTheme.dark(),')
-      ..writeln('          themeMode: ThemeMode.system,');
+      ..writeln('      theme: AppTheme.light(),')
+      ..writeln('      darkTheme: AppTheme.dark(),')
+      ..writeln('      themeMode: ThemeMode.system,');
   }
-  buffer
-    ..writeln('          initialRoute: AppRouter.home,')
-    ..writeln('          onGenerateRoute: router.onGenerateRoute,');
+
+  buffer..writeln('      routerConfig: _appRouter.router,');
+
   if (config.includeLocalization) {
     buffer
-      ..writeln('          localizationsDelegates: const [')
-      ..writeln('            GlobalMaterialLocalizations.delegate,')
-      ..writeln('            GlobalWidgetsLocalizations.delegate,')
-      ..writeln('            GlobalCupertinoLocalizations.delegate,')
-      ..writeln('          ],')
-      ..writeln('          supportedLocales: const [')
-      ..writeln("            Locale('en'),")
-      ..writeln("            Locale('hi'),")
-      ..writeln('          ],');
+      ..writeln('      localizationsDelegates: const [')
+      ..writeln('        GlobalMaterialLocalizations.delegate,')
+      ..writeln('        GlobalWidgetsLocalizations.delegate,')
+      ..writeln('        GlobalCupertinoLocalizations.delegate,')
+      ..writeln('      ],')
+      ..writeln('      supportedLocales: const [')
+      ..writeln("        Locale('en'),")
+      ..writeln("        Locale('hi'),")
+      ..writeln('      ],');
   }
   buffer
-    ..writeln('        ),')
     ..writeln('    );')
     ..writeln('  }')
     ..writeln('}');
@@ -476,43 +564,75 @@ String _envLoader(BlueprintConfig config) {
 }
 
 String _appRouter(BlueprintConfig config) {
-  final buffer = StringBuffer()
-    ..writeln("import 'package:flutter/material.dart';")
-    ..writeln()
-    ..writeln("import '../../features/home/presentation/pages/home_page.dart';")
-    ..writeln("import 'route_guard.dart';")
-    ..writeln()
-    ..writeln('class AppRouter {')
-    ..writeln("  static const home = '/';")
-    ..writeln()
-    ..writeln('  Route<dynamic>? onGenerateRoute(RouteSettings settings) {')
-    ..writeln('    switch (settings.name) {')
-    ..writeln('      case home:')
-    ..writeln(
-        '        return MaterialPageRoute(builder: (_) => const HomePage());')
-    ..writeln('      default:')
-    ..writeln(
-        '        return MaterialPageRoute(builder: (_) => const HomePage());')
-    ..writeln('    }')
-    ..writeln('  }')
-    ..writeln()
-    ..writeln('  Route<dynamic> guarded({')
-    ..writeln('    required RouteSettings settings,')
-    ..writeln('    required RouteGuard guard,')
-    ..writeln('    required WidgetBuilder builder,')
-    ..writeln('  }) {')
-    ..writeln('    return MaterialPageRoute(')
-    ..writeln('      settings: settings,')
-    ..writeln('      builder: (context) {')
-    ..writeln('        if (!guard.canActivate(settings)) {')
-    ..writeln('          return guard.fallback(context: context);')
-    ..writeln('        }')
-    ..writeln('        return builder(context);')
-    ..writeln('      },')
-    ..writeln('    );')
-    ..writeln('  }')
-    ..writeln('}');
-  return buffer.toString();
+  return """import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import 'route_names.dart';
+import '../widgets/error_view.dart';
+
+class AppRouter {
+  AppRouter(this.authBloc);
+  final AuthBloc authBloc;
+
+  late final router = GoRouter(
+    refreshListenable: GoRouterRefreshStream(authBloc.stream),
+    initialLocation: RouteNames.home,
+    routes: [
+      GoRoute(
+        path: RouteNames.home,
+        builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: RouteNames.login,
+        builder: (context, state) => const LoginPage(),
+      ),
+    ],
+    redirect: (context, state) {
+      final authState = authBloc.state;
+      final isAuthenticated = authState.status == AuthStatus.authenticated;
+      final isLogin = state.matchedLocation == RouteNames.login;
+      final isLoggingIn = authState.status == AuthStatus.loading || 
+                          authState.status == AuthStatus.unknown;
+
+      if (isLoggingIn) return null;
+
+      if (!isAuthenticated && !isLogin) return RouteNames.login;
+
+      if (isAuthenticated && isLogin) return RouteNames.home;
+
+      return null;
+    },
+    errorBuilder: (context, state) => Scaffold(
+      body: ErrorView(
+        message: state.error.toString(), 
+        onRetry: () => context.go(RouteNames.home),
+      ),
+    ),
+  );
+}
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+""";
 }
 
 String _routeGuard(BlueprintConfig config) {
@@ -673,6 +793,7 @@ String _homePage(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../widgets/home_content.dart';
@@ -687,6 +808,14 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Home'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              context.read<AuthBloc>().add(const AuthLogoutRequested());
+            },
+          ),
+        ],
       ),
       body: const HomeContent(),
       floatingActionButton: FloatingActionButton(
@@ -2345,3 +2474,409 @@ String _firebaseAnalyticsService(BlueprintConfig config) =>
 String _sentryService(BlueprintConfig config) => generateSentryService();
 String _analyticsEvents(BlueprintConfig config) => generateAnalyticsEvents();
 String _errorBoundary(BlueprintConfig config) => generateErrorBoundary();
+
+// ============================================================================
+// NEW ARCHITECTURE TEMPLATES (BLoC)
+// ============================================================================
+
+String _routeNamesUpdated(BlueprintConfig config) {
+  return """class RouteNames {
+  static const home = '/';
+  static const login = '/login';
+}
+""";
+}
+
+String _baseRepository(BlueprintConfig config) {
+  return """import 'package:dio/dio.dart';
+
+import '../api/api_client.dart';
+import '../errors/exceptions.dart';
+import '../errors/failures.dart';
+
+sealed class Result<T> {
+  const Result();
+}
+
+class Success<T> extends Result<T> {
+  const Success(this.data);
+  final T data;
+}
+
+class Error<T> extends Result<T> {
+  const Error(this.failure);
+  final Failure failure;
+}
+
+abstract class BaseRepository {
+  BaseRepository(this.apiClient);
+  
+  final ApiClient apiClient;
+  
+  Future<Result<T>> execute<T>(Future<T> Function() operation) async {
+    try {
+      final result = await operation();
+      return Success(result);
+    } on DioException catch (e) {
+      return Error(_handleDioError(e));
+    } catch (e) {
+      return Error(ServerFailure(e.toString()));
+    }
+  }
+  
+  Failure _handleDioError(DioException error) {
+    if (error.type == DioExceptionType.connectionError) {
+      return const NetworkFailure('No internet connection');
+    }
+    return ServerFailure(error.message ?? 'Server error');
+  }
+}
+""";
+}
+
+String _authRepository(BlueprintConfig config) {
+  return """
+import '../../../../core/storage/secure_storage.dart';
+
+class User {
+  const User({required this.id, required this.email, this.name});
+  final String id;
+  final String email;
+  final String? name;
+  
+  static const empty = User(id: '', email: '');
+  bool get isEmpty => this == empty;
+  bool get isNotEmpty => this != empty;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is User &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          email == other.email;
+
+  @override
+  int get hashCode => id.hashCode ^ email.hashCode;
+}
+
+abstract class AuthRepository {
+  Future<User?> getCurrentUser();
+  Future<User> login(String email, String password);
+  Future<void> logout();
+}
+
+class AuthRepositoryImpl implements AuthRepository {
+  AuthRepositoryImpl(this._storage);
+
+  final SecureStorage _storage;
+
+  @override
+  Future<User?> getCurrentUser() async {
+    final userId = await _storage.read('user_id');
+    if (userId != null) {
+      final email = await _storage.read('user_email');
+      return User(id: userId, email: email ?? 'user@example.com');
+    }
+    return null;
+  }
+
+  @override
+  Future<User> login(String email, String password) async {
+    await Future.delayed(const Duration(seconds: 1));
+    await _storage.write('user_id', '1');
+    await _storage.write('user_email', email);
+    return User(id: '1', email: email);
+  }
+
+  @override
+  Future<void> logout() async {
+    await _storage.delete('user_id');
+    await _storage.delete('user_email');
+  }
+}
+""";
+}
+
+String _authEvent(BlueprintConfig config) {
+  return """part of 'auth_bloc.dart';
+
+sealed class AuthEvent extends Equatable {
+  const AuthEvent();
+  @override
+  List<Object> get props => [];
+}
+
+final class AuthStarted extends AuthEvent {
+  const AuthStarted();
+}
+
+final class AuthLoginRequested extends AuthEvent {
+  const AuthLoginRequested(this.email, this.password);
+  final String email;
+  final String password;
+  
+  @override
+  List<Object> get props => [email, password];
+}
+
+final class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}
+""";
+}
+
+String _authState(BlueprintConfig config) {
+  return """part of 'auth_bloc.dart';
+
+enum AuthStatus { unknown, authenticated, unauthenticated, loading, failure }
+
+final class AuthState extends Equatable {
+  const AuthState._({
+    this.status = AuthStatus.unknown,
+    this.user = User.empty,
+    this.error,
+  });
+
+  const AuthState.unknown() : this._();
+
+  const AuthState.authenticated(User user)
+      : this._(status: AuthStatus.authenticated, user: user);
+
+  const AuthState.unauthenticated()
+      : this._(status: AuthStatus.unauthenticated);
+      
+  const AuthState.loading()
+      : this._(status: AuthStatus.loading);
+      
+  const AuthState.failure(String error)
+      : this._(status: AuthStatus.failure, error: error);
+
+  final AuthStatus status;
+  final User user;
+  final String? error;
+
+  @override
+  List<Object?> get props => [status, user, error];
+}
+""";
+}
+
+String _authBloc(BlueprintConfig config) {
+  return """import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
+
+import '../../data/repositories/auth_repository.dart';
+
+part 'auth_event.dart';
+part 'auth_state.dart';
+
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  AuthBloc({required AuthRepository authRepository})
+      : _authRepository = authRepository,
+        super(const AuthState.unknown()) {
+    on<AuthStarted>(_onAuthStarted);
+    on<AuthLogoutRequested>(_onAuthLogoutRequested);
+    on<AuthLoginRequested>(_onAuthLoginRequested);
+  }
+
+  final AuthRepository _authRepository;
+
+  Future<void> _onAuthStarted(AuthStarted event, Emitter<AuthState> emit) async {
+    try {
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        emit(AuthState.authenticated(user));
+      } else {
+        emit(const AuthState.unauthenticated());
+      }
+    } catch (_) {
+      emit(const AuthState.unauthenticated());
+    }
+  }
+
+  Future<void> _onAuthLoginRequested(
+      AuthLoginRequested event, Emitter<AuthState> emit) async {
+    emit(const AuthState.loading());
+    try {
+      final user = await _authRepository.login(event.email, event.password);
+      emit(AuthState.authenticated(user));
+    } catch (e) {
+      emit(AuthState.failure(e.toString()));
+    }
+  }
+
+  void _onAuthLogoutRequested(
+      AuthLogoutRequested event, Emitter<AuthState> emit) {
+    _authRepository.logout();
+    emit(const AuthState.unauthenticated());
+  }
+}
+""";
+}
+
+String _loginPage(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../bloc/auth_bloc.dart';
+import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/custom_text_field.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  void _handleLogin() {
+    context.read<AuthBloc>().add(
+        AuthLoginRequested(_emailController.text, _passwordController.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+            if (state.status == AuthStatus.failure) {
+                 ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.error ?? 'Authentication failed'))
+                 );
+            }
+        },
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.lock, size: 64),
+                const SizedBox(height: 24),
+                const Text('Login', style: TextStyle(fontSize: 24)),
+                const SizedBox(height: 24),
+                CustomTextField(
+                  controller: _emailController,
+                  hintText: 'Email',
+                  prefixIcon: const Icon(Icons.email),
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _passwordController,
+                  hintText: 'Password',
+                  obscureText: true,
+                  prefixIcon: const Icon(Icons.lock),
+                ),
+                const SizedBox(height: 24),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    if (state.status == AuthStatus.loading) {
+                      return const CircularProgressIndicator();
+                    }
+                    return CustomButton(
+                      text: 'Sign In',
+                      onPressed: _handleLogin,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+""";
+}
+
+String _connectivityBloc(BlueprintConfig config) {
+  return """import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
+
+// Event
+sealed class ConnectivityEvent extends Equatable {
+  const ConnectivityEvent();
+  @override
+  List<Object> get props => [];
+}
+
+final class _ConnectivityChanged extends ConnectivityEvent {
+  const _ConnectivityChanged(this.results);
+  final List<ConnectivityResult> results;
+  @override
+  List<Object> get props => [results];
+}
+
+// State
+enum ConnectionStatus { connected, disconnected, unknown }
+
+class ConnectivityState extends Equatable {
+  const ConnectivityState({this.status = ConnectionStatus.unknown});
+  final ConnectionStatus status;
+  @override
+  List<Object> get props => [status];
+}
+
+// Bloc
+class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
+  ConnectivityBloc() : super(const ConnectivityState()) {
+    on<_ConnectivityChanged>(_onConnectivityChanged);
+
+    _subscription = _connectivity.onConnectivityChanged.listen((results) {
+      add(_ConnectivityChanged(results));
+    });
+  }
+
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<List<ConnectivityResult>> _subscription;
+
+  void _onConnectivityChanged(
+      _ConnectivityChanged event, Emitter<ConnectivityState> emit) {
+    if (event.results.contains(ConnectivityResult.none)) {
+        emit(const ConnectivityState(status: ConnectionStatus.disconnected));
+    } else {
+        emit(const ConnectivityState(status: ConnectionStatus.connected));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _subscription.cancel();
+    return super.close();
+  }
+}
+""";
+}
+
+String _simpleBlocObserver(BlueprintConfig config) {
+  return """import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
+
+class SimpleBlocObserver extends BlocObserver {
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    if (kDebugMode) {
+       print('\${bloc.runtimeType} \$change');
+    }
+  }
+  
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    if (kDebugMode) {
+      print('\${bloc.runtimeType} \$error');
+    }
+    super.onError(bloc, error, stackTrace);
+  }
+}
+""";
+}
