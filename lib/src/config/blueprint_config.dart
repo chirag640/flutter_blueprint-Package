@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'api_config.dart';
+
 /// Supported state-management approaches.
 enum StateManagement {
   provider,
@@ -143,6 +145,7 @@ class BlueprintConfig {
     this.includePagination = false,
     this.includeAnalytics = false,
     this.analyticsProvider = AnalyticsProvider.none,
+    this.apiConfig = ApiConfig.modern,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -184,6 +187,9 @@ class BlueprintConfig {
   /// The CI/CD provider to generate configuration for.
   final CIProvider ciProvider;
 
+  /// API configuration for customizable backend communication.
+  final ApiConfig apiConfig;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -224,6 +230,7 @@ class BlueprintConfig {
     bool? includePagination,
     bool? includeAnalytics,
     AnalyticsProvider? analyticsProvider,
+    ApiConfig? apiConfig,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -239,6 +246,7 @@ class BlueprintConfig {
       includePagination: includePagination ?? this.includePagination,
       includeAnalytics: includeAnalytics ?? this.includeAnalytics,
       analyticsProvider: analyticsProvider ?? this.analyticsProvider,
+      apiConfig: apiConfig ?? this.apiConfig,
     );
   }
 
@@ -260,6 +268,7 @@ class BlueprintConfig {
         'pagination': includePagination,
         'analytics': includeAnalytics,
       }),
+      'api_config': apiConfig.toMap(),
     };
   }
 
@@ -312,6 +321,10 @@ class BlueprintConfig {
       includeHive: _readBool(features['hive'], fallback: false),
       includePagination: _readBool(features['pagination'], fallback: false),
       includeAnalytics: _readBool(features['analytics'], fallback: false),
+      apiConfig: map.containsKey('api_config')
+          ? ApiConfig.fromMap(
+              Map<String, dynamic>.from(map['api_config'] as Map))
+          : ApiConfig.modern,
     );
   }
 

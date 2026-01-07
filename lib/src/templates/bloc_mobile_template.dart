@@ -160,6 +160,15 @@ TemplateBundle buildBlocMobileBundle() {
           build: _apiResponse,
           shouldGenerate: (config) => config.includeApi),
       TemplateFile(
+          path: p.join('lib', 'core', 'api', 'api_response_parser.dart'),
+          build: _apiResponseParser,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'core', 'api', 'interceptors',
+              'unified_response_interceptor.dart'),
+          build: _unifiedResponseInterceptor,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
           path: p.join(
               'lib', 'core', 'api', 'interceptors', 'auth_interceptor.dart'),
           build: _authInterceptor,
@@ -653,9 +662,11 @@ String _apiClient(BlueprintConfig config) {
 import '../config/app_config.dart';
 import '../constants/app_constants.dart';
 import '../storage/local_storage.dart';
+import 'api_response_parser.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
+import 'interceptors/unified_response_interceptor.dart';
 
 class ApiClient {
   ApiClient(this.config) {
@@ -683,9 +694,11 @@ class ApiClient {
     LocalStorage.getInstance().then((storage) {
       dio.interceptors.addAll([
         AuthInterceptor(storage),
+        UnifiedResponseInterceptor(const DefaultApiResponseParser()),
         RetryInterceptor(),
         LoggerInterceptor(),
       ]);
+    });
     });
   }
   
@@ -1665,6 +1678,14 @@ class RetryInterceptor extends Interceptor {
   }
 }
 """;
+}
+
+String _apiResponseParser(BlueprintConfig config) {
+  return generateApiConfig(config);
+}
+
+String _unifiedResponseInterceptor(BlueprintConfig config) {
+  return generateUnifiedResponseInterceptor(config);
 }
 
 String _localStorage(BlueprintConfig config) {

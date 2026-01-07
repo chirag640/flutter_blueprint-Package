@@ -36,7 +36,7 @@ flutter_blueprint init my_app --state riverpod --api --theme --tests
 |----------|----------|
 | **Architecture** | Clean architecture, 43+ files, feature-based structure |
 | **State Management** | Provider, Riverpod, or Bloc |
-| **API Layer** | Dio + Auth/Retry/Logger interceptors |
+| **API Layer** | Dio + Auth/Retry/Logger interceptors, Universal API Configurator |
 | **Storage** | LocalStorage + SecureStorage + optional Hive caching |
 | **UI Components** | Theme system, reusable widgets, Material 3 |
 | **DevOps** | GitHub Actions, GitLab CI, Azure Pipelines |
@@ -55,7 +55,7 @@ flutter_blueprint init <app_name> [options]
 | `--state <choice>` | State management: `provider`, `riverpod`, `bloc` |
 | `--platforms <list>` | Target: `mobile`, `web`, `desktop`, `all` |
 | `--ci <provider>` | CI/CD: `github`, `gitlab`, `azure` |
-| `--api` | Include API client |
+| `--api` | Include API client (prompts for backend type) |
 | `--theme` | Include theme system |
 | `--env` | Include environment config |
 | `--tests` | Include test scaffolding |
@@ -63,6 +63,15 @@ flutter_blueprint init <app_name> [options]
 | `--pagination` | Include pagination support |
 | `--analytics <provider>` | Analytics: `firebase`, `sentry` |
 | `--security <level>` | Security: `basic`, `standard`, `enterprise` |
+
+### 🔌 API Backend Presets
+
+When `--api` is enabled, choose from built-in presets:
+- **Modern REST** - HTTP 200 + JSON data
+- **Legacy .NET** - success: true/false pattern
+- **Laravel** - data wrapper, message field
+- **Django REST** - results array, detail errors
+- **Custom** - manual configuration
 
 ### `add feature` - Add Features to Existing Project
 

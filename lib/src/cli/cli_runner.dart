@@ -17,6 +17,8 @@ import '../refactoring/refactoring_types.dart';
 import '../templates/template_library.dart';
 import '../utils/logger.dart';
 import '../utils/input_validator.dart';
+import '../utils/api_config_parser.dart';
+import '../config/api_config.dart';
 import '../utils/project_preview.dart';
 import '../utils/dependency_manager.dart';
 import '../utils/update_checker.dart';
@@ -108,22 +110,44 @@ class CliRunner {
   void _showUpdateNotification(UpdateInfo? updateInfo) {
     if (updateInfo != null) {
       _logger.info('');
-      _logger.info('┌──────────────────────────────────────────────────┐');
-      _logger.info('│              🚀 Update Available!              │');
-      _logger.info('├──────────────────────────────────────────────────┤');
-      _logger.info('│                                                  │');
-      _logger.info('│   A new version of flutter_blueprint is here!    │');
-      _logger.info('│                                                  │');
+      _logger
+          .info('┌────────────────────────────────────────────────────────┐');
+      _logger
+          .info('│                  🚀 Update Available!                  │');
+      _logger
+          .info('├────────────────────────────────────────────────────────┤');
+      _logger
+          .info('│                                                        │');
+      _logger
+          .info('│   A new version of flutter_blueprint is here!          │');
+      _logger
+          .info('│                                                        │');
       _logger.info(
-          '│   Current: ${updateInfo.currentVersion.padRight(10)}                           │');
+          '│   Current: ${updateInfo.currentVersion.padRight(12)}                             │');
       _logger.info(
-          '│   Latest:  ${updateInfo.latestVersion.padRight(10)}                            │');
-      _logger.info('│                                                  │');
-      _logger.info('│   Run the command below to update:               │');
-      _logger.info('│                                                  │');
-      _logger.info('│   dart pub global activate flutter_blueprint     │');
-      _logger.info('│                                                  │');
-      _logger.info('└──────────────────────────────────────────────────┘');
+          '│   Latest:  ${updateInfo.latestVersion.padRight(12)}                             │');
+      _logger
+          .info('│                                                        │');
+      _logger
+          .info('│   Run the command below to update:                     │');
+      _logger
+          .info('│                                                        │');
+      _logger
+          .info('│   dart pub global activate flutter_blueprint           │');
+      _logger
+          .info('│                                                        │');
+      _logger
+          .info('├────────────────────────────────────────────────────────┤');
+      _logger
+          .info('│   📋 Release Notes:                                    │');
+      _logger
+          .info('│   https://github.com/chirag640/flutter_blueprint-      │');
+      _logger
+          .info('│   Package/blob/main/CHANGELOG.md                       │');
+      _logger
+          .info('│                                                        │');
+      _logger
+          .info('└────────────────────────────────────────────────────────┘');
     }
   }
 
@@ -603,6 +627,38 @@ class CliRunner {
       analyticsProvider = AnalyticsProvider.parse(providerChoice);
     }
 
+    // API Configuration (if API is included)
+    ApiConfig apiConfig = ApiConfig.modern;
+    if (includeApi) {
+      _logger.info('');
+      final apiChoice = await _prompter.choose(
+        '🔌 Choose your backend type',
+        [
+          'Modern REST (HTTP 200 + JSON data)',
+          'Legacy .NET (success: true/false, Result: {})',
+          'Laravel (data wrapper, message field)',
+          'Django REST (results array, detail errors)',
+          'Custom (configure manually)',
+        ],
+        defaultValue: 'Modern REST (HTTP 200 + JSON data)',
+      );
+
+      if (apiChoice.startsWith('Modern')) {
+        apiConfig = ApiConfig.modern;
+      } else if (apiChoice.startsWith('Legacy .NET')) {
+        apiConfig = ApiConfig.legacyDotNet;
+      } else if (apiChoice.startsWith('Laravel')) {
+        apiConfig = ApiConfig.laravel;
+      } else if (apiChoice.startsWith('Django')) {
+        apiConfig = ApiConfig.django;
+      } else {
+        // Custom configuration
+        apiConfig = await _promptForCustomApiConfig();
+      }
+
+      _logger.info('   Using API preset: ${_getPresetName(apiConfig)}');
+    }
+
     // Show summary
     _logger.info('');
     _logger.info('📋 Configuration Summary:');
@@ -640,6 +696,7 @@ class CliRunner {
       includePagination: includePagination,
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
+      apiConfig: apiConfig,
     );
 
     // Ask if they want to see preview
@@ -915,6 +972,128 @@ class CliRunner {
       return flagValue;
     }
     return _prompter.confirm(promptText, defaultValue: defaultValue);
+  }
+
+  /// Prompt for custom API configuration
+  Future<ApiConfig> _promptForCustomApiConfig() async {
+    _logger.info('');
+    _logger.info('📝 Custom API Configuration:');
+    _logger.info('');
+
+    // Success key
+    final successKey = await _prompter.prompt(
+      'Success key (e.g., "success", "status", leave empty for none)',
+      defaultValue: '',
+    );
+
+    // Success value
+    dynamic successValue = true;
+    if (successKey.isNotEmpty) {
+      final successValueStr = await _prompter.prompt(
+        'Success value (e.g., "true", "200", "ok")',
+        defaultValue: 'true',
+      );
+      if (successValueStr == 'true') {
+        successValue = true;
+      } else if (successValueStr == 'false') {
+        successValue = false;
+      } else if (int.tryParse(successValueStr) != null) {
+        successValue = int.parse(successValueStr);
+      } else {
+        successValue = successValueStr;
+      }
+    }
+
+    // Data key
+    final dataKey = await _prompter.prompt(
+      'Data key (e.g., "data", "result", "payload")',
+      defaultValue: 'data',
+    );
+
+    // Nested data path
+    final nestedDataPath = await _prompter.prompt(
+      'Nested data path (e.g., "data.items", leave empty if none)',
+      defaultValue: '',
+    );
+
+    // Error message path
+    final errorMessagePath = await _prompter.prompt(
+      'Error message path (e.g., "message", "error.message")',
+      defaultValue: 'message',
+    );
+
+    // Error code path
+    final errorCodePath = await _prompter.prompt(
+      'Error code path (e.g., "code", "error_code")',
+      defaultValue: 'code',
+    );
+
+    // Token source
+    final tokenSourceChoice = await _prompter.choose(
+      'Where are auth tokens returned?',
+      ['Response body (JSON field)', 'Response headers'],
+      defaultValue: 'Response body (JSON field)',
+    );
+    final tokenSource = tokenSourceChoice.contains('body')
+        ? TokenSource.body
+        : TokenSource.header;
+
+    // Token paths
+    final accessTokenPath = await _prompter.prompt(
+      'Access token path (e.g., "data.accessToken", "token")',
+      defaultValue: 'data.accessToken',
+    );
+
+    final refreshTokenPath = await _prompter.prompt(
+      'Refresh token path (e.g., "data.refreshToken", leave empty if none)',
+      defaultValue: 'data.refreshToken',
+    );
+
+    // Auth header configuration
+    final authHeaderName = await _prompter.prompt(
+      'Auth header name (e.g., "Authorization", "token")',
+      defaultValue: 'Authorization',
+    );
+
+    final authHeaderPrefix = await _prompter.prompt(
+      'Auth header prefix (e.g., "Bearer ", empty for none)',
+      defaultValue: 'Bearer ',
+    );
+
+    return ApiConfig(
+      successKey: successKey,
+      successValue: successValue,
+      dataKey: dataKey,
+      nestedDataPath: nestedDataPath.isEmpty ? null : nestedDataPath,
+      errorMessagePath: errorMessagePath,
+      errorCodePath: errorCodePath,
+      tokenSource: tokenSource,
+      accessTokenPath: accessTokenPath,
+      refreshTokenPath: refreshTokenPath.isEmpty ? null : refreshTokenPath,
+      authHeaderName: authHeaderName,
+      authHeaderPrefix: authHeaderPrefix,
+    );
+  }
+
+  /// Get a human-readable preset name for ApiConfig
+  String _getPresetName(ApiConfig config) {
+    // Compare against known presets
+    if (_matchesPreset(config, ApiConfig.modern)) {
+      return 'Modern REST';
+    } else if (_matchesPreset(config, ApiConfig.legacyDotNet)) {
+      return 'Legacy .NET';
+    } else if (_matchesPreset(config, ApiConfig.laravel)) {
+      return 'Laravel';
+    } else if (_matchesPreset(config, ApiConfig.django)) {
+      return 'Django REST';
+    }
+    return 'Custom';
+  }
+
+  bool _matchesPreset(ApiConfig config, ApiConfig preset) {
+    return config.successKey == preset.successKey &&
+        config.dataKey == preset.dataKey &&
+        config.authHeaderName == preset.authHeaderName;
   }
 
   /// Runs code quality analysis on the project.

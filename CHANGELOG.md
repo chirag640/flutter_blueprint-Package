@@ -1,8 +1,51 @@
 # Changelog
 
-## 1.7.2
+## 1.7.3
 
-### Simplified Project Structure (Simple Mode)
+### Universal API Configurator
+
+- **NEW: ApiConfig Model**: Centralized configuration for API response parsing and authentication.
+  - Configurable success keys, data paths, error message extraction
+  - Flexible token handling (body or header extraction)
+  - Customizable auth headers (name, prefix)
+  - Built-in presets: Modern REST, Legacy .NET, Laravel, Django
+- **CLI Backend Type Selection**: Interactive prompts for choosing backend type during project creation.
+- **Custom Configuration**: Manual configuration for non-standard backend patterns.
+- **JSON Sample Parser**: Auto-detect API configuration from sample JSON responses.
+- **Template Integration**: All templates (Provider, Riverpod, BLoC) now generate `api_config.dart`.
+- **Interceptor Updates**: `AuthInterceptor` and `UnifiedResponseInterceptor` now use `ApiConfig` for fully configurable behavior.
+
+### Bug Fixes
+
+- **Fixed Update Checker**: Fixed stale update notification that showed even after updating.
+  - Rewrote `VersionReader` with pub cache detection for globally activated packages
+  - Updated fallback version to current release
+  - Added Windows/Linux/macOS cache location support
+
+### Usage
+
+```bash
+# Interactive wizard prompts for backend type
+flutter_blueprint init my_app --api
+
+# Presets available:
+# - Modern REST (HTTP 200 + JSON data)
+# - Legacy .NET (success: true/false)
+# - Laravel (data wrapper, message field)
+# - Django REST (results array)
+# - Custom (manual configuration)
+```
+
+### Generated Files
+
+```
+lib/core/api/
+├── api_config.dart                  # API configuration model
+├── auth_interceptor.dart            # Uses ApiConfig for headers/tokens
+└── unified_response_interceptor.dart # Uses ApiConfig for parsing
+```
+
+## 1.7.2
 
 - **Production-Ready Simple Mode**: Consolidated and improved "Simple Mode" templates to be fully production-ready.
   - Generates a streamlined project structure for smaller to medium-sized apps

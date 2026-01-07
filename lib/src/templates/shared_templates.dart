@@ -1,7 +1,176 @@
 import '../config/blueprint_config.dart';
+import '../config/api_config.dart';
 
 /// Shared template utilities used across all state management templates
 /// This reduces code duplication and ensures consistency
+
+// ============================================================================
+// API CONFIGURATION GENERATOR
+// ============================================================================
+
+/// Generates the api_config.dart file with user's configuration
+String generateApiConfig(BlueprintConfig config) {
+  final api = config.apiConfig;
+
+  return """/// API Configuration for this project.
+/// 
+/// This file is generated based on your backend settings.
+/// Modify these values to match your API's response structure.
+
+/// Where to extract the authentication token from
+enum TokenSource {
+  /// Token is in the response body (e.g., { "data": { "accessToken": "..." } })
+  body,
+  
+  /// Token is in a response header (e.g., header 'token: xyz123')
+  header,
+}
+
+/// Configuration for API communication
+class ApiConfig {
+  const ApiConfig({
+    this.successKey = '${api.successKey}',
+    this.successValue = ${api.successValue is String ? "'${api.successValue}'" : api.successValue},
+    this.dataKey = '${api.dataKey}',
+    this.nestedDataPath = ${api.nestedDataPath != null ? "'${api.nestedDataPath}'" : 'null'},
+    this.errorMessagePath = '${api.errorMessagePath}',
+    this.errorCodePath = '${api.errorCodePath}',
+    this.tokenSource = TokenSource.${api.tokenSource.name},
+    this.accessTokenPath = '${api.accessTokenPath}',
+    this.refreshTokenPath = ${api.refreshTokenPath != null ? "'${api.refreshTokenPath}'" : 'null'},
+    this.authHeaderName = '${api.authHeaderName}',
+    this.authHeaderPrefix = '${api.authHeaderPrefix}',
+  });
+
+  // ===== Response Parsing =====
+  final String successKey;
+  final dynamic successValue;
+  final String dataKey;
+  final String? nestedDataPath;
+
+  // ===== Error Handling =====
+  final String errorMessagePath;
+  final String errorCodePath;
+
+  // ===== Token Extraction =====
+  final TokenSource tokenSource;
+  final String accessTokenPath;
+  final String? refreshTokenPath;
+
+  // ===== Token Sending =====
+  final String authHeaderName;
+  final String authHeaderPrefix;
+
+  /// Extract value from a nested path like 'data.user.token'
+  dynamic extractPath(Map<String, dynamic> json, String path) {
+    if (path.isEmpty) return json;
+    
+    final keys = path.split('.');
+    dynamic current = json;
+    
+    for (final key in keys) {
+      if (current is Map<String, dynamic> && current.containsKey(key)) {
+        current = current[key];
+      } else {
+        return null;
+      }
+    }
+    return current;
+  }
+
+  /// Check if response indicates success
+  bool isSuccess(Map<String, dynamic> response) {
+    if (successKey.isEmpty) return true; // No success key = always success
+    final value = extractPath(response, successKey);
+    return value == successValue;
+  }
+
+  /// Extract the data payload from response
+  dynamic getData(Map<String, dynamic> response) {
+    final path = nestedDataPath ?? dataKey;
+    if (path.isEmpty) return response;
+    return extractPath(response, path);
+  }
+
+  /// Extract error message from response
+  String? getErrorMessage(Map<String, dynamic> response) {
+    return extractPath(response, errorMessagePath)?.toString();
+  }
+
+  /// Extract error code from response
+  String? getErrorCode(Map<String, dynamic> response) {
+    return extractPath(response, errorCodePath)?.toString();
+  }
+}
+
+/// Default configuration instance
+const apiConfig = ApiConfig();
+""";
+}
+
+// ============================================================================
+// UNIFIED RESPONSE INTERCEPTOR
+// ============================================================================
+
+/// Generates the unified_response_interceptor.dart file
+String generateUnifiedResponseInterceptor(BlueprintConfig config) {
+  return """import 'package:dio/dio.dart';
+import '../api_config.dart';
+
+/// API Error to be thrown when business logic fails
+class ApiError implements Exception {
+  const ApiError({required this.message, this.code});
+  
+  final String message;
+  final String? code;
+  
+  @override
+  String toString() => 'ApiError: \$message (code: \$code)';
+}
+
+/// Unified response interceptor that normalizes API responses.
+/// 
+/// This interceptor:
+/// 1. Checks for business logic success using configured keys
+/// 2. Extracts the data payload from configured path
+/// 3. Converts business errors to DioException for consistent handling
+class UnifiedResponseInterceptor extends Interceptor {
+  UnifiedResponseInterceptor(this._config);
+  
+  final ApiConfig _config;
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // Only handle JSON responses
+    if (response.data is! Map<String, dynamic>) {
+      return handler.next(response);
+    }
+    
+    final data = response.data as Map<String, dynamic>;
+    
+    // Check business logic success
+    if (_config.isSuccess(data)) {
+      // Flatten data: Repository will receive the actual payload directly
+      response.data = _config.getData(data);
+      handler.next(response);
+    } else {
+      // Convert business error to DioException so it's caught by repositories
+      final message = _config.getErrorMessage(data) ?? 'Operation failed';
+      final code = _config.getErrorCode(data);
+      
+      handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          error: ApiError(message: message, code: code),
+        ),
+      );
+    }
+  }
+}
+""";
+}
 
 // ============================================================================
 // IMPROVED RETRY INTERCEPTOR WITH EXPONENTIAL BACKOFF + JITTER
@@ -131,6 +300,8 @@ class RetryInterceptor extends Interceptor {
 // ============================================================================
 
 String generateEnhancedAuthInterceptor(BlueprintConfig config) {
+  final apiConfig = config.apiConfig;
+
   return """import 'dart:async';
 import 'package:dio/dio.dart';
 
@@ -138,13 +309,20 @@ import '../../storage/local_storage.dart';
 import '../../storage/secure_storage.dart';
 import '../../constants/app_constants.dart';
 import '../../utils/logger.dart';
+import '../api_config.dart';
 
-/// Enhanced authentication interceptor with token refresh capability
+/// Configurable authentication interceptor with token refresh capability.
+/// 
+/// Supports:
+/// - Configurable auth header name (Authorization, token, X-Auth-Token, etc.)
+/// - Configurable prefix (Bearer, empty, or custom)
+/// - Token extraction from response body OR headers
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._storage, this._secureStorage);
+  AuthInterceptor(this._storage, this._secureStorage, this._apiConfig);
   
   final LocalStorage _storage;
   final SecureStorage _secureStorage;
+  final ApiConfig _apiConfig;
   
   // Queue to hold requests during token refresh
   final List<_RequestQueueItem> _requestQueue = [];
@@ -163,11 +341,42 @@ class AuthInterceptor extends Interceptor {
     final token = _storage.getString(AppConstants.keyAccessToken);
     
     if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer \$token';
+      // Use configured header name and prefix
+      final headerName = _apiConfig.authHeaderName;
+      final headerPrefix = _apiConfig.authHeaderPrefix;
+      options.headers[headerName] = '\$headerPrefix\$token';
       AppLogger.debug('Added auth token to request: \${options.path}', 'AuthInterceptor');
     }
     
     handler.next(options);
+  }
+  
+  @override
+  Future<void> onResponse(
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) async {
+    // Extract token from response if configured to use header source
+    if (_apiConfig.tokenSource == TokenSource.header) {
+      final tokenKey = _apiConfig.accessTokenPath;
+      final token = response.headers.value(tokenKey);
+      
+      if (token != null && token.isNotEmpty) {
+        await _storage.setString(AppConstants.keyAccessToken, token);
+        AppLogger.debug('Extracted token from header: \$tokenKey', 'AuthInterceptor');
+      }
+      
+      // Also check for refresh token in headers
+      final refreshTokenKey = _apiConfig.refreshTokenPath;
+      if (refreshTokenKey != null) {
+        final refreshToken = response.headers.value(refreshTokenKey);
+        if (refreshToken != null && refreshToken.isNotEmpty) {
+          await _secureStorage.write(AppConstants.keyRefreshToken, refreshToken);
+        }
+      }
+    }
+    
+    handler.next(response);
   }
   
   @override
@@ -195,22 +404,19 @@ class AuthInterceptor extends Interceptor {
       _isRefreshing = true;
       
       try {
-        // Attempt to refresh the token
         final newToken = await _refreshToken();
         
         if (newToken != null) {
-          // Retry the original request with new token
+          // Retry with new token using configured header
           final options = err.requestOptions;
-          options.headers['Authorization'] = 'Bearer \$newToken';
+          options.headers[_apiConfig.authHeaderName] = 
+              '\${_apiConfig.authHeaderPrefix}\$newToken';
           
           final response = await Dio().fetch(options);
-          
-          // Process queued requests with new token
           _processQueuedRequests(newToken);
           
           return handler.resolve(response);
         } else {
-          // Refresh failed - reject all queued requests
           _rejectQueuedRequests(err);
           return handler.next(err);
         }
@@ -226,7 +432,6 @@ class AuthInterceptor extends Interceptor {
     handler.next(err);
   }
   
-  /// Refresh the access token using the refresh token
   Future<String?> _refreshToken() async {
     try {
       final refreshToken = await _secureStorage.read(AppConstants.keyRefreshToken);
@@ -236,7 +441,6 @@ class AuthInterceptor extends Interceptor {
         return null;
       }
       
-      // Call your refresh token API endpoint
       final dio = Dio();
       final response = await dio.post(
         '\${AppConstants.baseUrl}/auth/refresh',
@@ -244,11 +448,27 @@ class AuthInterceptor extends Interceptor {
       );
       
       if (response.statusCode == 200) {
-        final newAccessToken = response.data['access_token'] as String?;
-        final newRefreshToken = response.data['refresh_token'] as String?;
+        String? newAccessToken;
+        String? newRefreshToken;
+        
+        // Extract tokens based on config
+        if (_apiConfig.tokenSource == TokenSource.header) {
+          newAccessToken = response.headers.value(_apiConfig.accessTokenPath);
+          if (_apiConfig.refreshTokenPath != null) {
+            newRefreshToken = response.headers.value(_apiConfig.refreshTokenPath!);
+          }
+        } else {
+          // Extract from body using configured paths
+          final data = response.data as Map<String, dynamic>?;
+          if (data != null) {
+            newAccessToken = _apiConfig.extractPath(data, _apiConfig.accessTokenPath)?.toString();
+            if (_apiConfig.refreshTokenPath != null) {
+              newRefreshToken = _apiConfig.extractPath(data, _apiConfig.refreshTokenPath!)?.toString();
+            }
+          }
+        }
         
         if (newAccessToken != null) {
-          // Store new tokens
           await _storage.setString(AppConstants.keyAccessToken, newAccessToken);
           
           if (newRefreshToken != null) {
@@ -264,7 +484,6 @@ class AuthInterceptor extends Interceptor {
     } catch (e) {
       AppLogger.error('Token refresh error', e, null, 'AuthInterceptor');
       
-      // Clear tokens on refresh failure
       await _storage.remove(AppConstants.keyAccessToken);
       await _secureStorage.delete(AppConstants.keyRefreshToken);
       
@@ -272,11 +491,11 @@ class AuthInterceptor extends Interceptor {
     }
   }
   
-  /// Process all queued requests with the new token
   void _processQueuedRequests(String newToken) async {
     for (final item in _requestQueue) {
       try {
-        item.options.headers['Authorization'] = 'Bearer \$newToken';
+        item.options.headers[_apiConfig.authHeaderName] = 
+            '\${_apiConfig.authHeaderPrefix}\$newToken';
         final response = await Dio().fetch(item.options);
         item.completer.complete(response);
       } catch (e) {
@@ -286,7 +505,6 @@ class AuthInterceptor extends Interceptor {
     _requestQueue.clear();
   }
   
-  /// Reject all queued requests when refresh fails
   void _rejectQueuedRequests(DioException error) {
     for (final item in _requestQueue) {
       item.completer.completeError(error);
@@ -295,7 +513,6 @@ class AuthInterceptor extends Interceptor {
   }
 }
 
-/// Helper class to queue requests during token refresh
 class _RequestQueueItem {
   _RequestQueueItem(this.options, this.completer);
   
