@@ -1,5 +1,4 @@
 import '../config/blueprint_config.dart';
-import '../config/api_config.dart';
 
 /// Shared template utilities used across all state management templates
 /// This reduces code duplication and ensures consistency
@@ -300,8 +299,7 @@ class RetryInterceptor extends Interceptor {
 // ============================================================================
 
 String generateEnhancedAuthInterceptor(BlueprintConfig config) {
-  final apiConfig = config.apiConfig;
-
+  // Note: config.apiConfig is used in the generated template via constructor parameter
   return """import 'dart:async';
 import 'package:dio/dio.dart';
 

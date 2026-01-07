@@ -504,7 +504,7 @@ String _appDart(BlueprintConfig config) {
       ..writeln('      themeMode: ThemeMode.system,');
   }
 
-  buffer..writeln('      routerConfig: _appRouter.router,');
+  buffer.writeln('      routerConfig: _appRouter.router,');
 
   if (config.includeLocalization) {
     buffer
@@ -1275,6 +1275,7 @@ extension ContextExtensions on BuildContext {
 """;
 }
 
+// ignore: unused_element - Template utility kept for feature generators
 String _routeNames(BlueprintConfig config) {
   return """/// Centralized route name constants
 class RouteNames {

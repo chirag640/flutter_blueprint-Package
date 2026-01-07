@@ -910,6 +910,7 @@ String _loggerInterceptor(BlueprintConfig config) {
   return buffer.toString();
 }
 
+// ignore: unused_element - Template utility kept for feature generators
 String _homePage(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
 
@@ -1489,6 +1490,7 @@ extension ContextExtensions on BuildContext {
 """;
 }
 
+// ignore: unused_element - Template utility kept for feature generators
 String _routeNames(BlueprintConfig config) {
   return """/// Centralized route name constants
 class RouteNames {
