@@ -6,6 +6,12 @@ import 'hive_templates.dart';
 import 'pagination_templates.dart';
 import 'template_bundle.dart';
 import 'shared_templates.dart';
+import 'websocket_templates.dart';
+import 'push_notification_templates.dart';
+import 'media_templates.dart';
+import 'maps_templates.dart';
+import 'social_auth_templates.dart';
+import 'theme_mode_templates.dart';
 
 TemplateBundle buildProviderMobileBundle() {
   return TemplateBundle(
@@ -281,6 +287,208 @@ TemplateBundle buildProviderMobileBundle() {
           path: 'test/helpers/test_helpers.dart',
           build: _testHelpers,
           shouldGenerate: (config) => config.includeTests),
+
+      // WebSocket Support
+      TemplateFile(
+          path: p.join('lib', 'core', 'websocket', 'websocket_client.dart'),
+          build: (c) =>
+              WebSocketTemplates.generate(c)[p.join(
+                  'lib', 'core', 'websocket', 'websocket_client.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeWebSocket),
+      TemplateFile(
+          path: p.join('lib', 'core', 'websocket', 'websocket_channel.dart'),
+          build: (c) =>
+              WebSocketTemplates.generate(c)[p.join(
+                  'lib', 'core', 'websocket', 'websocket_channel.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeWebSocket),
+      TemplateFile(
+          path: p.join('lib', 'core', 'websocket', 'websocket_message.dart'),
+          build: (c) =>
+              WebSocketTemplates.generate(c)[p.join(
+                  'lib', 'core', 'websocket', 'websocket_message.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeWebSocket),
+      TemplateFile(
+          path: p.join('lib', 'core', 'websocket', 'websocket_service.dart'),
+          build: (c) =>
+              WebSocketTemplates.generate(c)[p.join(
+                  'lib', 'core', 'websocket', 'websocket_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeWebSocket),
+
+      // Push Notifications
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'notifications', 'push_notification_service.dart'),
+          build: (c) =>
+              PushNotificationTemplates.generate(c)[p.join('lib', 'core',
+                  'notifications', 'push_notification_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includePushNotifications),
+      TemplateFile(
+          path: p.join('lib', 'core', 'notifications',
+              'local_notification_service.dart'),
+          build: (c) =>
+              PushNotificationTemplates.generate(c)[p.join('lib', 'core',
+                  'notifications', 'local_notification_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includePushNotifications),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'notifications', 'notification_handler.dart'),
+          build: (c) =>
+              PushNotificationTemplates.generate(c)[p.join('lib', 'core',
+                  'notifications', 'notification_handler.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includePushNotifications),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'notifications', 'notification_permission.dart'),
+          build: (c) =>
+              PushNotificationTemplates.generate(c)[p.join('lib', 'core',
+                  'notifications', 'notification_permission.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includePushNotifications),
+
+      // Media (Image Picker/Camera)
+      TemplateFile(
+          path: p.join('lib', 'core', 'media', 'image_picker_service.dart'),
+          build: (c) =>
+              MediaTemplates.generate(c)[p.join(
+                  'lib', 'core', 'media', 'image_picker_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMedia),
+      TemplateFile(
+          path: p.join('lib', 'core', 'media', 'image_compressor.dart'),
+          build: (c) =>
+              MediaTemplates.generate(
+                  c)[p.join('lib', 'core', 'media', 'image_compressor.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMedia),
+      TemplateFile(
+          path: p.join('lib', 'core', 'media', 'media_permission.dart'),
+          build: (c) =>
+              MediaTemplates.generate(
+                  c)[p.join('lib', 'core', 'media', 'media_permission.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMedia),
+      TemplateFile(
+          path: p.join('lib', 'core', 'media', 'file_utils.dart'),
+          build: (c) =>
+              MediaTemplates.generate(
+                  c)[p.join('lib', 'core', 'media', 'file_utils.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMedia),
+
+      // Maps Integration
+      TemplateFile(
+          path: p.join('lib', 'core', 'maps', 'map_service.dart'),
+          build: (c) =>
+              MapsTemplates.generate(
+                  c)[p.join('lib', 'core', 'maps', 'map_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMaps),
+      TemplateFile(
+          path: p.join('lib', 'core', 'maps', 'location_service.dart'),
+          build: (c) =>
+              MapsTemplates.generate(
+                  c)[p.join('lib', 'core', 'maps', 'location_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMaps),
+      TemplateFile(
+          path: p.join('lib', 'core', 'maps', 'geocoding_service.dart'),
+          build: (c) =>
+              MapsTemplates.generate(
+                  c)[p.join('lib', 'core', 'maps', 'geocoding_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMaps),
+      TemplateFile(
+          path: p.join('lib', 'core', 'maps', 'marker_manager.dart'),
+          build: (c) =>
+              MapsTemplates.generate(
+                  c)[p.join('lib', 'core', 'maps', 'marker_manager.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMaps),
+      TemplateFile(
+          path: p.join('lib', 'core', 'maps', 'map_utils.dart'),
+          build: (c) =>
+              MapsTemplates.generate(
+                  c)[p.join('lib', 'core', 'maps', 'map_utils.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeMaps),
+
+      // Social Auth
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'auth', 'social', 'google_auth_service.dart'),
+          build: (c) =>
+              SocialAuthTemplates.generate(c)[p.join('lib', 'core', 'auth',
+                  'social', 'google_auth_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeSocialAuth),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'auth', 'social', 'apple_auth_service.dart'),
+          build: (c) =>
+              SocialAuthTemplates.generate(c)[p.join('lib', 'core', 'auth',
+                  'social', 'apple_auth_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeSocialAuth),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'auth', 'social', 'facebook_auth_service.dart'),
+          build: (c) =>
+              SocialAuthTemplates.generate(c)[p.join('lib', 'core', 'auth',
+                  'social', 'facebook_auth_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeSocialAuth),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'auth', 'social', 'social_auth_service.dart'),
+          build: (c) =>
+              SocialAuthTemplates.generate(c)[p.join('lib', 'core', 'auth',
+                  'social', 'social_auth_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeSocialAuth),
+      TemplateFile(
+          path: p.join('lib', 'core', 'auth', 'social', 'social_user.dart'),
+          build: (c) =>
+              SocialAuthTemplates.generate(c)[p.join(
+                  'lib', 'core', 'auth', 'social', 'social_user.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeSocialAuth),
+
+      // Theme Mode Detection
+      TemplateFile(
+          path: p.join('lib', 'core', 'theme', 'theme_mode_service.dart'),
+          build: (c) =>
+              ThemeModeTemplates.generate(c)[
+                  p.join('lib', 'core', 'theme', 'theme_mode_service.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeThemeMode),
+      TemplateFile(
+          path: p.join('lib', 'core', 'theme', 'theme_provider.dart'),
+          build: (c) =>
+              ThemeModeTemplates.generate(
+                  c)[p.join('lib', 'core', 'theme', 'theme_provider.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeThemeMode),
+      TemplateFile(
+          path: p.join('lib', 'core', 'theme', 'theme_persistence.dart'),
+          build: (c) =>
+              ThemeModeTemplates.generate(c)[
+                  p.join('lib', 'core', 'theme', 'theme_persistence.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeThemeMode),
+      TemplateFile(
+          path: p.join('lib', 'core', 'theme', 'theme_switcher.dart'),
+          build: (c) =>
+              ThemeModeTemplates.generate(
+                  c)[p.join('lib', 'core', 'theme', 'theme_switcher.dart')] ??
+              '',
+          shouldGenerate: (c) => c.includeThemeMode),
     ],
   );
 }
@@ -332,6 +540,35 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  hive_flutter: ^1.1.0')
       ..writeln('  path_provider: ^2.1.5');
   }
+
+  // New feature dependencies
+  if (config.includeWebSocket) {
+    buffer.writeln('  web_socket_channel: ^2.4.0');
+  }
+  if (config.includePushNotifications) {
+    buffer
+      ..writeln('  firebase_messaging: ^15.1.0')
+      ..writeln('  flutter_local_notifications: ^17.2.0');
+  }
+  if (config.includeMedia) {
+    buffer
+      ..writeln('  image_picker: ^1.1.2')
+      ..writeln('  image_cropper: ^8.0.2')
+      ..writeln('  permission_handler: ^11.3.1');
+  }
+  if (config.includeMaps) {
+    buffer
+      ..writeln('  google_maps_flutter: ^2.9.0')
+      ..writeln('  geolocator: ^12.0.0')
+      ..writeln('  geocoding: ^3.0.0');
+  }
+  if (config.includeSocialAuth) {
+    buffer
+      ..writeln('  google_sign_in: ^6.2.1')
+      ..writeln('  sign_in_with_apple: ^6.1.1')
+      ..writeln('  flutter_facebook_auth: ^7.0.1');
+  }
+  // Theme Mode uses shared_preferences which is already included
 
   buffer
     ..writeln('')

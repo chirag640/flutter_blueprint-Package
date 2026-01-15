@@ -253,6 +253,36 @@ class CliRunner {
             'Include analytics and crash reporting (firebase, sentry, or none)',
         allowed: ['firebase', 'sentry', 'none'],
       )
+      ..addFlag(
+        'websocket',
+        help: 'Include WebSocket support for real-time communication',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'push-notifications',
+        help: 'Include push notifications support (FCM/APNs)',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'media',
+        help: 'Include image picker and camera support',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'maps',
+        help: 'Include Google Maps integration',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'social-auth',
+        help: 'Include social authentication (Google, Apple, Facebook)',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'theme-mode',
+        help: 'Include dark/light mode detection and switching',
+        defaultsTo: null,
+      )
       // Analyze command flags
       ..addFlag(
         'strict',
@@ -592,8 +622,12 @@ class CliRunner {
         'Hive offline caching (storage + sync)',
         'Pagination support (infinite scroll + skeleton loaders)',
         'Analytics & Crash Reporting',
-        'Security Best Practices',
-        'Memory Management & Performance',
+        'WebSocket (real-time communication)',
+        'Push Notifications (FCM/APNs)',
+        'Image Picker/Camera',
+        'Maps Integration (Google Maps)',
+        'Social Auth (Google, Apple, Facebook)',
+        'Dark/Light Mode Detection',
       ],
       defaultValues: [
         'Theme system (Light/Dark modes)',
@@ -602,7 +636,8 @@ class CliRunner {
     );
 
     // Map selections to boolean flags
-    final includeTheme = selectedFeatures.any((f) => f.contains('Theme'));
+    final includeTheme =
+        selectedFeatures.any((f) => f.contains('Theme system'));
     final includeLocalization =
         selectedFeatures.any((f) => f.contains('Localization'));
     final includeEnv = selectedFeatures.any((f) => f.contains('Environment'));
@@ -613,6 +648,18 @@ class CliRunner {
         selectedFeatures.any((f) => f.contains('Pagination'));
     final includeAnalytics =
         selectedFeatures.any((f) => f.contains('Analytics'));
+    final includeWebSocket =
+        selectedFeatures.any((f) => f.contains('WebSocket'));
+    final includePushNotifications =
+        selectedFeatures.any((f) => f.contains('Push Notifications'));
+    final includeMedia =
+        selectedFeatures.any((f) => f.contains('Image Picker'));
+    final includeMaps =
+        selectedFeatures.any((f) => f.contains('Maps Integration'));
+    final includeSocialAuth =
+        selectedFeatures.any((f) => f.contains('Social Auth'));
+    final includeThemeMode =
+        selectedFeatures.any((f) => f.contains('Dark/Light Mode'));
 
     // If analytics selected, prompt for provider
     AnalyticsProvider analyticsProvider = AnalyticsProvider.none;
@@ -678,6 +725,13 @@ class CliRunner {
     _logger.info('   Pagination: ${includePagination ? '✅' : '❌'}');
     _logger.info(
         '   Analytics: ${includeAnalytics ? "✅ (${analyticsProvider.label})" : '❌'}');
+    _logger.info('   WebSocket: ${includeWebSocket ? '✅' : '❌'}');
+    _logger
+        .info('   Push Notifications: ${includePushNotifications ? '✅' : '❌'}');
+    _logger.info('   Image Picker/Camera: ${includeMedia ? '✅' : '❌'}');
+    _logger.info('   Maps: ${includeMaps ? '✅' : '❌'}');
+    _logger.info('   Social Auth: ${includeSocialAuth ? '✅' : '❌'}');
+    _logger.info('   Theme Mode Detection: ${includeThemeMode ? '✅' : '❌'}');
     _logger.info('');
 
     // Create config
@@ -696,6 +750,12 @@ class CliRunner {
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
       apiConfig: apiConfig,
+      includeWebSocket: includeWebSocket,
+      includePushNotifications: includePushNotifications,
+      includeMedia: includeMedia,
+      includeMaps: includeMaps,
+      includeSocialAuth: includeSocialAuth,
+      includeThemeMode: includeThemeMode,
     );
 
     // Ask if they want to see preview
@@ -934,6 +994,43 @@ class CliRunner {
       analyticsProvider = AnalyticsProvider.none;
     }
 
+    final includeWebSocket = await _resolveBoolFlag(
+      results,
+      'websocket',
+      'Include WebSocket support?',
+      defaultValue: false,
+    );
+    final includePushNotifications = await _resolveBoolFlag(
+      results,
+      'push-notifications',
+      'Include push notifications?',
+      defaultValue: false,
+    );
+    final includeMedia = await _resolveBoolFlag(
+      results,
+      'media',
+      'Include image picker/camera?',
+      defaultValue: false,
+    );
+    final includeMaps = await _resolveBoolFlag(
+      results,
+      'maps',
+      'Include Google Maps?',
+      defaultValue: false,
+    );
+    final includeSocialAuth = await _resolveBoolFlag(
+      results,
+      'social-auth',
+      'Include social authentication?',
+      defaultValue: false,
+    );
+    final includeThemeMode = await _resolveBoolFlag(
+      results,
+      'theme-mode',
+      'Include dark/light mode detection?',
+      defaultValue: false,
+    );
+
     // Platforms (support comma-separated values or "all")
     final platformsArg = results['platforms'] as String?;
     final List<TargetPlatform> targetPlatforms;
@@ -957,6 +1054,12 @@ class CliRunner {
       includePagination: includePagination,
       includeAnalytics: includeAnalytics,
       analyticsProvider: analyticsProvider,
+      includeWebSocket: includeWebSocket,
+      includePushNotifications: includePushNotifications,
+      includeMedia: includeMedia,
+      includeMaps: includeMaps,
+      includeSocialAuth: includeSocialAuth,
+      includeThemeMode: includeThemeMode,
     );
   }
 

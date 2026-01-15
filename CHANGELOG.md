@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.7.4
+
+### Documentation & Pub.dev Optimization
+
+This release focuses on perfecting documentation for pub.dev publishing and improving package discoverability.
+
+- **NEW: Dart Example File**: Added `example/example.dart` with programmatic API examples
+  - Demonstrates `BlueprintConfig` setup and usage
+  - Shows multi-platform and full-featured configurations
+  - Includes validation and serialization examples
+  - Pub.dev awards higher points for Dart examples vs markdown
+
+- **Enhanced README.md**:
+  - Added pub.dev badges (Pub Points, Pub Likes)
+  - Added Dart version badge (3.5+)
+  - Fixed broken documentation links
+  - Improved documentation section with valid file references
+
+- **Pub.dev Discoverability**: Added `topics` to `pubspec.yaml`:
+  - `cli` - Command-line interface tool
+  - `scaffolding` - Project scaffolding
+  - `code-generation` - Code generation utility  
+  - `flutter` - Flutter ecosystem
+  - `architecture` - Clean architecture patterns
+
+### Files Changed
+
+```
+example/
+├── example.dart    # NEW - Programmatic API examples
+└── example.md      # Existing CLI usage examples
+
+pubspec.yaml        # Added topics field
+README.md           # Enhanced badges and fixed links
+```
+
 ## 1.7.3
 
 ### Universal API Configurator

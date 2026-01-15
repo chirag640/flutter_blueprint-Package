@@ -146,6 +146,12 @@ class BlueprintConfig {
     this.includeAnalytics = false,
     this.analyticsProvider = AnalyticsProvider.none,
     this.apiConfig = ApiConfig.modern,
+    this.includeWebSocket = false,
+    this.includePushNotifications = false,
+    this.includeMedia = false,
+    this.includeMaps = false,
+    this.includeSocialAuth = false,
+    this.includeThemeMode = false,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -190,6 +196,24 @@ class BlueprintConfig {
   /// API configuration for customizable backend communication.
   final ApiConfig apiConfig;
 
+  /// Whether to include WebSocket support for real-time communication.
+  final bool includeWebSocket;
+
+  /// Whether to include push notification support (FCM/APNs).
+  final bool includePushNotifications;
+
+  /// Whether to include image picker/camera support.
+  final bool includeMedia;
+
+  /// Whether to include Google Maps integration.
+  final bool includeMaps;
+
+  /// Whether to include social authentication (Google, Apple, Facebook).
+  final bool includeSocialAuth;
+
+  /// Whether to include dark/light mode detection and switching.
+  final bool includeThemeMode;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -231,6 +255,12 @@ class BlueprintConfig {
     bool? includeAnalytics,
     AnalyticsProvider? analyticsProvider,
     ApiConfig? apiConfig,
+    bool? includeWebSocket,
+    bool? includePushNotifications,
+    bool? includeMedia,
+    bool? includeMaps,
+    bool? includeSocialAuth,
+    bool? includeThemeMode,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -247,6 +277,13 @@ class BlueprintConfig {
       includeAnalytics: includeAnalytics ?? this.includeAnalytics,
       analyticsProvider: analyticsProvider ?? this.analyticsProvider,
       apiConfig: apiConfig ?? this.apiConfig,
+      includeWebSocket: includeWebSocket ?? this.includeWebSocket,
+      includePushNotifications:
+          includePushNotifications ?? this.includePushNotifications,
+      includeMedia: includeMedia ?? this.includeMedia,
+      includeMaps: includeMaps ?? this.includeMaps,
+      includeSocialAuth: includeSocialAuth ?? this.includeSocialAuth,
+      includeThemeMode: includeThemeMode ?? this.includeThemeMode,
     );
   }
 
@@ -267,6 +304,12 @@ class BlueprintConfig {
         'hive': includeHive,
         'pagination': includePagination,
         'analytics': includeAnalytics,
+        'websocket': includeWebSocket,
+        'push_notifications': includePushNotifications,
+        'media': includeMedia,
+        'maps': includeMaps,
+        'social_auth': includeSocialAuth,
+        'theme_mode': includeThemeMode,
       }),
       'api_config': apiConfig.toMap(),
     };
@@ -321,6 +364,13 @@ class BlueprintConfig {
       includeHive: _readBool(features['hive'], fallback: false),
       includePagination: _readBool(features['pagination'], fallback: false),
       includeAnalytics: _readBool(features['analytics'], fallback: false),
+      includeWebSocket: _readBool(features['websocket'], fallback: false),
+      includePushNotifications:
+          _readBool(features['push_notifications'], fallback: false),
+      includeMedia: _readBool(features['media'], fallback: false),
+      includeMaps: _readBool(features['maps'], fallback: false),
+      includeSocialAuth: _readBool(features['social_auth'], fallback: false),
+      includeThemeMode: _readBool(features['theme_mode'], fallback: false),
       apiConfig: map.containsKey('api_config')
           ? ApiConfig.fromMap(
               Map<String, dynamic>.from(map['api_config'] as Map))

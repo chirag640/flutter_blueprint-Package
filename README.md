@@ -3,8 +3,11 @@
 **Enterprise-grade Flutter app scaffolding CLI** — generates production-ready Flutter projects with **43+ professional files**, complete architecture, and best practices.
 
 [![Pub Version](https://img.shields.io/pub/v/flutter_blueprint)](https://pub.dev/packages/flutter_blueprint)
+[![Pub Points](https://img.shields.io/pub/points/flutter_blueprint)](https://pub.dev/packages/flutter_blueprint/score)
+[![Pub Likes](https://img.shields.io/pub/likes/flutter_blueprint)](https://pub.dev/packages/flutter_blueprint)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Flutter 3.38+](https://img.shields.io/badge/Flutter-3.38%2B-02569B?logo=flutter)](https://flutter.dev)
+[![Dart 3.5+](https://img.shields.io/badge/Dart-3.5%2B-0175C2?logo=dart)](https://dart.dev)
 
 > **📱 Note:** CLI runs on desktop (Windows/Linux/macOS) to **generate** Flutter projects that support **all platforms** (Android, iOS, Web, Desktop).
 
@@ -114,11 +117,9 @@ flutter_blueprint init my_app --from-config company_standard
 
 ## 📚 Documentation
 
-- [COLLABORATION_FEATURES.md](./COLLABORATION_FEATURES.md)
-- [PERFORMANCE_OPTIMIZATION.md](./PERFORMANCE_OPTIMIZATION.md)
-- [ANALYTICS_IMPLEMENTATION.md](./ANALYTICS_IMPLEMENTATION.md)
-- [HIVE_IMPLEMENTATION.md](./HIVE_IMPLEMENTATION.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [Example Usage](./example/example.dart) - Programmatic API examples
+- [Contributing Guide](./CONTRIBUTING.md) - How to contribute
+- [Changelog](./CHANGELOG.md) - Version history
 
 ## 📄 License
 
