@@ -8,6 +8,7 @@ import '../commands/add_feature_command.dart';
 import '../commands/analyze_command.dart';
 import '../commands/optimize_command.dart';
 import '../commands/share_command.dart';
+import '../commands/update_command.dart';
 import '../config/blueprint_config.dart';
 import '../config/config_repository.dart';
 import '../generator/blueprint_generator.dart';
@@ -88,6 +89,9 @@ class CliRunner {
           break;
         case 'share':
           await _runShare(results);
+          break;
+        case 'update':
+          await _runUpdate();
           break;
         default:
           _logger.error('Unknown command: $command');
@@ -1350,6 +1354,12 @@ class CliRunner {
     }
   }
 
+  /// Runs the update command to update the CLI to the latest version
+  Future<void> _runUpdate() async {
+    final command = UpdateCommand(logger: _logger);
+    await command.execute();
+  }
+
   Future<void> _handleShareList(ConfigRepository repository) async {
     _logger.info('📋 Available configurations:\n');
 
@@ -1619,8 +1629,8 @@ class CliRunner {
     _logger.info('  optimize [path]        Optimize bundle size and assets');
     _logger.info(
         '  refactor [path]        Refactor project with automatic improvements');
-    _logger
-        .info('  share <subcommand>     Manage shared team configurations\n');
+    _logger.info('  share <subcommand>     Manage shared team configurations');
+    _logger.info('  update                 Update CLI to the latest version\n');
     _logger.info('Global options:');
     _logger.info(parser.usage);
     _logger.info('\nInit Examples:');

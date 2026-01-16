@@ -1,5 +1,45 @@
 # Changelog
 
+## 1.7.5
+
+### CLI Update Command & Version Auto-Sync
+
+This release adds a new `update` command for easy CLI updates and fixes version synchronization.
+
+- **NEW: Update Command**: One-command CLI updates
+  - `flutter_blueprint update` - Updates CLI to the latest version from pub.dev
+  - Shows current vs latest version comparison
+  - Provides progress feedback and error handling
+  - Equivalent to running `dart pub global activate flutter_blueprint`
+
+- **Fixed: Version Auto-Sync**:
+  - Fixed hardcoded version constant that was out of sync with pubspec.yaml
+  - Updated publish script (`publish.ps1`) to automatically sync version constant
+  - Prevents incorrect "Update Available" notifications
+
+### Usage
+
+```bash
+# Update CLI to latest version
+flutter_blueprint update
+```
+
+### Files Changed
+
+```
+lib/src/commands/
+└── update_command.dart       # NEW - Update command implementation
+
+lib/src/cli/
+└── cli_runner.dart           # Added update command integration
+
+lib/src/utils/
+└── version_reader.dart       # Fixed version constant sync
+
+scripts/
+└── publish.ps1               # Auto-sync version on publish
+```
+
 ## 1.7.4
 
 ### Documentation & Pub.dev Optimization

@@ -31,7 +31,12 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Bumping version in pubspec.yaml to $Version..." -ForegroundColor Cyan
 (Get-Content pubspec.yaml) -replace '(?m)^version: .*$', "version: $Version" | Set-Content pubspec.yaml
 
-git add pubspec.yaml CHANGELOG.md
+# Sync version in version_reader.dart (fallback constant)
+Write-Host "Syncing version in version_reader.dart..." -ForegroundColor Cyan
+$versionReaderPath = "lib/src/utils/version_reader.dart"
+(Get-Content $versionReaderPath) -replace "static const String _currentVersion = '[^']*'", "static const String _currentVersion = '$Version'" | Set-Content $versionReaderPath
+
+git add pubspec.yaml CHANGELOG.md $versionReaderPath
 git commit -m "chore(release): $Version" || Write-Host "No changes to commit"
 
 git tag "v$Version"
