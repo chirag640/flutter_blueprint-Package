@@ -345,11 +345,15 @@ String _mainDart(BlueprintConfig config) {
     ..writeln('  // Configure system UI overlays (Status bar & Navigation bar)')
     ..writeln('  SystemChrome.setSystemUIOverlayStyle(')
     ..writeln('    const SystemUiOverlayStyle(')
-    ..writeln('      statusBarColor: Colors.transparent, // Transparent status bar')
-    ..writeln('      statusBarIconBrightness: Brightness.dark, // Dark icons for light theme')
+    ..writeln(
+        '      statusBarColor: Colors.transparent, // Transparent status bar')
+    ..writeln(
+        '      statusBarIconBrightness: Brightness.dark, // Dark icons for light theme')
     ..writeln('      statusBarBrightness: Brightness.light, // For iOS')
-    ..writeln('      systemNavigationBarColor: Colors.white, // Navigation bar color')
-    ..writeln('      systemNavigationBarIconBrightness: Brightness.dark, // Dark icons')
+    ..writeln(
+        '      systemNavigationBarColor: Colors.white, // Navigation bar color')
+    ..writeln(
+        '      systemNavigationBarIconBrightness: Brightness.dark, // Dark icons')
     ..writeln('    ),')
     ..writeln('  );')
     ..writeln('')
