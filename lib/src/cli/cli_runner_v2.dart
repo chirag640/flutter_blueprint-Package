@@ -4,6 +4,7 @@
 /// delegates all business logic to individual Command implementations.
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -46,46 +47,44 @@ class CliRunnerV2 {
 
   /// Parses [arguments] and runs the appropriate command.
   Future<void> run(List<String> arguments) async {
-    // Background update check
-    UpdateInfo? updateInfo;
-    try {
-      updateInfo = await UpdateChecker().checkForUpdates();
-    } catch (_) {
-      // Fail silently - never block the user.
-    }
+    // Determine command early so we can suppress the banner on 'update'.
+    final commandName = _extractCommandName(arguments);
+    final isUpdateCommand = commandName == 'update';
+
+    // Kick off the update check in the background — never block the user.
+    // We capture it in a Completer so we can await it right before printing.
+    final updateCompleter = Completer<UpdateInfo?>();
+    unawaited(
+      UpdateChecker()
+          .checkForUpdates()
+          .then(updateCompleter.complete)
+          .catchError((_) => updateCompleter.complete(null)),
+    );
 
     try {
       // Handle the special "add" subcommand early.
       if (arguments.isNotEmpty && arguments.first == 'add') {
         await _handleAdd(arguments.skip(1).toList());
-        _showUpdateNotification(updateInfo);
         return;
       }
 
       final parser = _buildGlobalParser();
-
       final results = parser.parse(arguments);
 
       // Global flags
       if (results['help'] as bool) {
         _printUsage();
-        _showUpdateNotification(updateInfo);
         return;
       }
 
       if (results['version'] as bool) {
         final version = await VersionReader.getVersion();
         _logger.info('flutter_blueprint version $version');
-        _showUpdateNotification(updateInfo);
         return;
       }
 
-      // Determine command name
-      final commandName = results.rest.isNotEmpty ? results.rest.first : '';
-
       if (commandName.isEmpty) {
         _printUsage();
-        _showUpdateNotification(updateInfo);
         return;
       }
 
@@ -94,7 +93,6 @@ class CliRunnerV2 {
       if (command == null) {
         _logger.error('❌ Unknown command: $commandName');
         _printUsage();
-        _showUpdateNotification(updateInfo);
         exitCode = 1;
         return;
       }
@@ -112,7 +110,6 @@ class CliRunnerV2 {
         _logger.error('❌ ${e.message}');
         _logger.info(
             'Run "flutter_blueprint $commandName --help" for usage information.');
-        _showUpdateNotification(updateInfo);
         exitCode = 1;
         return;
       }
@@ -147,8 +144,24 @@ class CliRunnerV2 {
       _logger.error('Unexpected error: $e');
       exitCode = 1;
     } finally {
-      _showUpdateNotification(updateInfo);
+      // Never show the "update available" banner when the user is already
+      // running the update command — it's redundant and confusing.
+      if (!isUpdateCommand) {
+        // Wait briefly for the background check (already in-flight), then show.
+        final updateInfo = await updateCompleter.future
+            .timeout(const Duration(seconds: 1), onTimeout: () => null)
+            .catchError((_) => null);
+        _showUpdateNotification(updateInfo);
+      }
     }
+  }
+
+  /// Extract the command name from raw arguments without full parsing.
+  String _extractCommandName(List<String> arguments) {
+    for (final arg in arguments) {
+      if (!arg.startsWith('-')) return arg;
+    }
+    return '';
   }
 
   // ── Special "add" dispatch ──────────────────────────────────
@@ -220,19 +233,40 @@ class CliRunnerV2 {
 
   void _showUpdateNotification(UpdateInfo? info) {
     if (info == null) return;
+
+    // Box is 56 chars wide (between the outer │ │).
+    const int innerWidth = 54;
+    const String border =
+        '┌──────────────────────────────────────────────────────┐';
+    const String divider =
+        '├──────────────────────────────────────────────────────┤';
+    const String footer =
+        '└──────────────────────────────────────────────────────┘';
+
+    String row(String content) {
+      // Pad content to fill the inner width exactly.
+      final padded = content.length < innerWidth
+          ? content + ' ' * (innerWidth - content.length)
+          : content.substring(0, innerWidth);
+      return '│ $padded │';
+    }
+
     _logger.info('');
-    _logger.info('┌────────────────────────────────────────────────────────┐');
-    _logger.info('│                  🚀 Update Available!                  │');
-    _logger.info('├────────────────────────────────────────────────────────┤');
-    _logger.info('│                                                        │');
-    _logger.info(
-        '│   Current: ${info.currentVersion.padRight(12)}                             │');
-    _logger.info(
-        '│   Latest:  ${info.latestVersion.padRight(12)}                             │');
-    _logger.info('│                                                        │');
-    _logger.info('│   dart pub global activate flutter_blueprint           │');
-    _logger.info('│                                                        │');
-    _logger.info('└────────────────────────────────────────────────────────┘');
+    _logger.info(border);
+    _logger.info(row('           🚀 Update Available!           '));
+    _logger.info(divider);
+    _logger.info(row(''));
+    _logger.info(row('  Current version : ${info.currentVersion}'));
+    _logger.info(row('  Latest version  : ${info.latestVersion}'));
+    _logger.info(row(''));
+    _logger.info(row('  Run to update:'));
+    _logger.info(row('  dart pub global activate flutter_blueprint'));
+    _logger.info(row(''));
+    _logger.info(row(
+      '  Changelog: pub.dev/packages/flutter_blueprint/changelog',
+    ));
+    _logger.info(row(''));
+    _logger.info(footer);
   }
 
   // ── Default registry ────────────────────────────────────────
