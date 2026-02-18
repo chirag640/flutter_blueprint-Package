@@ -381,7 +381,7 @@ class ThemeModeSwitch extends StatelessWidget {
             Icons.light_mode,
             color: service.isLightMode
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         Switch(
           value: service.isDarkMode,
@@ -392,7 +392,7 @@ class ThemeModeSwitch extends StatelessWidget {
             Icons.dark_mode,
             color: service.isDarkMode
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
       ],
     );

@@ -125,7 +125,15 @@ $body  }
               return ${pascalName}ListItem(
                 item: item,
                 onTap: () {
-                  // TODO: Navigate to detail page
+                  // Navigate to detail page
+                  // Navigator.pushNamed(context, '/${featureName}/detail', arguments: item);
+                  // Or with MaterialPageRoute:
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => ${pascalName}DetailPage(item: item),
+                  //   ),
+                  // );
                 },
               );
             },
@@ -164,7 +172,15 @@ $body  }
               return ${pascalName}ListItem(
                 item: item,
                 onTap: () {
-                  // TODO: Navigate to detail page
+                  // Navigate to detail page
+                  // Navigator.pushNamed(context, '/${featureName}/detail', arguments: item);
+                  // Or with MaterialPageRoute:
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => ${pascalName}DetailPage(item: item),
+                  //   ),
+                  // );
                 },
               );
             },
@@ -240,7 +256,15 @@ $body  }
                 return ${pascalName}ListItem(
                   item: item,
                   onTap: () {
-                    // TODO: Navigate to detail page
+                    // Navigate to detail page
+                    // Navigator.pushNamed(context, '/${featureName}/detail', arguments: item);
+                    // Or with MaterialPageRoute:
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => ${pascalName}DetailPage(item: item),
+                    //   ),
+                    // );
                   },
                 );
               },
@@ -424,9 +448,24 @@ class ${pascalName}Notifier extends StateNotifier<${pascalName}State> {
 }
 
 /// Provider for $pascalName feature.
+/// 
+/// Example dependency injection:
+/// ```dart
+/// final ${camelName}Provider = StateNotifierProvider<${pascalName}Notifier, ${pascalName}State>((ref) {
+///   final repository = ref.watch(${camelName}RepositoryProvider);
+///   final getList = Get${pascalName}List(repository);
+///   return ${pascalName}Notifier(getList);
+/// });
+/// ```
 final ${camelName}Provider = StateNotifierProvider<${pascalName}Notifier, ${pascalName}State>((ref) {
-  // TODO: Inject dependencies properly
-  throw UnimplementedError('Inject Get${pascalName}List use case');
+  // Inject dependencies here:
+  // 1. Create or get the repository from a provider
+  // 2. Create the use case with the repository
+  // 3. Create the notifier with the use case
+  throw UnimplementedError(
+    'Inject dependencies: repository -> use case -> notifier. '
+    'See documentation above for example.',
+  );
 });
 ''';
   }

@@ -10,45 +10,60 @@ import 'version_reader.dart';
 class UpdateChecker {
   static const String _pubApiUrl = 'https://pub.dev/api/packages/';
   static const String _packageName = 'flutter_blueprint';
-  static const String _lastCheckKey = 'last_update_check';
+  static const String _cacheKey = 'update_check_cache';
   static const Duration _checkInterval = Duration(days: 1);
   static const Duration _requestTimeout = Duration(seconds: 5);
 
-  /// Check for updates, respecting the check interval to avoid excessive API calls
+  /// Check for updates, respecting the check interval to avoid excessive API calls.
+  ///
+  /// Now caches the actual update result, not just the check time.
+  /// This avoids unnecessary HTTP calls and file I/O within the check interval.
   Future<UpdateInfo?> checkForUpdates() async {
-    // Use a simple file-based cache for CLI tool instead of shared_preferences
-    final lastCheckTime = await _getLastCheckTime();
+    // Try to load cached update info first
+    final cachedResult = await _loadCachedResult();
 
-    if (lastCheckTime != null) {
-      if (DateTime.now().difference(lastCheckTime) < _checkInterval) {
-        return null; // Too soon to check again
+    if (cachedResult != null) {
+      final cacheAge = DateTime.now().difference(cachedResult.timestamp);
+
+      // If cache is still valid, return the cached update info immediately
+      if (cacheAge < _checkInterval) {
+        return cachedResult.updateInfo;
       }
     }
 
+    // Cache is expired or doesn't exist - perform actual check
     try {
       final latestVersionStr = await _getLatestVersion();
-      if (latestVersionStr == null) return null;
+      if (latestVersionStr == null) {
+        // Network error - keep returning old cache if available
+        return cachedResult?.updateInfo;
+      }
 
       // Get current version from pubspec.yaml
       final currentVersionStr = await VersionReader.getVersion();
       final currentVersion = Version.parse(currentVersionStr);
       final latestVersion = Version.parse(latestVersionStr);
 
-      // Save the check time
-      await _saveLastCheckTime(DateTime.now());
-
+      UpdateInfo? updateInfo;
       if (latestVersion > currentVersion) {
-        return UpdateInfo(
+        updateInfo = UpdateInfo(
           latestVersion: latestVersionStr,
           currentVersion: currentVersionStr,
         );
       }
+
+      // Cache the result (even if null) to avoid repeated checks
+      await _saveCachedResult(_CachedResult(
+        updateInfo: updateInfo,
+        timestamp: DateTime.now(),
+      ));
+
+      return updateInfo;
     } catch (e) {
       // Fail silently - update check shouldn't break the CLI
-      return null;
+      // Return old cache if available
+      return cachedResult?.updateInfo;
     }
-
-    return null;
   }
 
   /// Get the latest version from pub.dev API
@@ -85,35 +100,70 @@ class UpdateChecker {
     return cacheDir;
   }
 
-  /// Get the file path for storing last check time
+  /// Get the file path for storing cached update result
   Future<File> _getCacheFile() async {
     final cacheDir = await _getCacheDir();
-    return File(path.join(cacheDir.path, _lastCheckKey));
+    return File(path.join(cacheDir.path, _cacheKey));
   }
 
-  /// Read the last check time from cache file
-  Future<DateTime?> _getLastCheckTime() async {
+  /// Load cached update result
+  Future<_CachedResult?> _loadCachedResult() async {
     try {
       final file = await _getCacheFile();
       if (await file.exists()) {
         final content = await file.readAsString();
-        return DateTime.parse(content.trim());
+        final json = jsonDecode(content) as Map<String, dynamic>;
+        return _CachedResult.fromJson(json);
       }
     } catch (e) {
-      // If we can't read the file, just return null
+      // If we can't read the cache, just return null
     }
     return null;
   }
 
-  /// Save the last check time to cache file
-  Future<void> _saveLastCheckTime(DateTime time) async {
+  /// Save cached update result
+  Future<void> _saveCachedResult(_CachedResult result) async {
     try {
       final file = await _getCacheFile();
-      await file.writeAsString(time.toIso8601String());
+      await file.writeAsString(jsonEncode(result.toJson()));
     } catch (e) {
-      // If we can't write the file, fail silently
+      // If we can't write the cache, fail silently
       // Update checking is a nice-to-have feature
     }
+  }
+}
+
+/// Internal cached result structure
+class _CachedResult {
+  final UpdateInfo? updateInfo;
+  final DateTime timestamp;
+
+  _CachedResult({
+    required this.updateInfo,
+    required this.timestamp,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'timestamp': timestamp.toIso8601String(),
+        'updateInfo': updateInfo == null
+            ? null
+            : {
+                'latestVersion': updateInfo!.latestVersion,
+                'currentVersion': updateInfo!.currentVersion,
+              },
+      };
+
+  factory _CachedResult.fromJson(Map<String, dynamic> json) {
+    final updateInfoJson = json['updateInfo'] as Map<String, dynamic>?;
+    return _CachedResult(
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      updateInfo: updateInfoJson == null
+          ? null
+          : UpdateInfo(
+              latestVersion: updateInfoJson['latestVersion'] as String,
+              currentVersion: updateInfoJson['currentVersion'] as String,
+            ),
+    );
   }
 }
 

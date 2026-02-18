@@ -6,13 +6,22 @@ class InteractivePrompter {
   InteractivePrompter({
     Stdin? input,
     Stdout? output,
+    bool showFallbackWarnings = true,
   })  : input = input ?? stdin,
-        output = output ?? stdout;
+        output = output ?? stdout,
+        _showFallbackWarnings = showFallbackWarnings;
 
   final Stdin input;
   final Stdout output;
+  final bool _showFallbackWarnings;
 
   bool get isInteractive => input.hasTerminal;
+
+  void _logFallback(String reason) {
+    if (_showFallbackWarnings) {
+      stderr.writeln('⚠️  Using simplified prompts: $reason');
+    }
+  }
 
   /// Displays a beautiful confirmation prompt with Y/n options
   Future<bool> confirm(String question, {bool defaultValue = true}) async {
@@ -28,7 +37,7 @@ class InteractivePrompter {
       ).interact();
       return result;
     } catch (e) {
-      // Fallback to simple prompt if interact fails
+      _logFallback('interactive confirm failed ($e)');
       return _fallbackConfirm(question, defaultValue);
     }
   }
@@ -55,7 +64,7 @@ class InteractivePrompter {
 
       return options[selection];
     } catch (e) {
-      // Fallback to simple prompt if interact fails
+      _logFallback('interactive menu failed ($e)');
       return _fallbackChoose(question, options, defaultValue);
     }
   }
@@ -73,7 +82,7 @@ class InteractivePrompter {
       ).interact();
       return result.trim();
     } catch (e) {
-      // Fallback to simple prompt if interact fails
+      _logFallback('interactive input failed ($e)');
       return _fallbackPrompt(question, defaultValue);
     }
   }
@@ -102,7 +111,7 @@ class InteractivePrompter {
 
       return selections.map((index) => options[index]).toList();
     } catch (e) {
-      // Fallback - ask for each option individually
+      _logFallback('interactive multi-select failed ($e)');
       final selected = <String>[];
       for (final option in options) {
         final isDefault = defaultValues?.contains(option) ?? false;

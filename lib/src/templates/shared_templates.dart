@@ -179,7 +179,6 @@ String generateImprovedRetryInterceptor(BlueprintConfig config) {
   return """import 'dart:math' as math;
 import 'package:dio/dio.dart';
 
-import '../../constants/app_constants.dart';
 import '../../utils/logger.dart';
 
 /// Enhanced retry interceptor with exponential backoff and jitter
@@ -299,29 +298,21 @@ class RetryInterceptor extends Interceptor {
 // ============================================================================
 
 String generateEnhancedAuthInterceptor(BlueprintConfig config) {
-  // Note: config.apiConfig is used in the generated template via constructor parameter
   return """import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../../storage/local_storage.dart';
-import '../../storage/secure_storage.dart';
 import '../../constants/app_constants.dart';
 import '../../utils/logger.dart';
-import '../api_config.dart';
 
-/// Configurable authentication interceptor with token refresh capability.
+/// Authentication interceptor with token refresh capability.
 /// 
-/// Supports:
-/// - Configurable auth header name (Authorization, token, X-Auth-Token, etc.)
-/// - Configurable prefix (Bearer, empty, or custom)
-/// - Token extraction from response body OR headers
+/// Automatically attaches JWT tokens to requests and handles
+/// 401 responses by refreshing the token and retrying.
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._storage, this._secureStorage, this._apiConfig);
+  AuthInterceptor(this._storage);
   
   final LocalStorage _storage;
-  final SecureStorage _secureStorage;
-  final ApiConfig _apiConfig;
-  
   // Queue to hold requests during token refresh
   final List<_RequestQueueItem> _requestQueue = [];
   bool _isRefreshing = false;
@@ -339,42 +330,11 @@ class AuthInterceptor extends Interceptor {
     final token = _storage.getString(AppConstants.keyAccessToken);
     
     if (token != null && token.isNotEmpty) {
-      // Use configured header name and prefix
-      final headerName = _apiConfig.authHeaderName;
-      final headerPrefix = _apiConfig.authHeaderPrefix;
-      options.headers[headerName] = '\$headerPrefix\$token';
+      options.headers['Authorization'] = 'Bearer \$token';
       AppLogger.debug('Added auth token to request: \${options.path}', 'AuthInterceptor');
     }
     
     handler.next(options);
-  }
-  
-  @override
-  Future<void> onResponse(
-    Response response,
-    ResponseInterceptorHandler handler,
-  ) async {
-    // Extract token from response if configured to use header source
-    if (_apiConfig.tokenSource == TokenSource.header) {
-      final tokenKey = _apiConfig.accessTokenPath;
-      final token = response.headers.value(tokenKey);
-      
-      if (token != null && token.isNotEmpty) {
-        await _storage.setString(AppConstants.keyAccessToken, token);
-        AppLogger.debug('Extracted token from header: \$tokenKey', 'AuthInterceptor');
-      }
-      
-      // Also check for refresh token in headers
-      final refreshTokenKey = _apiConfig.refreshTokenPath;
-      if (refreshTokenKey != null) {
-        final refreshToken = response.headers.value(refreshTokenKey);
-        if (refreshToken != null && refreshToken.isNotEmpty) {
-          await _secureStorage.write(AppConstants.keyRefreshToken, refreshToken);
-        }
-      }
-    }
-    
-    handler.next(response);
   }
   
   @override
@@ -405,10 +365,9 @@ class AuthInterceptor extends Interceptor {
         final newToken = await _refreshToken();
         
         if (newToken != null) {
-          // Retry with new token using configured header
+          // Retry with new token
           final options = err.requestOptions;
-          options.headers[_apiConfig.authHeaderName] = 
-              '\${_apiConfig.authHeaderPrefix}\$newToken';
+          options.headers['Authorization'] = 'Bearer \$newToken';
           
           final response = await Dio().fetch(options);
           _processQueuedRequests(newToken);
@@ -432,7 +391,7 @@ class AuthInterceptor extends Interceptor {
   
   Future<String?> _refreshToken() async {
     try {
-      final refreshToken = await _secureStorage.read(AppConstants.keyRefreshToken);
+      final refreshToken = _storage.getString(AppConstants.keyRefreshToken);
       
       if (refreshToken == null || refreshToken.isEmpty) {
         AppLogger.warning('No refresh token available', 'AuthInterceptor');
@@ -441,36 +400,20 @@ class AuthInterceptor extends Interceptor {
       
       final dio = Dio();
       final response = await dio.post(
-        '\${AppConstants.baseUrl}/auth/refresh',
+        '/auth/refresh',
         data: {'refresh_token': refreshToken},
       );
       
       if (response.statusCode == 200) {
-        String? newAccessToken;
-        String? newRefreshToken;
-        
-        // Extract tokens based on config
-        if (_apiConfig.tokenSource == TokenSource.header) {
-          newAccessToken = response.headers.value(_apiConfig.accessTokenPath);
-          if (_apiConfig.refreshTokenPath != null) {
-            newRefreshToken = response.headers.value(_apiConfig.refreshTokenPath!);
-          }
-        } else {
-          // Extract from body using configured paths
-          final data = response.data as Map<String, dynamic>?;
-          if (data != null) {
-            newAccessToken = _apiConfig.extractPath(data, _apiConfig.accessTokenPath)?.toString();
-            if (_apiConfig.refreshTokenPath != null) {
-              newRefreshToken = _apiConfig.extractPath(data, _apiConfig.refreshTokenPath!)?.toString();
-            }
-          }
-        }
+        final data = response.data as Map<String, dynamic>?;
+        final newAccessToken = data?['access_token']?.toString();
+        final newRefreshToken = data?['refresh_token']?.toString();
         
         if (newAccessToken != null) {
           await _storage.setString(AppConstants.keyAccessToken, newAccessToken);
           
           if (newRefreshToken != null) {
-            await _secureStorage.write(AppConstants.keyRefreshToken, newRefreshToken);
+            await _storage.setString(AppConstants.keyRefreshToken, newRefreshToken);
           }
           
           AppLogger.info('Token refreshed successfully', 'AuthInterceptor');
@@ -483,7 +426,7 @@ class AuthInterceptor extends Interceptor {
       AppLogger.error('Token refresh error', e, null, 'AuthInterceptor');
       
       await _storage.remove(AppConstants.keyAccessToken);
-      await _secureStorage.delete(AppConstants.keyRefreshToken);
+      await _storage.remove(AppConstants.keyRefreshToken);
       
       return null;
     }
@@ -492,8 +435,7 @@ class AuthInterceptor extends Interceptor {
   void _processQueuedRequests(String newToken) async {
     for (final item in _requestQueue) {
       try {
-        item.options.headers[_apiConfig.authHeaderName] = 
-            '\${_apiConfig.authHeaderPrefix}\$newToken';
+        item.options.headers['Authorization'] = 'Bearer \$newToken';
         final response = await Dio().fetch(item.options);
         item.completer.complete(response);
       } catch (e) {

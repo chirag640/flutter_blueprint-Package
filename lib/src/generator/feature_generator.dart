@@ -91,22 +91,20 @@ class FeatureGenerator {
       includeApi: includeApi,
     );
 
-    var count = 0;
     final rootPath = Directory(featurePath).parent.parent.parent.path;
-    for (final template in templates) {
+    final operations = templates.map((template) {
       final relativePath = p.join(
         p.relative(featurePath, from: rootPath),
         template.relativePath,
       );
-      await _ioUtils.writeFile(
-        rootPath,
-        relativePath,
-        template.content,
+      return FileWriteOperation(
+        relativePath: relativePath,
+        content: template.content,
       );
-      count++;
-    }
+    }).toList();
 
-    return count;
+    final result = await _ioUtils.writeFilesParallel(rootPath, operations);
+    return result.successful;
   }
 
   Future<int> _generateDomainLayer({
@@ -118,22 +116,20 @@ class FeatureGenerator {
       featureName: featureName,
     );
 
-    var count = 0;
     final rootPath = Directory(featurePath).parent.parent.parent.path;
-    for (final template in templates) {
+    final operations = templates.map((template) {
       final relativePath = p.join(
         p.relative(featurePath, from: rootPath),
         template.relativePath,
       );
-      await _ioUtils.writeFile(
-        rootPath,
-        relativePath,
-        template.content,
+      return FileWriteOperation(
+        relativePath: relativePath,
+        content: template.content,
       );
-      count++;
-    }
+    }).toList();
 
-    return count;
+    final result = await _ioUtils.writeFilesParallel(rootPath, operations);
+    return result.successful;
   }
 
   Future<int> _generatePresentationLayer({
@@ -146,22 +142,20 @@ class FeatureGenerator {
       stateManagement: config.stateManagement,
     );
 
-    var count = 0;
     final rootPath = Directory(featurePath).parent.parent.parent.path;
-    for (final template in templates) {
+    final operations = templates.map((template) {
       final relativePath = p.join(
         p.relative(featurePath, from: rootPath),
         template.relativePath,
       );
-      await _ioUtils.writeFile(
-        rootPath,
-        relativePath,
-        template.content,
+      return FileWriteOperation(
+        relativePath: relativePath,
+        content: template.content,
       );
-      count++;
-    }
+    }).toList();
 
-    return count;
+    final result = await _ioUtils.writeFilesParallel(rootPath, operations);
+    return result.successful;
   }
 
   Future<void> _updateRouter({

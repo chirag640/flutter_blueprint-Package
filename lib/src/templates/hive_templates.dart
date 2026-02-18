@@ -456,6 +456,7 @@ String generateSyncManager(BlueprintConfig config) {
   return """import 'dart:collection';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../utils/logger.dart';
@@ -520,9 +521,13 @@ class SyncOperation {
 
 /// Manages offline-to-online data synchronization
 class SyncManager {
-  SyncManager({this.maxRetries = 3});
+  SyncManager({
+    this.maxRetries = 3,
+    Dio? dio,
+  }) : _dio = dio ?? Dio();
   
   final int maxRetries;
+  final Dio _dio;
   
   Box<Map>? _syncBox;
   final Queue<SyncOperation> _syncQueue = Queue<SyncOperation>();
@@ -583,17 +588,14 @@ class SyncManager {
     
     while (_syncQueue.isNotEmpty) {
       final operation = _syncQueue.removeFirst();
-      
       try {
-        // TODO: Implement actual API calls based on operation type
-        // For now, we'll simulate success
-        await Future.delayed(const Duration(milliseconds: 100));
+        final response = await _executeApiCall(operation);
         
-        // Remove from persistent storage
+        // Remove from persistent storage on success
         await _syncBox!.delete(operation.id);
         
         AppLogger.success(
-          'Synced: \${operation.type.name} \${operation.endpoint}',
+          'Synced: \${operation.type.name} \${operation.endpoint} (status: \${response.statusCode})',
           'SyncManager',
         );
       } catch (e, stackTrace) {
@@ -621,11 +623,34 @@ class SyncManager {
       }
     }
     
-    // Re-add failed operations to queue
+    // Re-add failed operations
     _syncQueue.addAll(failedOperations);
     
     _isSyncing = false;
     AppLogger.info('Sync completed', 'SyncManager');
+  }
+  
+  /// Execute API call based on operation type
+  Future<Response> _executeApiCall(SyncOperation operation) async {
+    switch (operation.type) {
+      case SyncOperationType.create:
+        return await _dio.post(
+          operation.endpoint,
+          data: operation.data,
+        );
+        
+      case SyncOperationType.update:
+        return await _dio.put(
+          operation.endpoint,
+          data: operation.data,
+        );
+        
+      case SyncOperationType.delete:
+        return await _dio.delete(
+          operation.endpoint,
+          data: operation.data,
+        );
+    }
   }
   
   /// Get pending sync count

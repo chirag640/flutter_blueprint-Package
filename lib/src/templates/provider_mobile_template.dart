@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
+import 'accessibility_templates.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
@@ -203,6 +204,30 @@ TemplateBundle buildProviderMobileBundle() {
           build: _errorBoundary,
           shouldGenerate: (config) => config.includeAnalytics),
 
+      // Core: Accessibility
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'semantics_helper.dart'),
+          build: _semanticsHelper,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'contrast_checker.dart'),
+          build: _contrastChecker,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'focus_manager.dart'),
+          build: _focusManager,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'accessibility', 'accessibility_config.dart'),
+          build: _accessibilityConfig,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('test', 'accessibility', 'a11y_test_utils.dart'),
+          build: _accessibilityTestUtils,
+          shouldGenerate: (config) =>
+              config.includeAccessibility && config.includeTests),
+
       // Features: Home
       TemplateFile(
           path: p.join('lib', 'features', 'home', 'presentation', 'pages',
@@ -296,6 +321,17 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  hive_flutter: ^1.1.0')
       ..writeln('  path_provider: ^2.1.5');
   }
+  if (config.includeAnalytics) {
+    if (config.analyticsProvider == AnalyticsProvider.sentry) {
+      buffer.writeln('  sentry_flutter: ^8.9.0');
+    } else if (config.analyticsProvider == AnalyticsProvider.firebase) {
+      buffer
+        ..writeln('  firebase_core: ^3.6.0')
+        ..writeln('  firebase_analytics: ^11.3.3')
+        ..writeln('  firebase_crashlytics: ^4.1.3')
+        ..writeln('  firebase_performance: ^0.10.0+8');
+    }
+  }
 
   buffer
     ..writeln('')
@@ -330,6 +366,7 @@ String _readme(BlueprintConfig config) {
 String _mainDart(BlueprintConfig config) {
   final buffer = StringBuffer()
     ..writeln("import 'package:flutter/material.dart';")
+    ..writeln("import 'package:flutter/services.dart';")
     ..writeln("import 'app/app.dart';");
   if (config.includeEnv) {
     buffer.writeln("import 'core/config/env_loader.dart';");
@@ -532,7 +569,7 @@ String _routeGuard(BlueprintConfig config) {
 }
 
 String _appTheme(BlueprintConfig config) {
-  return """import 'package:flutter/material.dart';\nimport 'package:flutter/services.dart';\nimport 'typography.dart';\nimport 'app_colors.dart';\n\nclass AppTheme {\n  const AppTheme._();\n\n  static ThemeData light() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: AppColors.primary,\n        brightness: Brightness.light,\n        primary: AppColors.primary,\n        secondary: AppColors.secondary,\n        error: AppColors.error,\n        surface: AppColors.surfaceLight,\n        background: AppColors.backgroundLight,\n      ),\n      brightness: Brightness.light,\n      textTheme: buildTextTheme(),\n      useMaterial3: true,\n      appBarTheme: AppBarTheme(\n        centerTitle: true,\n        elevation: 0,\n        backgroundColor: AppColors.primary,\n        foregroundColor: Colors.white,\n        systemOverlayStyle: const SystemUiOverlayStyle(\n          statusBarColor: Colors.transparent,\n          statusBarIconBrightness: Brightness.light, // Light icons on dark AppBar\n          statusBarBrightness: Brightness.dark, // For iOS\n          systemNavigationBarColor: Colors.white,\n          systemNavigationBarIconBrightness: Brightness.dark,\n        ),\n      ),\n      scaffoldBackgroundColor: AppColors.backgroundLight,\n      cardTheme: CardTheme(\n        color: AppColors.surfaceLight,\n        elevation: 2,\n        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),\n      ),\n    );\n  }\n\n  static ThemeData dark() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: AppColors.primaryLight,\n        brightness: Brightness.dark,\n        primary: AppColors.primaryLight,\n        secondary: AppColors.secondaryLight,\n        error: AppColors.error,\n        surface: AppColors.surfaceDark,\n        background: AppColors.backgroundDark,\n      ),\n      brightness: Brightness.dark,\n      textTheme: buildTextTheme(),\n      useMaterial3: true,\n      appBarTheme: AppBarTheme(\n        centerTitle: true,\n        elevation: 0,\n        backgroundColor: AppColors.surfaceDark,\n        foregroundColor: Colors.white,\n        systemOverlayStyle: const SystemUiOverlayStyle(\n          statusBarColor: Colors.transparent,\n          statusBarIconBrightness: Brightness.light, // Light icons for dark theme\n          statusBarBrightness: Brightness.dark, // For iOS\n          systemNavigationBarColor: Color(0xFF1E1E1E),\n          systemNavigationBarIconBrightness: Brightness.light,\n        ),\n      ),\n      scaffoldBackgroundColor: AppColors.backgroundDark,\n      cardTheme: CardTheme(\n        color: AppColors.surfaceDark,\n        elevation: 2,\n        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),\n      ),\n    );\n  }\n}\n""";
+  return """import 'package:flutter/material.dart';\nimport 'package:flutter/services.dart';\nimport 'typography.dart';\nimport 'app_colors.dart';\n\nclass AppTheme {\n  const AppTheme._();\n\n  static ThemeData light() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: AppColors.primary,\n        brightness: Brightness.light,\n        primary: AppColors.primary,\n        secondary: AppColors.secondary,\n        error: AppColors.error,\n        surface: AppColors.surfaceLight,\n      ),\n      brightness: Brightness.light,\n      textTheme: buildTextTheme(),\n      useMaterial3: true,\n      appBarTheme: AppBarTheme(\n        centerTitle: true,\n        elevation: 0,\n        backgroundColor: AppColors.primary,\n        foregroundColor: Colors.white,\n        systemOverlayStyle: const SystemUiOverlayStyle(\n          statusBarColor: Colors.transparent,\n          statusBarIconBrightness: Brightness.light, // Light icons on dark AppBar\n          statusBarBrightness: Brightness.dark, // For iOS\n          systemNavigationBarColor: Colors.white,\n          systemNavigationBarIconBrightness: Brightness.dark,\n        ),\n      ),\n      scaffoldBackgroundColor: AppColors.backgroundLight,\n      cardTheme: CardThemeData(\n        color: AppColors.surfaceLight,\n        elevation: 2,\n        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),\n      ),\n    );\n  }\n\n  static ThemeData dark() {\n    return ThemeData(\n      colorScheme: ColorScheme.fromSeed(\n        seedColor: AppColors.primaryLight,\n        brightness: Brightness.dark,\n        primary: AppColors.primaryLight,\n        secondary: AppColors.secondaryLight,\n        error: AppColors.error,\n        surface: AppColors.surfaceDark,\n      ),\n      brightness: Brightness.dark,\n      textTheme: buildTextTheme(),\n      useMaterial3: true,\n      appBarTheme: AppBarTheme(\n        centerTitle: true,\n        elevation: 0,\n        backgroundColor: AppColors.surfaceDark,\n        foregroundColor: Colors.white,\n        systemOverlayStyle: const SystemUiOverlayStyle(\n          statusBarColor: Colors.transparent,\n          statusBarIconBrightness: Brightness.light, // Light icons for dark theme\n          statusBarBrightness: Brightness.dark, // For iOS\n          systemNavigationBarColor: Color(0xFF1E1E1E),\n          systemNavigationBarIconBrightness: Brightness.light,\n        ),\n      ),\n      scaffoldBackgroundColor: AppColors.backgroundDark,\n      cardTheme: CardThemeData(\n        color: AppColors.surfaceDark,\n        elevation: 2,\n        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),\n      ),\n    );\n  }\n}\n""";
 }
 
 String _typography(BlueprintConfig config) {
@@ -545,6 +582,7 @@ String _apiClient(BlueprintConfig config) {
 import '../config/app_config.dart';
 import '../constants/app_constants.dart';
 import '../storage/local_storage.dart';
+import 'api_response.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
@@ -954,13 +992,13 @@ String _logger(BlueprintConfig config) {
 class AppLogger {
   AppLogger._();
   
-  static const String _prefix = '🚀 [${_titleCase(config.appName)}]';
+  static const String _prefix = 'ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ [${_titleCase(config.appName)}]';
   
   /// Log debug messages (only in debug mode)
   static void debug(String message, [String? tag]) {
     if (kDebugMode) {
       final tagText = tag != null ? '[\$tag]' : '';
-      debugPrint('\$_prefix 🐛 \$tagText \$message');
+      debugPrint('\$_prefix ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº \$tagText \$message');
     }
   }
   
@@ -968,7 +1006,7 @@ class AppLogger {
   static void info(String message, [String? tag]) {
     if (kDebugMode) {
       final tagText = tag != null ? '[\$tag]' : '';
-      debugPrint('\$_prefix ℹ️ \$tagText \$message');
+      debugPrint('\$_prefix ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¹ÃƒÂ¯Ã‚Â¸Ã‚Â \$tagText \$message');
     }
   }
   
@@ -976,7 +1014,7 @@ class AppLogger {
   static void warning(String message, [String? tag]) {
     if (kDebugMode) {
       final tagText = tag != null ? '[\$tag]' : '';
-      debugPrint('\$_prefix ⚠️ \$tagText \$message');
+      debugPrint('\$_prefix ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â \$tagText \$message');
     }
   }
   
@@ -984,7 +1022,7 @@ class AppLogger {
   static void error(String message, [dynamic error, StackTrace? stackTrace, String? tag]) {
     if (kDebugMode) {
       final tagText = tag != null ? '[\$tag]' : '';
-      debugPrint('\$_prefix ❌ \$tagText \$message');
+      debugPrint('\$_prefix ÃƒÂ¢Ã‚ÂÃ…â€™ \$tagText \$message');
       if (error != null) debugPrint('Error: \$error');
       if (stackTrace != null) debugPrint('StackTrace: \$stackTrace');
     }
@@ -994,7 +1032,7 @@ class AppLogger {
   static void success(String message, [String? tag]) {
     if (kDebugMode) {
       final tagText = tag != null ? '[\$tag]' : '';
-      debugPrint('\$_prefix ✅ \$tagText \$message');
+      debugPrint('\$_prefix ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ \$tagText \$message');
     }
   }
 }
@@ -1871,7 +1909,7 @@ class DialogUtils {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1923,7 +1961,7 @@ class DialogUtils {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1991,8 +2029,8 @@ class DialogUtils {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => false,
+      builder: (context) => PopScope(
+        canPop: false,
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: Column(
@@ -2214,7 +2252,7 @@ class NetworkSettings {
       final result = await _connectivity.checkConnectivity();
       return !result.contains(ConnectivityResult.none);
     } catch (e) {
-      AppLogger.error('Error checking connectivity', 'NetworkSettings', e);
+      AppLogger.error('Error checking connectivity', e, null, 'NetworkSettings');
       return false;
     }
   }
@@ -2225,7 +2263,7 @@ class NetworkSettings {
       final results = await _connectivity.checkConnectivity();
       return results.first;
     } catch (e) {
-      AppLogger.error('Error getting connection type', 'NetworkSettings', e);
+      AppLogger.error('Error getting connection type', e, null, 'NetworkSettings');
       return ConnectivityResult.none;
     }
   }
@@ -2288,7 +2326,7 @@ class NetworkSettings {
     bool showError = true,
   }) async {
     if (!await isConnected()) {
-      if (showError) {
+      if (showError && context.mounted) {
         showNetworkError(context);
       }
       return null;
@@ -2408,4 +2446,25 @@ String _analyticsEvents(BlueprintConfig config) {
 
 String _errorBoundary(BlueprintConfig config) {
   return generateErrorBoundary();
+}
+
+// Accessibility templates
+String _semanticsHelper(BlueprintConfig config) {
+  return generateSemanticsHelper();
+}
+
+String _contrastChecker(BlueprintConfig config) {
+  return generateContrastChecker();
+}
+
+String _focusManager(BlueprintConfig config) {
+  return generateFocusManager();
+}
+
+String _accessibilityConfig(BlueprintConfig config) {
+  return generateAccessibilityConfig();
+}
+
+String _accessibilityTestUtils(BlueprintConfig config) {
+  return generateAccessibilityTestUtils();
 }

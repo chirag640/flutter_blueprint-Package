@@ -166,6 +166,10 @@ class ${pascalName}RemoteDataSourceImpl implements ${pascalName}RemoteDataSource
   static String _localDataSourceTemplate(
       String featureName, String pascalName) {
     return '''
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/${featureName}_model.dart';
 
 /// Local data source for $pascalName feature.
@@ -182,24 +186,44 @@ abstract class ${pascalName}LocalDataSource {
 
 /// Implementation of local data source using shared preferences.
 class ${pascalName}LocalDataSourceImpl implements ${pascalName}LocalDataSource {
-  ${pascalName}LocalDataSourceImpl();
+  ${pascalName}LocalDataSourceImpl(this._prefs);
 
+  final SharedPreferences _prefs;
   static const String _cacheKey = '${featureName}_cache';
 
   @override
   Future<List<${pascalName}Model>> getCached() async {
-    // TODO: Implement cache retrieval using SharedPreferences or Hive
-    return [];
+    try {
+      final jsonString = _prefs.getString(_cacheKey);
+      if (jsonString == null) {
+        return [];
+      }
+
+      final jsonList = json.decode(jsonString) as List;
+      return jsonList
+          .map((json) => ${pascalName}Model.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      // If decoding fails, clear invalid cache
+      await clearCache();
+      return [];
+    }
   }
 
   @override
   Future<void> cache(List<${pascalName}Model> items) async {
-    // TODO: Implement caching using SharedPreferences or Hive
+    try {
+      final jsonList = items.map((item) => item.toJson()).toList();
+      final jsonString = json.encode(jsonList);
+      await _prefs.setString(_cacheKey, jsonString);
+    } catch (e) {
+      throw Exception('Failed to cache $featureName data: \$e');
+    }
   }
 
   @override
   Future<void> clearCache() async {
-    // TODO: Implement cache clearing
+    await _prefs.remove(_cacheKey);
   }
 }
 ''';
@@ -317,26 +341,57 @@ $implementation}
 
   @override
   Future<${pascalName}Entity> getById(String id) async {
-    // TODO: Implement local getById
-    throw UnimplementedError();
+    try {
+      final items = await _localDataSource.getCached();
+      return items.firstWhere(
+        (item) => item.id == id,
+        orElse: () => throw Exception('$pascalName with id \$id not found'),
+      );
+    } catch (e) {
+      throw Exception('Failed to fetch $featureName: \$e');
+    }
   }
 
   @override
   Future<${pascalName}Entity> create(${pascalName}Entity entity) async {
-    // TODO: Implement local create
-    throw UnimplementedError();
+    try {
+      final items = await _localDataSource.getCached();
+      final model = entity as ${pascalName}Model;
+      final updatedItems = [...items, model];
+      await _localDataSource.cache(updatedItems);
+      return model;
+    } catch (e) {
+      throw Exception('Failed to create $featureName: \$e');
+    }
   }
 
   @override
   Future<${pascalName}Entity> update(String id, ${pascalName}Entity entity) async {
-    // TODO: Implement local update
-    throw UnimplementedError();
+    try {
+      final items = await _localDataSource.getCached();
+      final index = items.indexWhere((item) => item.id == id);
+      if (index == -1) {
+        throw Exception('$pascalName with id \$id not found');
+      }
+      final model = entity as ${pascalName}Model;
+      final updatedItems = [...items];
+      updatedItems[index] = model;
+      await _localDataSource.cache(updatedItems);
+      return model;
+    } catch (e) {
+      throw Exception('Failed to update $featureName: \$e');
+    }
   }
 
   @override
   Future<void> delete(String id) async {
-    // TODO: Implement local delete
-    throw UnimplementedError();
+    try {
+      final items = await _localDataSource.getCached();
+      final updatedItems = items.where((item) => item.id != id).toList();
+      await _localDataSource.cache(updatedItems);
+    } catch (e) {
+      throw Exception('Failed to delete $featureName: \$e');
+    }
   }''';
   }
 }

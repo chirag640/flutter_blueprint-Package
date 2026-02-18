@@ -133,81 +133,45 @@ abstract class AnalyticsService {
 ''';
 }
 
-/// Generates the Firebase Analytics implementation.
+/// Generates the default Analytics implementation (uses AppLogger for local dev logging).
+/// To add Firebase Analytics, add the firebase_analytics, firebase_crashlytics, and
+/// firebase_performance packages to pubspec.yaml and replace this implementation.
 String generateFirebaseAnalyticsService() {
   return r'''
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_performance/firebase_performance.dart';
+import '../utils/logger.dart';
 import 'analytics_service.dart';
 
-/// Firebase Analytics implementation of AnalyticsService.
+/// Default analytics implementation using AppLogger for local dev logging.
 ///
-/// Integrates Firebase Analytics, Crashlytics, and Performance Monitoring.
-/// All operations fail silently to avoid disrupting user experience.
-class FirebaseAnalyticsService implements AnalyticsService {
-  FirebaseAnalyticsService({
-    FirebaseAnalytics? analytics,
-    FirebaseCrashlytics? crashlytics,
-    FirebasePerformance? performance,
-  })  : _analytics = analytics ?? FirebaseAnalytics.instance,
-        _crashlytics = crashlytics ?? FirebaseCrashlytics.instance,
-        _performance = performance ?? FirebasePerformance.instance;
+/// Replace this with a real analytics backend (e.g. Firebase, Sentry) when ready.
+/// Instructions:
+///   1. Add firebase_analytics, firebase_crashlytics, firebase_performance to pubspec.yaml
+///   2. Follow FlutterFire setup: https://firebase.flutter.dev/docs/overview
+///   3. Replace this class with a FirebaseAnalyticsService implementation
+class DefaultAnalyticsService extends AnalyticsService {
+  DefaultAnalyticsService();
 
-  final FirebaseAnalytics _analytics;
-  final FirebaseCrashlytics _crashlytics;
-  final FirebasePerformance _performance;
-  
-  /// Active performance traces (trace name -> trace instance).
-  final Map<String, Trace> _traces = {};
+  /// Active traces (trace name -> start time).
+  final Map<String, DateTime> _traces = {};
 
   @override
   Future<void> logEvent(String name, {Map<String, dynamic>? parameters}) async {
-    try {
-      await _analytics.logEvent(
-        name: name,
-        parameters: parameters,
-      );
-    } catch (e) {
-      // Fail silently - analytics should never break the app
-      print('Failed to log event: \$e');
-    }
+    AppLogger.info('[Analytics] Event: $name${parameters != null ? " | params: $parameters" : ""}', 'Analytics');
   }
 
   @override
   Future<void> logScreenView(String screenName, {String? screenClass}) async {
-    try {
-      await _analytics.logScreenView(
-        screenName: screenName,
-        screenClass: screenClass,
-      );
-    } catch (e) {
-      print('Failed to log screen view: \$e');
-    }
+    AppLogger.info('[Analytics] Screen: $screenName${screenClass != null ? " ($screenClass)" : ""}', 'Analytics');
   }
 
   @override
   Future<void> setUserProperties(Map<String, dynamic> properties) async {
-    try {
-      for (final entry in properties.entries) {
-        await _analytics.setUserProperty(
-          name: entry.key,
-          value: entry.value?.toString(),
-        );
-      }
-    } catch (e) {
-      print('Failed to set user properties: \$e');
-    }
+    AppLogger.debug('[Analytics] User properties: $properties', 'Analytics');
   }
 
   @override
   Future<void> setUserId(String? userId) async {
-    try {
-      await _analytics.setUserId(id: userId);
-      await _crashlytics.setUserIdentifier(userId ?? '');
-    } catch (e) {
-      print('Failed to set user ID: \$e');
-    }
+    AppLogger.debug('[Analytics] User ID: ${userId ?? "cleared"}', 'Analytics');
   }
 
   @override
@@ -218,56 +182,37 @@ class FirebaseAnalyticsService implements AnalyticsService {
     bool fatal = false,
     Map<String, dynamic>? context,
   }) async {
-    try {
-      await _crashlytics.recordError(
-        error,
-        stackTrace,
-        reason: reason,
-        fatal: fatal,
-        information: context?.entries.map((e) => '\${e.key}: \${e.value}').toList() ?? [],
-      );
-    } catch (e) {
-      print('Failed to record error: \$e');
-    }
+    AppLogger.error(
+      '[Analytics] Error${reason != null ? " ($reason)" : ""}${fatal ? " [FATAL]" : ""}',
+      error,
+      stackTrace,
+      'Analytics',
+    );
   }
 
   @override
   Future<String> startTrace(String traceName) async {
-    try {
-      final trace = _performance.newTrace(traceName);
-      await trace.start();
-      _traces[traceName] = trace;
-      return traceName;
-    } catch (e) {
-      print('Failed to start trace: \$e');
-      return traceName;
-    }
+    _traces[traceName] = DateTime.now();
+    AppLogger.debug('[Analytics] Trace started: $traceName', 'Analytics');
+    return traceName;
   }
 
   @override
   Future<void> stopTrace(String traceId) async {
-    try {
-      final trace = _traces.remove(traceId);
-      if (trace != null) {
-        await trace.stop();
-      }
-    } catch (e) {
-      print('Failed to stop trace: \$e');
+    final start = _traces.remove(traceId);
+    if (start != null) {
+      final duration = DateTime.now().difference(start);
+      AppLogger.debug('[Analytics] Trace "$traceId" completed in ${duration.inMilliseconds}ms', 'Analytics');
     }
-  }
-
-  /// Get a NavigatorObserver for automatic screen tracking.
-  FirebaseAnalyticsObserver getObserver() {
-    return FirebaseAnalyticsObserver(analytics: _analytics);
   }
 }
 ''';
 }
 
-/// Generates the Sentry implementation.
 String generateSentryService() {
   return r'''
 import 'package:sentry_flutter/sentry_flutter.dart';
+import '../utils/logger.dart';
 import 'analytics_service.dart';
 
 /// Sentry implementation of AnalyticsService.
@@ -291,7 +236,7 @@ class SentryAnalyticsService implements AnalyticsService {
         level: SentryLevel.info,
       ));
     } catch (e) {
-      print('Failed to log event: \$e');
+      AppLogger.warning('Failed to log event: $e', 'Sentry');
     }
   }
 
@@ -299,13 +244,13 @@ class SentryAnalyticsService implements AnalyticsService {
   Future<void> logScreenView(String screenName, {String? screenClass}) async {
     try {
       Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Screen: \$screenName',
+        message: 'Screen: $screenName',
         category: 'navigation',
         level: SentryLevel.info,
         data: screenClass != null ? {'screen_class': screenClass} : null,
       ));
     } catch (e) {
-      print('Failed to log screen view: \$e');
+      AppLogger.warning('Failed to log screen view: $e', 'Sentry');
     }
   }
 
@@ -313,12 +258,10 @@ class SentryAnalyticsService implements AnalyticsService {
   Future<void> setUserProperties(Map<String, dynamic> properties) async {
     try {
       await Sentry.configureScope((scope) {
-        for (final entry in properties.entries) {
-          scope.setExtra(entry.key, entry.value);
-        }
+        scope.setContexts('user_properties', properties);
       });
     } catch (e) {
-      print('Failed to set user properties: \$e');
+      AppLogger.warning('Failed to set user properties: $e', 'Sentry');
     }
   }
 
@@ -329,7 +272,7 @@ class SentryAnalyticsService implements AnalyticsService {
         scope.setUser(userId != null ? SentryUser(id: userId) : null);
       });
     } catch (e) {
-      print('Failed to set user ID: \$e');
+      AppLogger.warning('Failed to set user ID: $e', 'Sentry');
     }
   }
 
@@ -352,7 +295,7 @@ class SentryAnalyticsService implements AnalyticsService {
         }),
       );
     } catch (e) {
-      print('Failed to record error: \$e');
+      AppLogger.warning('Failed to record error: $e', 'Sentry');
     }
   }
 
@@ -367,7 +310,7 @@ class SentryAnalyticsService implements AnalyticsService {
       _transactions[traceName] = transaction;
       return traceName;
     } catch (e) {
-      print('Failed to start trace: \$e');
+      AppLogger.warning('Failed to start trace: $e', 'Sentry');
       return traceName;
     }
   }
@@ -380,9 +323,31 @@ class SentryAnalyticsService implements AnalyticsService {
         await transaction.finish();
       }
     } catch (e) {
-      print('Failed to stop trace: \$e');
+      AppLogger.warning('Failed to stop trace: $e', 'Sentry');
     }
   }
+
+  @override
+  Future<void> logLogin(String method) =>
+      logEvent('login', parameters: {'method': method});
+
+  @override
+  Future<void> logSignup(String method) =>
+      logEvent('signup', parameters: {'method': method});
+
+  @override
+  Future<void> logPurchase({
+    required String currency,
+    required double value,
+    String? transactionId,
+    Map<String, dynamic>? items,
+  }) =>
+      logEvent('purchase', parameters: {
+        'currency': currency,
+        'value': value,
+        if (transactionId != null) 'transaction_id': transactionId,
+        if (items != null) 'items': items,
+      });
 }
 ''';
 }
@@ -527,25 +492,28 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
           );
     }
 
-    return ErrorWidget.builder = (FlutterErrorDetails details) {
+    ErrorWidget.builder = (FlutterErrorDetails details) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() => _error = details.exception);
-        
+
         // Report to analytics
-        AnalyticsService.instance.recordError(
-          details.exception,
-          details.stack,
-          reason: 'ErrorBoundary caught error',
-          fatal: false,
-          context: {'widget': widget.child.runtimeType.toString()},
-        );
-        
+        try {
+          AnalyticsService.instance.recordError(
+            details.exception,
+            details.stack,
+            reason: 'ErrorBoundary caught error',
+            fatal: false,
+            context: {'widget': widget.child.runtimeType.toString()},
+          );
+        } catch (_) {}
+
         // Call custom error handler
         widget.onError?.call(details.exception, details.stack ?? StackTrace.current);
       });
-      
+
       return widget.child;
-    } as Widget;
+    };
+    return widget.child;
   }
 }
 ''';

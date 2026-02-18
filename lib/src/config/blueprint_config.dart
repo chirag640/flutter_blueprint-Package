@@ -152,6 +152,7 @@ class BlueprintConfig {
     this.includeMaps = false,
     this.includeSocialAuth = false,
     this.includeThemeMode = false,
+    this.includeAccessibility = false,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -214,6 +215,9 @@ class BlueprintConfig {
   /// Whether to include dark/light mode detection and switching.
   final bool includeThemeMode;
 
+  /// Whether to include accessibility (a11y) utilities and helpers.
+  final bool includeAccessibility;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -261,6 +265,7 @@ class BlueprintConfig {
     bool? includeMaps,
     bool? includeSocialAuth,
     bool? includeThemeMode,
+    bool? includeAccessibility,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -284,6 +289,7 @@ class BlueprintConfig {
       includeMaps: includeMaps ?? this.includeMaps,
       includeSocialAuth: includeSocialAuth ?? this.includeSocialAuth,
       includeThemeMode: includeThemeMode ?? this.includeThemeMode,
+      includeAccessibility: includeAccessibility ?? this.includeAccessibility,
     );
   }
 
@@ -310,6 +316,7 @@ class BlueprintConfig {
         'maps': includeMaps,
         'social_auth': includeSocialAuth,
         'theme_mode': includeThemeMode,
+        'accessibility': includeAccessibility,
       }),
       'api_config': apiConfig.toMap(),
     };
@@ -371,6 +378,8 @@ class BlueprintConfig {
       includeMaps: _readBool(features['maps'], fallback: false),
       includeSocialAuth: _readBool(features['social_auth'], fallback: false),
       includeThemeMode: _readBool(features['theme_mode'], fallback: false),
+      includeAccessibility:
+          _readBool(features['accessibility'], fallback: false),
       apiConfig: map.containsKey('api_config')
           ? ApiConfig.fromMap(
               Map<String, dynamic>.from(map['api_config'] as Map))

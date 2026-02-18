@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
+import 'accessibility_templates.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
@@ -202,6 +203,30 @@ TemplateBundle buildBlocMobileBundle() {
           build: _errorBoundary,
           shouldGenerate: (config) => config.includeAnalytics),
 
+      // Core: Accessibility
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'semantics_helper.dart'),
+          build: _semanticsHelper,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'contrast_checker.dart'),
+          build: _contrastChecker,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'focus_manager.dart'),
+          build: _focusManager,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'accessibility', 'accessibility_config.dart'),
+          build: _accessibilityConfig,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('test', 'accessibility', 'a11y_test_utils.dart'),
+          build: _accessibilityTestUtils,
+          shouldGenerate: (config) =>
+              config.includeAccessibility && config.includeTests),
+
       // Features: Home
       TemplateFile(
           path: p.join('lib', 'features', 'home', 'presentation', 'pages',
@@ -306,6 +331,17 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  hive: ^2.2.3')
       ..writeln('  hive_flutter: ^1.1.0')
       ..writeln('  path_provider: ^2.1.5');
+  }
+  if (config.includeAnalytics) {
+    if (config.analyticsProvider == AnalyticsProvider.sentry) {
+      buffer.writeln('  sentry_flutter: ^8.9.0');
+    } else if (config.analyticsProvider == AnalyticsProvider.firebase) {
+      buffer
+        ..writeln('  firebase_core: ^3.6.0')
+        ..writeln('  firebase_analytics: ^11.3.3')
+        ..writeln('  firebase_crashlytics: ^4.1.3')
+        ..writeln('  firebase_performance: ^0.10.0+8');
+    }
   }
 
   buffer
@@ -1924,7 +1960,7 @@ class DialogUtils {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1976,7 +2012,7 @@ class DialogUtils {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -2044,8 +2080,8 @@ class DialogUtils {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => false,
+      builder: (context) => PopScope(
+        canPop: false,
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: Column(
@@ -2229,7 +2265,7 @@ class NetworkSettings {
       final result = await _connectivity.checkConnectivity();
       return !result.contains(ConnectivityResult.none);
     } catch (e) {
-      AppLogger.error('Error checking connectivity', 'NetworkSettings', e);
+      AppLogger.error('Error checking connectivity', e, null, 'NetworkSettings');
       return false;
     }
   }
@@ -2240,7 +2276,7 @@ class NetworkSettings {
       final results = await _connectivity.checkConnectivity();
       return results.first;
     } catch (e) {
-      AppLogger.error('Error getting connection type', 'NetworkSettings', e);
+      AppLogger.error('Error getting connection type', e, null, 'NetworkSettings');
       return ConnectivityResult.none;
     }
   }
@@ -2303,7 +2339,7 @@ class NetworkSettings {
     bool showError = true,
   }) async {
     if (!await isConnected()) {
-      if (showError) {
+      if (showError && context.mounted) {
         showNetworkError(context);
       }
       return null;
@@ -2345,3 +2381,12 @@ String _firebaseAnalyticsService(BlueprintConfig config) =>
 String _sentryService(BlueprintConfig config) => generateSentryService();
 String _analyticsEvents(BlueprintConfig config) => generateAnalyticsEvents();
 String _errorBoundary(BlueprintConfig config) => generateErrorBoundary();
+
+// Accessibility template wrappers
+String _semanticsHelper(BlueprintConfig config) => generateSemanticsHelper();
+String _contrastChecker(BlueprintConfig config) => generateContrastChecker();
+String _focusManager(BlueprintConfig config) => generateFocusManager();
+String _accessibilityConfig(BlueprintConfig config) =>
+    generateAccessibilityConfig();
+String _accessibilityTestUtils(BlueprintConfig config) =>
+    generateAccessibilityTestUtils();

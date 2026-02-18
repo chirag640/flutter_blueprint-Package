@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 
 import '../config/blueprint_config.dart';
+import 'accessibility_templates.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
@@ -202,6 +203,30 @@ TemplateBundle buildRiverpodMobileBundle() {
           build: _errorBoundary,
           shouldGenerate: (config) => config.includeAnalytics),
 
+      // Core: Accessibility
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'semantics_helper.dart'),
+          build: _semanticsHelper,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'contrast_checker.dart'),
+          build: _contrastChecker,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('lib', 'core', 'accessibility', 'focus_manager.dart'),
+          build: _focusManager,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'accessibility', 'accessibility_config.dart'),
+          build: _accessibilityConfig,
+          shouldGenerate: (config) => config.includeAccessibility),
+      TemplateFile(
+          path: p.join('test', 'accessibility', 'a11y_test_utils.dart'),
+          build: _accessibilityTestUtils,
+          shouldGenerate: (config) =>
+              config.includeAccessibility && config.includeTests),
+
       // Core: Providers (Global Riverpod providers)
       TemplateFile(
           path: p.join('lib', 'core', 'providers', 'app_providers.dart'),
@@ -220,6 +245,198 @@ TemplateBundle buildRiverpodMobileBundle() {
           path: p.join('lib', 'features', 'home', 'presentation', 'widgets',
               'home_content.dart'),
           build: _homeContent),
+
+      // Features: Auth (Login, Register, Token Management)
+      // Domain Layer
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'domain', 'entities',
+              'user_entity.dart'),
+          build: _authUserEntity,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'domain', 'repositories',
+              'auth_repository.dart'),
+          build: _authRepository,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'domain', 'usecases',
+              'login_usecase.dart'),
+          build: _authLoginUsecase,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'domain', 'usecases',
+              'register_usecase.dart'),
+          build: _authRegisterUsecase,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'domain', 'usecases',
+              'logout_usecase.dart'),
+          build: _authLogoutUsecase,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'domain', 'usecases',
+              'get_current_user_usecase.dart'),
+          build: _authGetCurrentUserUsecase,
+          shouldGenerate: (config) => config.includeApi),
+
+      // Data Layer
+      TemplateFile(
+          path: p.join(
+              'lib', 'features', 'auth', 'data', 'models', 'user_model.dart'),
+          build: _authUserModel,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'data', 'models',
+              'auth_response_model.dart'),
+          build: _authResponseModel,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'data', 'datasources',
+              'auth_remote_data_source.dart'),
+          build: _authRemoteDataSource,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'data', 'datasources',
+              'auth_local_data_source.dart'),
+          build: _authLocalDataSource,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'data', 'repositories',
+              'auth_repository_impl.dart'),
+          build: _authRepositoryImpl,
+          shouldGenerate: (config) => config.includeApi),
+
+      // Presentation Layer
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'pages',
+              'login_page.dart'),
+          build: _authLoginPage,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'pages',
+              'register_page.dart'),
+          build: _authRegisterPage,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'widgets',
+              'auth_text_field.dart'),
+          build: _authTextField,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'widgets',
+              'auth_button.dart'),
+          build: _authButton,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'providers',
+              'auth_provider.dart'),
+          build: _authProvider,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'providers',
+              'login_form_provider.dart'),
+          build: _authLoginFormProvider,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'auth', 'presentation', 'providers',
+              'register_form_provider.dart'),
+          build: _authRegisterFormProvider,
+          shouldGenerate: (config) => config.includeApi),
+
+      // Features: Profile (View, Edit, Avatar Upload)
+      // Data Layer
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'data', 'models',
+              'profile_model.dart'),
+          build: _profileModel,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'data', 'datasources',
+              'profile_remote_data_source.dart'),
+          build: _profileRemoteDataSource,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'data', 'datasources',
+              'profile_local_data_source.dart'),
+          build: _profileLocalDataSource,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'data', 'repositories',
+              'profile_repository_impl.dart'),
+          build: _profileRepositoryImpl,
+          shouldGenerate: (config) => config.includeApi),
+
+      // Domain Layer
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'domain', 'repositories',
+              'profile_repository.dart'),
+          build: _profileRepository,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'domain', 'usecases',
+              'get_profile_usecase.dart'),
+          build: _profileGetUsecase,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'domain', 'usecases',
+              'update_profile_usecase.dart'),
+          build: _profileUpdateUsecase,
+          shouldGenerate: (config) => config.includeApi),
+
+      // Presentation Layer
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'presentation', 'pages',
+              'profile_page.dart'),
+          build: _profilePage,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'presentation', 'pages',
+              'edit_profile_page.dart'),
+          build: _editProfilePage,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'presentation',
+              'providers', 'profile_provider.dart'),
+          build: _profileProvider,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'presentation',
+              'providers', 'profile_form_provider.dart'),
+          build: _profileFormProvider,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'presentation', 'widgets',
+              'profile_avatar.dart'),
+          build: _profileAvatar,
+          shouldGenerate: (config) => config.includeApi),
+      TemplateFile(
+          path: p.join('lib', 'features', 'profile', 'presentation', 'widgets',
+              'profile_info_tile.dart'),
+          build: _profileInfoTile,
+          shouldGenerate: (config) => config.includeApi),
+
+      // Features: Settings (App preferences, Theme, Notifications, etc.)
+      // Presentation Layer (settings don't need full domain/data layers)
+      TemplateFile(
+          path: p.join('lib', 'features', 'settings', 'presentation', 'pages',
+              'settings_page.dart'),
+          build: _settingsPage,
+          shouldGenerate: (config) => true), // Always generate settings
+      TemplateFile(
+          path: p.join('lib', 'features', 'settings', 'presentation',
+              'providers', 'settings_provider.dart'),
+          build: _settingsProvider,
+          shouldGenerate: (config) => true),
+      TemplateFile(
+          path: p.join('lib', 'features', 'settings', 'presentation', 'widgets',
+              'settings_tile.dart'),
+          build: _settingsTile,
+          shouldGenerate: (config) => true),
+      TemplateFile(
+          path: p.join('lib', 'features', 'settings', 'presentation', 'widgets',
+              'settings_section.dart'),
+          build: _settingsSection,
+          shouldGenerate: (config) => true),
 
       // Localization
       TemplateFile(
@@ -302,6 +519,17 @@ String _pubspec(BlueprintConfig config) {
       ..writeln('  hive_flutter: ^1.1.0')
       ..writeln('  path_provider: ^2.1.5');
   }
+  if (config.includeAnalytics) {
+    if (config.analyticsProvider == AnalyticsProvider.sentry) {
+      buffer.writeln('  sentry_flutter: ^8.9.0');
+    } else if (config.analyticsProvider == AnalyticsProvider.firebase) {
+      buffer
+        ..writeln('  firebase_core: ^3.6.0')
+        ..writeln('  firebase_analytics: ^11.3.3')
+        ..writeln('  firebase_crashlytics: ^4.1.3')
+        ..writeln('  firebase_performance: ^0.10.0+8');
+    }
+  }
 
   buffer
     ..writeln('')
@@ -344,6 +572,10 @@ String _mainDart(BlueprintConfig config) {
   if (config.includeHive) {
     buffer.writeln("import 'core/database/hive_database.dart';");
   }
+  // LocalStorage always needs async init
+  buffer
+    ..writeln("import 'core/storage/local_storage.dart';")
+    ..writeln("import 'core/providers/app_providers.dart';");
   buffer
     ..writeln('')
     ..writeln('Future<void> main() async {')
@@ -355,9 +587,13 @@ String _mainDart(BlueprintConfig config) {
     buffer.writeln("  await HiveDatabase.instance.init();");
   }
   buffer
+    ..writeln('  final localStorage = await LocalStorage.getInstance();')
     ..writeln('  runApp(')
-    ..writeln('    const ProviderScope(')
-    ..writeln('      child: App(),')
+    ..writeln('    ProviderScope(')
+    ..writeln('      overrides: [')
+    ..writeln('        localStorageProvider.overrideWithValue(localStorage),')
+    ..writeln('      ],')
+    ..writeln('      child: const App(),')
     ..writeln('    ),')
     ..writeln('  );')
     ..writeln('}');
@@ -377,6 +613,13 @@ String _appDart(BlueprintConfig config) {
     buffer.writeln(
         "import 'package:flutter_localizations/flutter_localizations.dart';");
   }
+  if (config.includeApi) {
+    buffer.writeln(
+        "import '../features/auth/presentation/providers/auth_provider.dart';");
+  }
+  if (config.includeApi) {
+    buffer.writeln("import '../core/theme/app_theme.dart' show AppTheme;");
+  }
 
   buffer
     ..writeln('')
@@ -384,19 +627,61 @@ String _appDart(BlueprintConfig config) {
     ..writeln('  const App({super.key});')
     ..writeln('')
     ..writeln('  @override')
-    ..writeln('  Widget build(BuildContext context, WidgetRef ref) {')
-    ..writeln('    final router = AppRouter();')
-    ..writeln('    return MaterialApp(')
-    ..writeln("        title: '$title',");
+    ..writeln('  Widget build(BuildContext context, WidgetRef ref) {');
+
+  if (config.includeApi) {
+    buffer
+      ..writeln('    final authState = ref.watch(authProvider);')
+      ..writeln('    final router = AppRouter();')
+      ..writeln('')
+      ..writeln('    // Determine initial route based on auth status')
+      ..writeln('    String initialRoute;')
+      ..writeln('    if (authState.isLoading) {')
+      ..writeln('      // Show loading screen while checking auth status')
+      ..writeln('      return MaterialApp(')
+      ..writeln("        title: '$title',");
+    if (config.includeTheme) {
+      buffer
+        ..writeln('        theme: AppTheme.light(),')
+        ..writeln('        darkTheme: AppTheme.dark(),')
+        ..writeln('        themeMode: ThemeMode.system,');
+    }
+    buffer
+      ..writeln('        home: const Scaffold(')
+      ..writeln('          body: Center(')
+      ..writeln('            child: CircularProgressIndicator(),')
+      ..writeln('          ),')
+      ..writeln('        ),')
+      ..writeln('      );')
+      ..writeln('    } else if (authState.isAuthenticated) {')
+      ..writeln('      initialRoute = AppRouter.home;')
+      ..writeln('    } else {')
+      ..writeln('      initialRoute = AppRouter.login;')
+      ..writeln('    }')
+      ..writeln('')
+      ..writeln('    return MaterialApp(')
+      ..writeln("        title: '$title',");
+  } else {
+    buffer
+      ..writeln('    final router = AppRouter();')
+      ..writeln('    return MaterialApp(')
+      ..writeln("        title: '$title',");
+  }
+
   if (config.includeTheme) {
     buffer
       ..writeln('        theme: AppTheme.light(),')
       ..writeln('        darkTheme: AppTheme.dark(),')
       ..writeln('        themeMode: ThemeMode.system,');
   }
-  buffer
-    ..writeln('        initialRoute: AppRouter.home,')
-    ..writeln('        onGenerateRoute: router.onGenerateRoute,');
+
+  if (config.includeApi) {
+    buffer.writeln('        initialRoute: initialRoute,');
+  } else {
+    buffer.writeln('        initialRoute: AppRouter.home,');
+  }
+
+  buffer.writeln('        onGenerateRoute: router.onGenerateRoute,');
   if (config.includeLocalization) {
     buffer
       ..writeln('        localizationsDelegates: const [')
@@ -447,7 +732,8 @@ String _appConfig(BlueprintConfig config) {
     if (config.includeEnv) {
       buffer.writeln('      apiBaseUrl: EnvLoader.apiBaseUrl,');
     } else {
-      buffer.writeln("      apiBaseUrl: 'https://api.example.com',");
+      buffer
+          .writeln("      apiBaseUrl: 'https://jsonplaceholder.typicode.com',");
     }
   } else {
     buffer.writeln("      apiBaseUrl: '',");
@@ -468,16 +754,68 @@ String _appRouter(BlueprintConfig config) {
     ..writeln("import 'package:flutter/material.dart';")
     ..writeln()
     ..writeln("import '../../features/home/presentation/pages/home_page.dart';")
+    ..writeln(
+        "import '../../features/settings/presentation/pages/settings_page.dart';");
+
+  // Add auth imports if API is enabled
+  if (config.includeApi) {
+    buffer
+      ..writeln(
+          "import '../../features/auth/presentation/pages/login_page.dart';")
+      ..writeln(
+          "import '../../features/auth/presentation/pages/register_page.dart';")
+      ..writeln(
+          "import '../../features/profile/presentation/pages/profile_page.dart';")
+      ..writeln(
+          "import '../../features/profile/presentation/pages/edit_profile_page.dart';");
+  }
+
+  buffer
     ..writeln("import 'route_guard.dart';")
     ..writeln()
     ..writeln('class AppRouter {')
     ..writeln("  static const home = '/';")
+    ..writeln("  static const settings = '/settings';");
+
+  // Add auth routes if API is enabled
+  if (config.includeApi) {
+    buffer
+      ..writeln("  static const login = '/login';")
+      ..writeln("  static const register = '/register';")
+      ..writeln("  static const profile = '/profile';")
+      ..writeln("  static const editProfile = '/edit-profile';");
+  }
+
+  buffer
     ..writeln()
-    ..writeln('  Route<dynamic>? onGenerateRoute(RouteSettings settings) {')
-    ..writeln('    switch (settings.name) {')
+    ..writeln(
+        '  Route<dynamic>? onGenerateRoute(RouteSettings routeSettings) {')
+    ..writeln('    switch (routeSettings.name) {')
     ..writeln('      case home:')
     ..writeln(
         '        return MaterialPageRoute(builder: (_) => const HomePage());')
+    ..writeln('      case settings:')
+    ..writeln(
+        '        return MaterialPageRoute(builder: (_) => const SettingsPage());');
+
+  // Add auth route cases if API is enabled
+  if (config.includeApi) {
+    buffer
+      ..writeln('      case login:')
+      ..writeln(
+          '        return MaterialPageRoute(builder: (_) => const LoginPage());')
+      ..writeln('      case register:')
+      ..writeln(
+          '        return MaterialPageRoute(builder: (_) => const RegisterPage());')
+      ..writeln('      case profile:')
+      ..writeln(
+          '        return MaterialPageRoute(builder: (_) => const ProfilePage());')
+      ..writeln('      case editProfile:')
+      ..writeln(
+          '        return MaterialPageRoute(builder: (_) => const EditProfilePage());');
+  }
+
+  buffer
     ..writeln('      default:')
     ..writeln(
         '        return MaterialPageRoute(builder: (_) => const HomePage());')
@@ -485,14 +823,14 @@ String _appRouter(BlueprintConfig config) {
     ..writeln('  }')
     ..writeln()
     ..writeln('  Route<dynamic> guarded({')
-    ..writeln('    required RouteSettings settings,')
+    ..writeln('    required RouteSettings routeSettings,')
     ..writeln('    required RouteGuard guard,')
     ..writeln('    required WidgetBuilder builder,')
     ..writeln('  }) {')
     ..writeln('    return MaterialPageRoute(')
-    ..writeln('      settings: settings,')
+    ..writeln('      settings: routeSettings,')
     ..writeln('      builder: (context) {')
-    ..writeln('        if (!guard.canActivate(settings)) {')
+    ..writeln('        if (!guard.canActivate(routeSettings)) {')
     ..writeln('          return guard.fallback(context: context);')
     ..writeln('        }')
     ..writeln('        return builder(context);')
@@ -659,19 +997,30 @@ String _loggerInterceptor(BlueprintConfig config) {
 
 String _homePage(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/home_content.dart';
+import '../providers/home_provider.dart';
 
 /// Home page - state is managed by homeProvider
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('${_titleCase(config.appName)}'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.read(homeProvider.notifier).refresh();
+            },
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
       body: const HomeContent(),
     );
@@ -1556,6 +1905,14 @@ String _appProviders(BlueprintConfig config) {
     buffer.writeln("import '../api/api_client.dart';");
   }
 
+  // LocalStorage is always needed (auth, profile, settings are core features)
+  buffer.writeln("import '../storage/local_storage.dart';");
+
+  // Import CacheManager if Hive is included
+  if (config.includeHive) {
+    buffer.writeln("import '../database/cache_manager.dart';");
+  }
+
   buffer
     ..writeln('')
     ..writeln('/// Global provider for app configuration')
@@ -1573,57 +1930,311 @@ String _appProviders(BlueprintConfig config) {
       ..writeln('});');
   }
 
+  // LocalStorage provider is always included (initialized asynchronously in main())
+  buffer
+    ..writeln('')
+    ..writeln('/// Global provider for LocalStorage')
+    ..writeln('/// Must be overridden with an initialized instance in main()')
+    ..writeln('final localStorageProvider = Provider<LocalStorage>((ref) {')
+    ..writeln(
+        "  throw UnimplementedError('localStorageProvider must be overridden in main()');")
+    ..writeln('});');
+
+  if (config.includeHive) {
+    buffer
+      ..writeln('')
+      ..writeln('/// Cache manager provider for home items')
+      ..writeln(
+          "final homeCacheManagerProvider = Provider<CacheManager<List>>((ref) {")
+      ..writeln("  return CacheManager<List>(boxName: 'home_cache');")
+      ..writeln('});');
+  }
+
   return buffer.toString();
 }
 
 String _homeProvider(BlueprintConfig config) {
+  if (config.includeApi) {
+    return _generateApiConnectedHomeProvider(config);
+  } else {
+    return _generateSimpleHomeProvider(config);
+  }
+}
+
+String _generateApiConnectedHomeProvider(BlueprintConfig config) {
+  final includeHive = config.includeHive;
+  final cacheImport = includeHive
+      ? "import '../../../../core/database/cache_manager.dart';"
+      : '';
+
   return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/api/api_client.dart';
+import '../../../../core/providers/app_providers.dart';
+${includeHive ? cacheImport : ''}
+
+/// Simple item model for demonstration
+class HomeItem {
+  const HomeItem({
+    required this.id,
+    required this.title,
+    required this.description,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+
+  factory HomeItem.fromJson(Map<String, dynamic> json) {
+    return HomeItem(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? json['body']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+    };
+  }
+}
 
 /// Home screen state
 class HomeState {
   const HomeState({
+    this.items = const [],
     this.isLoading = false,
+    this.isRefreshing = false,
     this.error,
-    this.counter = 0,
+    this.hasMore = true,
+    this.currentPage = 1,
   });
 
+  final List<HomeItem> items;
   final bool isLoading;
+  final bool isRefreshing;
   final String? error;
-  final int counter;
+  final bool hasMore;
+  final int currentPage;
 
   HomeState copyWith({
+    List<HomeItem>? items,
     bool? isLoading,
+    bool? isRefreshing,
     String? error,
-    int? counter,
+    bool? hasMore,
+    int? currentPage,
   }) {
     return HomeState(
+      items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
       error: error,
-      counter: counter ?? this.counter,
+      hasMore: hasMore ?? this.hasMore,
+      currentPage: currentPage ?? this.currentPage,
     );
   }
 }
 
-/// Home screen state notifier using Riverpod's StateNotifier
+/// Home screen state notifier with API integration
 class HomeNotifier extends StateNotifier<HomeState> {
-  HomeNotifier() : super(const HomeState());
-
-  void incrementCounter() {
-    state = state.copyWith(counter: state.counter + 1);
+  HomeNotifier(this._apiClient${includeHive ? ', this._cacheManager' : ''}) : super(const HomeState()) {
+    loadItems();
   }
 
-  Future<void> loadData() async {
+  final ApiClient _apiClient;
+  ${includeHive ? 'final CacheManager<List> _cacheManager;' : ''}
+
+  /// Load items from API (or cache if offline)
+  Future<void> loadItems({bool refresh = false}) async {
+    if (refresh) {
+      state = state.copyWith(isRefreshing: true, error: null);
+    } else {
+      state = state.copyWith(isLoading: true, error: null);
+    }
+
+    try {
+      ${includeHive ? '''
+      // Try to load from cache first
+      final cachedData = _cacheManager.get('home_items');
+      if (cachedData != null && !refresh) {
+        final cachedItems = cachedData
+            .map((json) => HomeItem.fromJson(json as Map<String, dynamic>))
+            .toList();
+        state = state.copyWith(
+          items: cachedItems,
+          isLoading: false,
+          isRefreshing: false,
+        );
+      }
+      ''' : ''}
+
+      // Fetch from API - using JSONPlaceholder as example
+      // Replace with your actual API endpoint
+      final response = await _apiClient.get('/posts?_page=1&_limit=10');
+      
+      final List<HomeItem> items;
+      if (response.data is List) {
+        items = (response.data as List)
+            .map((json) => HomeItem.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        items = [];
+      }
+
+      ${includeHive ? '''
+      // Cache the results
+      await _cacheManager.put(
+        'home_items',
+        items.map((item) => item.toJson()).toList(),
+        ttl: const Duration(hours: 1),
+      );
+      ''' : ''}
+
+      state = state.copyWith(
+        items: items,
+        isLoading: false,
+        isRefreshing: false,
+        currentPage: 1,
+        hasMore: items.length >= 10,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        isRefreshing: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Load more items for pagination
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Simulate API call
+      final nextPage = state.currentPage + 1;
+      final response = await _apiClient.get('/posts?_page=\$nextPage&_limit=10');
+      
+      final List<HomeItem> newItems;
+      if (response.data is List) {
+        newItems = (response.data as List)
+            .map((json) => HomeItem.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        newItems = [];
+      }
+
+      state = state.copyWith(
+        items: [...state.items, ...newItems],
+        isLoading: false,
+        currentPage: nextPage,
+        hasMore: newItems.length >= 10,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Refresh items
+  Future<void> refresh() async {
+    await loadItems(refresh: true);
+  }
+}
+
+/// Provider for home screen state
+final homeProvider = StateNotifierProvider<HomeNotifier, HomeState>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  ${includeHive ? 'final cacheManager = ref.watch(homeCacheManagerProvider);' : ''}
+  return HomeNotifier(apiClient${includeHive ? ', cacheManager' : ''});
+});
+""";
+}
+
+String _generateSimpleHomeProvider(BlueprintConfig config) {
+  return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Simple item model for demonstration
+class HomeItem {
+  const HomeItem({
+    required this.id,
+    required this.title,
+    required this.description,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+}
+
+/// Home screen state
+class HomeState {
+  const HomeState({
+    this.items = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  final List<HomeItem> items;
+  final bool isLoading;
+  final String? error;
+
+  HomeState copyWith({
+    List<HomeItem>? items,
+    bool? isLoading,
+    String? error,
+  }) {
+    return HomeState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+/// Home screen state notifier
+class HomeNotifier extends StateNotifier<HomeState> {
+  HomeNotifier() : super(const HomeState()) {
+    _loadSampleData();
+  }
+
+  void _loadSampleData() {
+    // Load sample data for demonstration
+    final sampleItems = List.generate(
+      10,
+      (index) => HomeItem(
+        id: '\$index',
+        title: 'Item \${index + 1}',
+        description: 'This is a sample item to demonstrate the app structure.',
+      ),
+    );
+
+    state = state.copyWith(items: sampleItems);
+  }
+
+  Future<void> loadItems() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // Simulate loading delay
       await Future.delayed(const Duration(seconds: 1));
-      // Process data here
+      
+      _loadSampleData();
 
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  Future<void> refresh() async {
+    await loadItems();
   }
 }
 
@@ -1641,6 +2252,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/widgets/loading_indicator.dart';
 import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/empty_state.dart';
 
 /// Home screen content widget using ConsumerWidget for Riverpod
 class HomeContent extends ConsumerWidget {
@@ -1650,31 +2262,77 @@ class HomeContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeProvider);
 
-    if (homeState.isLoading) {
-      return const LoadingIndicator(message: 'Loading...');
+    // Initial loading state
+    if (homeState.isLoading && homeState.items.isEmpty) {
+      return const LoadingIndicator(message: 'Loading items...');
     }
 
-    if (homeState.error != null) {
+    // Error state (when no items are loaded yet)
+    if (homeState.error != null && homeState.items.isEmpty) {
       return ErrorView(
         message: homeState.error!,
-        onRetry: () => ref.read(homeProvider.notifier).loadData(),
+        onRetry: () => ref.read(homeProvider.notifier).loadItems(),
       );
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Counter: \${homeState.counter}',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => ref.read(homeProvider.notifier).incrementCounter(),
-            child: const Text('Increment'),
-          ),
-        ],
+    // Empty state
+    if (homeState.items.isEmpty) {
+      return EmptyState(
+        message: 'No items found',
+        action: () => ref.read(homeProvider.notifier).loadItems(),
+        actionLabel: 'Retry',
+      );
+    }
+
+    // List with pull-to-refresh
+    return RefreshIndicator(
+      onRefresh: () => ref.read(homeProvider.notifier).refresh(),
+      child: ListView.builder(
+        itemCount: homeState.items.length + (homeState.hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          // Loading indicator for pagination
+          if (index == homeState.items.length) {
+            if (homeState.isLoading) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return const SizedBox.shrink();
+          }
+
+          final item = homeState.items[index];
+
+          // Load more when reaching the end
+          if (index == homeState.items.length - 2 && homeState.hasMore && !homeState.isLoading) {
+            Future.microtask(() => ref.read(homeProvider.notifier).loadMore());
+          }
+
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Text('\${index + 1}'),
+              ),
+              title: Text(
+                item.title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                item.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                // Navigate to detail page (implement as needed)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Tapped on \${item.title}')),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -1768,11 +2426,11 @@ class DialogUtils {
   DialogUtils._();
 
   static Future<void> showSuccess(BuildContext context, {required String title, required String message, String buttonText = 'OK', VoidCallback? onPressed}) {
-    return showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline, color: AppColors.success, size: 32)), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)))]), content: Text(message), actions: [TextButton(onPressed: () { Navigator.of(context).pop(); onPressed?.call(); }, child: Text(buttonText))]));
+    return showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline, color: AppColors.success, size: 32)), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)))]), content: Text(message), actions: [TextButton(onPressed: () { Navigator.of(context).pop(); onPressed?.call(); }, child: Text(buttonText))]));
   }
 
   static Future<void> showError(BuildContext context, {required String title, required String message, String buttonText = 'OK', VoidCallback? onPressed}) {
-    return showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.error_outline, color: AppColors.error, size: 32)), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)))]), content: Text(message), actions: [TextButton(onPressed: () { Navigator.of(context).pop(); onPressed?.call(); }, child: Text(buttonText))]));
+    return showDialog(context: context, builder: (context) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), title: Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(Icons.error_outline, color: AppColors.error, size: 32)), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)))]), content: Text(message), actions: [TextButton(onPressed: () { Navigator.of(context).pop(); onPressed?.call(); }, child: Text(buttonText))]));
   }
 
   static Future<bool?> showConfirmation(BuildContext context, {required String title, required String message, String confirmText = 'Confirm', String cancelText = 'Cancel'}) {
@@ -1780,7 +2438,7 @@ class DialogUtils {
   }
 
   static void showLoading(BuildContext context, {String message = 'Loading...'}) {
-    showDialog(context: context, barrierDismissible: false, builder: (context) => WillPopScope(onWillPop: () async => false, child: AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), content: Column(mainAxisSize: MainAxisSize.min, children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(message)]))));
+    showDialog(context: context, barrierDismissible: false, builder: (context) => PopScope(canPop: false, child: AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), content: Column(mainAxisSize: MainAxisSize.min, children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(message)]))));
   }
 
   static void dismissLoading(BuildContext context) => Navigator.of(context, rootNavigator: true).pop();
@@ -1830,7 +2488,7 @@ class NetworkSettings {
       final result = await _connectivity.checkConnectivity();
       return !result.contains(ConnectivityResult.none);
     } catch (e) {
-      AppLogger.error('Error checking connectivity', 'NetworkSettings', e);
+      AppLogger.error('Error checking connectivity', e, null, 'NetworkSettings');
       return false;
     }
   }
@@ -1840,7 +2498,7 @@ class NetworkSettings {
       final results = await _connectivity.checkConnectivity();
       return results.first;
     } catch (e) {
-      AppLogger.error('Error getting connection type', 'NetworkSettings', e);
+      AppLogger.error('Error getting connection type', e, null, 'NetworkSettings');
       return ConnectivityResult.none;
     }
   }
@@ -1865,7 +2523,7 @@ class NetworkSettings {
 
   static Future<T?> executeWithNetworkCheck<T>(BuildContext context, Future<T> Function() function, {bool showError = true}) async {
     if (!await isConnected()) {
-      if (showError) showNetworkError(context);
+      if (showError && context.mounted) showNetworkError(context);
       return null;
     }
     return await function();
@@ -1905,3 +2563,3257 @@ String _firebaseAnalyticsService(BlueprintConfig config) =>
 String _sentryService(BlueprintConfig config) => generateSentryService();
 String _analyticsEvents(BlueprintConfig config) => generateAnalyticsEvents();
 String _errorBoundary(BlueprintConfig config) => generateErrorBoundary();
+
+// Accessibility template wrappers
+String _semanticsHelper(BlueprintConfig config) => generateSemanticsHelper();
+String _contrastChecker(BlueprintConfig config) => generateContrastChecker();
+String _focusManager(BlueprintConfig config) => generateFocusManager();
+String _accessibilityConfig(BlueprintConfig config) =>
+    generateAccessibilityConfig();
+String _accessibilityTestUtils(BlueprintConfig config) =>
+    generateAccessibilityTestUtils();
+// ============================================================================
+// AUTH FEATURE TEMPLATE FUNCTIONS (Domain Layer)
+// ============================================================================
+
+String _authUserEntity(BlueprintConfig config) {
+  return """import 'package:equatable/equatable.dart';
+
+/// User entity representing an authenticated user
+class UserEntity extends Equatable {
+  const UserEntity({
+    required this.id,
+    required this.email,
+    this.name,
+    this.avatar,
+  });
+
+  final String id;
+  final String email;
+  final String? name;
+  final String? avatar;
+
+  @override
+  List<Object?> get props => [id, email, name, avatar];
+}
+""";
+}
+
+String _authRepository(BlueprintConfig config) {
+  return """import '../entities/user_entity.dart';
+
+/// Authentication repository interface
+abstract class AuthRepository {
+  /// Login with email and password
+  Future<UserEntity> login({
+    required String email,
+    required String password,
+  });
+
+  /// Register a new user
+  Future<UserEntity> register({
+    required String email,
+    required String password,
+    required String name,
+  });
+
+  /// Logout the current user
+  Future<void> logout();
+
+  /// Get the currently logged in user
+  Future<UserEntity?> getCurrentUser();
+
+  /// Check if user is authenticated
+  Future<bool> isAuthenticated();
+
+  /// Refresh authentication token
+  Future<bool> refreshToken();
+}
+""";
+}
+
+String _authLoginUsecase(BlueprintConfig config) {
+  return """import '../entities/user_entity.dart';
+import '../repositories/auth_repository.dart';
+
+/// Use case for user login
+class LoginUsecase {
+  LoginUsecase(this._repository);
+
+  final AuthRepository _repository;
+
+  /// Execute login
+  Future<UserEntity> call({
+    required String email,
+    required String password,
+  }) async {
+    return await _repository.login(
+      email: email,
+      password: password,
+    );
+  }
+}
+""";
+}
+
+String _authRegisterUsecase(BlueprintConfig config) {
+  return """import '../entities/user_entity.dart';
+import '../repositories/auth_repository.dart';
+
+/// Use case for user registration
+class RegisterUsecase {
+  RegisterUsecase(this._repository);
+
+  final AuthRepository _repository;
+
+  /// Execute registration
+  Future<UserEntity> call({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    return await _repository.register(
+      email: email,
+      password: password,
+      name: name,
+    );
+  }
+}
+""";
+}
+
+String _authLogoutUsecase(BlueprintConfig config) {
+  return """import '../repositories/auth_repository.dart';
+
+/// Use case for user logout
+class LogoutUsecase {
+  LogoutUsecase(this._repository);
+
+  final AuthRepository _repository;
+
+  /// Execute logout
+  Future<void> call() async {
+    await _repository.logout();
+  }
+}
+""";
+}
+
+String _authGetCurrentUserUsecase(BlueprintConfig config) {
+  return """import '../entities/user_entity.dart';
+import '../repositories/auth_repository.dart';
+
+/// Use case to get current authenticated user
+class GetCurrentUserUsecase {
+  GetCurrentUserUsecase(this._repository);
+
+  final AuthRepository _repository;
+
+  /// Execute get current user
+  Future<UserEntity?> call() async {
+    return await _repository.getCurrentUser();
+  }
+}
+""";
+}
+
+// ============================================================================
+// AUTH FEATURE TEMPLATE FUNCTIONS (Data Layer)
+// ============================================================================
+
+String _authUserModel(BlueprintConfig config) {
+  return """import '../../domain/entities/user_entity.dart';
+
+/// User data model
+class UserModel extends UserEntity {
+  const UserModel({
+    required super.id,
+    required super.email,
+    super.name,
+    super.avatar,
+  });
+
+  /// Create from JSON
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      name: json['name']?.toString(),
+      avatar: json['avatar']?.toString(),
+    );
+  }
+
+  /// Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      if (name != null) 'name': name,
+      if (avatar != null) 'avatar': avatar,
+    };
+  }
+
+  /// Create copy with updated fields
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? avatar,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      avatar: avatar ?? this.avatar,
+    );
+  }
+}
+""";
+}
+
+String _authResponseModel(BlueprintConfig config) {
+  return """import 'user_model.dart';
+
+/// Authentication response model from API
+class AuthResponseModel {
+  const AuthResponseModel({
+    required this.user,
+    required this.accessToken,
+    this.refreshToken,
+  });
+
+  final UserModel user;
+  final String accessToken;
+  final String? refreshToken;
+
+  /// Create from JSON
+  factory AuthResponseModel.fromJson(Map<String, dynamic> json) {
+    return AuthResponseModel(
+      user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
+      accessToken: json['accessToken']?.toString() ?? json['token']?.toString() ?? '',
+      refreshToken: json['refreshToken']?.toString(),
+    );
+  }
+
+  /// Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'user': user.toJson(),
+      'accessToken': accessToken,
+      if (refreshToken != null) 'refreshToken': refreshToken,
+    };
+  }
+}
+""";
+}
+
+String _authRemoteDataSource(BlueprintConfig config) {
+  return """import 'package:dio/dio.dart';
+
+import '../../../../core/api/api_client.dart';
+import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/utils/logger.dart';
+import '../models/auth_response_model.dart';
+import '../models/user_model.dart';
+
+/// Remote data source for authentication
+abstract class AuthRemoteDataSource {
+  Future<AuthResponseModel> login(String email, String password);
+  Future<AuthResponseModel> register(String email, String password, String name);
+  Future<UserModel> getCurrentUser();
+  Future<bool> refreshToken(String refreshToken);
+}
+
+/// Implementation of authentication remote data source
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  AuthRemoteDataSourceImpl(this._apiClient);
+
+  final ApiClient _apiClient;
+
+  @override
+  Future<AuthResponseModel> login(String email, String password) async {
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.login,
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      AppLogger.error('Login failed', e, e.stackTrace, 'AuthRemoteDataSource');
+      throw Exception('Login failed: \${e.message}');
+    }
+  }
+
+  @override
+  Future<AuthResponseModel> register(String email, String password, String name) async {
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.register,
+        data: {
+          'email': email,
+          'password': password,
+          'name': name,
+        },
+      );
+
+      return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      AppLogger.error('Registration failed', e, e.stackTrace, 'AuthRemoteDataSource');
+      throw Exception('Registration failed: \${e.message}');
+    }
+  }
+
+  @override
+  Future<UserModel> getCurrentUser() async {
+    try {
+      final response = await _apiClient.get(ApiEndpoints.profile);
+
+      return UserModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      AppLogger.error('Get user failed', e, e.stackTrace, 'AuthRemoteDataSource');
+      throw Exception('Failed to get user: \${e.message}');
+    }
+  }
+
+  @override
+  Future<bool> refreshToken(String refreshToken) async {
+    try {
+      await _apiClient.post(
+        ApiEndpoints.refreshToken,
+        data: {'refreshToken': refreshToken},
+      );
+      return true;
+    } on DioException catch (e) {
+      AppLogger.error('Token refresh failed', e, e.stackTrace, 'AuthRemoteDataSource');
+      return false;
+    }
+  }
+}
+""";
+}
+
+String _authLocalDataSource(BlueprintConfig config) {
+  return """import '../../../../core/constants/app_constants.dart';
+import '../../../../core/storage/local_storage.dart';
+import '../../../../core/storage/secure_storage.dart';
+import '../../../../core/utils/logger.dart';
+import '../models/user_model.dart';
+import 'dart:convert';
+
+/// Local data source for authentication (caching tokens and user data)
+abstract class AuthLocalDataSource {
+  Future<void> saveTokens(String accessToken, String? refreshToken);
+  Future<String?> getAccessToken();
+  Future<String?> getRefreshToken();
+  Future<void> clearTokens();
+  Future<void> saveUser(UserModel user);
+  Future<UserModel?> getCachedUser();
+  Future<void> clearUser();
+}
+
+/// Implementation of authentication local data source
+class AuthLocalDataSourceImpl implements AuthLocalDataSource {
+  AuthLocalDataSourceImpl({
+    required this.localStorage,
+    required this.secureStorage,
+  });
+
+  final LocalStorage localStorage;
+  final SecureStorage secureStorage;
+
+  @override
+  Future<void> saveTokens(String accessToken, String? refreshToken) async {
+    await secureStorage.write(AppConstants.keyAccessToken, accessToken);
+    if (refreshToken != null) {
+      await secureStorage.write(AppConstants.keyRefreshToken, refreshToken);
+    }
+    AppLogger.debug('Tokens saved', 'AuthLocalDataSource');
+  }
+
+  @override
+  Future<String?> getAccessToken() async {
+    return await secureStorage.read(AppConstants.keyAccessToken);
+  }
+
+  @override
+  Future<String?> getRefreshToken() async {
+    return await secureStorage.read(AppConstants.keyRefreshToken);
+  }
+
+  @override
+  Future<void> clearTokens() async {
+    await secureStorage.delete(AppConstants.keyAccessToken);
+    await secureStorage.delete(AppConstants.keyRefreshToken);
+    AppLogger.debug('Tokens cleared', 'AuthLocalDataSource');
+  }
+
+  @override
+  Future<void> saveUser(UserModel user) async {
+    await localStorage.setString('cached_user', jsonEncode(user.toJson()));
+    AppLogger.debug('User cached locally', 'AuthLocalDataSource');
+  }
+
+  @override
+  Future<UserModel?> getCachedUser() async {
+    final userJson = localStorage.getString('cached_user');
+    if (userJson == null) return null;
+
+    try {
+      return UserModel.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+    } catch (e) {
+      AppLogger.error('Failed to parse cached user', e, null, 'AuthLocalDataSource');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> clearUser() async {
+    await localStorage.remove('cached_user');
+    AppLogger.debug('Cached user cleared', 'AuthLocalDataSource');
+  }
+}
+""";
+}
+
+String _authRepositoryImpl(BlueprintConfig config) {
+  return """import '../../domain/entities/user_entity.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_local_data_source.dart';
+import '../datasources/auth_remote_data_source.dart';
+import '../../../../core/utils/logger.dart';
+
+/// Implementation of authentication repository
+class AuthRepositoryImpl implements AuthRepository {
+  AuthRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
+
+  final AuthRemoteDataSource remoteDataSource;
+  final AuthLocalDataSource localDataSource;
+
+  @override
+  Future<UserEntity> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // Login via API
+      final authResponse = await remoteDataSource.login(email, password);
+
+      // Save tokens and user data locally
+      await localDataSource.saveTokens(
+        authResponse.accessToken,
+        authResponse.refreshToken,
+      );
+      await localDataSource.saveUser(authResponse.user);
+
+      AppLogger.success('Login successful', 'AuthRepository');
+      return authResponse.user;
+    } catch (e) {
+      AppLogger.error('Login failed in repository', e, null, 'AuthRepository');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserEntity> register({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    try {
+      // Register via API
+      final authResponse =
+          await remoteDataSource.register(email, password, name);
+
+      // Save tokens and user data locally
+      await localDataSource.saveTokens(
+        authResponse.accessToken,
+        authResponse.refreshToken,
+      );
+      await localDataSource.saveUser(authResponse.user);
+
+      AppLogger.success('Registration successful', 'AuthRepository');
+      return authResponse.user;
+    } catch (e) {
+      AppLogger.error('Registration failed in repository', e, null, 'AuthRepository');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> logout() async {
+    try {
+      // Clear local data
+      await localDataSource.clearTokens();
+      await localDataSource.clearUser();
+
+      AppLogger.success('Logout successful', 'AuthRepository');
+    } catch (e) {
+      AppLogger.error('Logout failed', e, null, 'AuthRepository');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserEntity?> getCurrentUser() async {
+    try {
+      // Try to get from cache first
+      final cachedUser = await localDataSource.getCachedUser();
+      if (cachedUser != null) {
+        return cachedUser;
+      }
+
+      // If not in cache, fetch from API
+      final token = await localDataSource.getAccessToken();
+      if (token == null) {
+        return null;
+      }
+
+      final user = await remoteDataSource.getCurrentUser();
+      await localDataSource.saveUser(user);
+
+      return user;
+    } catch (e) {
+      AppLogger.error('Failed to get current user', e, null, 'AuthRepository');
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> isAuthenticated() async {
+    final token = await localDataSource.getAccessToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  @override
+  Future<bool> refreshToken() async {
+    try {
+      final refreshToken = await localDataSource.getRefreshToken();
+      if (refreshToken == null) {
+        return false;
+      }
+
+      final success = await remoteDataSource.refreshToken(refreshToken);
+      return success;
+    } catch (e) {
+      AppLogger.error('Token refresh failed', e, null, 'AuthRepository');
+      return false;
+    }
+  }
+}
+""";
+}
+
+// ============================================================================
+// AUTH FEATURE TEMPLATE FUNCTIONS (Presentation Layer)
+// ============================================================================
+
+String _authProvider(BlueprintConfig config) {
+  return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/providers/app_providers.dart';
+import '../../../../core/storage/secure_storage.dart';
+import '../../data/datasources/auth_local_data_source.dart';
+import '../../data/datasources/auth_remote_data_source.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/get_current_user_usecase.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
+
+// ========== DATA SOURCES ==========
+
+final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return AuthRemoteDataSourceImpl(apiClient);
+});
+
+final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
+  return AuthLocalDataSourceImpl(
+    localStorage: ref.watch(localStorageProvider),
+    secureStorage: SecureStorage.instance,
+  );
+});
+
+// ========== REPOSITORY ==========
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(
+    remoteDataSource: ref.watch(authRemoteDataSourceProvider),
+    localDataSource: ref.watch(authLocalDataSourceProvider),
+  );
+});
+
+// ========== USE CASES ==========
+
+final loginUsecaseProvider = Provider<LoginUsecase>((ref) {
+  return LoginUsecase(ref.watch(authRepositoryProvider));
+});
+
+final registerUsecaseProvider = Provider<RegisterUsecase>((ref) {
+  return RegisterUsecase(ref.watch(authRepositoryProvider));
+});
+
+final logoutUsecaseProvider = Provider<LogoutUsecase>((ref) {
+  return LogoutUsecase(ref.watch(authRepositoryProvider));
+});
+
+final getCurrentUserUsecaseProvider = Provider<GetCurrentUserUsecase>((ref) {
+  return GetCurrentUserUsecase(ref.watch(authRepositoryProvider));
+});
+
+// ========== AUTH STATE ==========
+
+/// Authentication state
+class AuthState {
+  const AuthState({
+    this.user,
+    this.isAuthenticated = false,
+    this.isLoading = false,
+    this.error,
+  });
+
+  final UserEntity? user;
+  final bool isAuthenticated;
+  final bool isLoading;
+  final String? error;
+
+  AuthState copyWith({
+    UserEntity? user,
+    bool? isAuthenticated,
+    bool? isLoading,
+    String? error,
+  }) {
+    return AuthState(
+      user: user ?? this.user,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+// ========== AUTH NOTIFIER ==========
+
+/// Authentication state notifier
+class AuthNotifier extends StateNotifier<AuthState> {
+  AuthNotifier(this._ref) : super(const AuthState()) {
+    _checkAuthStatus();
+  }
+
+  final Ref _ref;
+
+  /// Check if user is authenticated on app start
+  Future<void> _checkAuthStatus() async {
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final usecase = _ref.read(getCurrentUserUsecaseProvider);
+      final user = await usecase();
+
+      if (user != null) {
+        state = state.copyWith(
+          user: user,
+          isAuthenticated: true,
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(isLoading: false);
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Login with email and password
+  Future<bool> login(String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final usecase = _ref.read(loginUsecaseProvider);
+      final user = await usecase(email: email, password: password);
+
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: true,
+        isLoading: false,
+      );
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  /// Register new user
+  Future<bool> register(String email, String password, String name) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final usecase = _ref.read(registerUsecaseProvider);
+      final user = await usecase(
+        email: email,
+        password: password,
+        name: name,
+      );
+
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: true,
+        isLoading: false,
+      );
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      return false;
+    }
+  }
+
+  /// Logout current user
+  Future<void> logout() async {
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final usecase = _ref.read(logoutUsecaseProvider);
+      await usecase();
+
+      state = const AuthState();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Clear error message
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+}
+
+/// Provider for authentication state
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  return AuthNotifier(ref);
+});
+""";
+}
+
+String _authLoginFormProvider(BlueprintConfig config) {
+  return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Login form state
+class LoginFormState {
+  const LoginFormState({
+    this.email = '',
+    this.password = '',
+    this.emailError,
+    this.passwordError,
+    this.obscurePassword = true,
+  });
+
+  final String email;
+  final String password;
+  final String? emailError;
+  final String? passwordError;
+  final bool obscurePassword;
+
+  LoginFormState copyWith({
+    String? email,
+    String? password,
+    String? emailError,
+    String? passwordError,
+    bool? obscurePassword,
+  }) {
+    return LoginFormState(
+      email: email ?? this.email,
+      password: password ?? this.password,
+      emailError: emailError,
+      passwordError: passwordError,
+      obscurePassword: obscurePassword ?? this.obscurePassword,
+    );
+  }
+
+  bool get isValid =>
+      email.isNotEmpty &&
+      password.isNotEmpty &&
+      emailError == null &&
+      passwordError == null;
+}
+
+/// Login form notifier
+class LoginFormNotifier extends StateNotifier<LoginFormState> {
+  LoginFormNotifier() : super(const LoginFormState());
+
+  void setEmail(String email) {
+    state = state.copyWith(email: email, emailError: null);
+  }
+
+  void setPassword(String password) {
+    state = state.copyWith(password: password, passwordError: null);
+  }
+
+  void togglePasswordVisibility() {
+    state = state.copyWith(obscurePassword: !state.obscurePassword);
+  }
+
+  bool validate() {
+    String? emailError;
+    String? passwordError;
+
+    if (state.email.isEmpty) {
+      emailError = 'Email is required';
+    } else if (!_isValidEmail(state.email)) {
+      emailError = 'Invalid email format';
+    }
+
+    if (state.password.isEmpty) {
+      passwordError = 'Password is required';
+    } else if (state.password.length < 6) {
+      passwordError = 'Password must be at least 6 characters';
+    }
+
+    state = state.copyWith(
+      emailError: emailError,
+      passwordError: passwordError,
+    );
+
+    return emailError == null && passwordError == null;
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}\$').hasMatch(email);
+  }
+
+  void reset() {
+    state = const LoginFormState();
+  }
+}
+
+/// Provider for login form state
+final loginFormProvider =
+    StateNotifierProvider.autoDispose<LoginFormNotifier, LoginFormState>((ref) {
+  return LoginFormNotifier();
+});
+""";
+}
+
+String _authRegisterFormProvider(BlueprintConfig config) {
+  return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Register form state
+class RegisterFormState {
+  const RegisterFormState({
+    this.name = '',
+    this.email = '',
+    this.password = '',
+    this.confirmPassword = '',
+    this.nameError,
+    this.emailError,
+    this.passwordError,
+    this.confirmPasswordError,
+    this.obscurePassword = true,
+    this.obscureConfirmPassword = true,
+  });
+
+  final String name;
+  final String email;
+  final String password;
+  final String confirmPassword;
+  final String? nameError;
+  final String? emailError;
+  final String? passwordError;
+  final String? confirmPasswordError;
+  final bool obscurePassword;
+  final bool obscureConfirmPassword;
+
+  RegisterFormState copyWith({
+    String? name,
+    String? email,
+    String? password,
+    String? confirmPassword,
+    String? nameError,
+    String? emailError,
+    String? passwordError,
+    String? confirmPasswordError,
+    bool? obscurePassword,
+    bool? obscureConfirmPassword,
+  }) {
+    return RegisterFormState(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
+      nameError: nameError,
+      emailError: emailError,
+      passwordError: passwordError,
+      confirmPasswordError: confirmPasswordError,
+      obscurePassword: obscurePassword ?? this.obscurePassword,
+      obscureConfirmPassword:
+          obscureConfirmPassword ?? this.obscureConfirmPassword,
+    );
+  }
+
+  bool get isValid =>
+      name.isNotEmpty &&
+      email.isNotEmpty &&
+      password.isNotEmpty &&
+      confirmPassword.isNotEmpty &&
+      nameError == null &&
+      emailError == null &&
+      passwordError == null &&
+      confirmPasswordError == null;
+}
+
+/// Register form notifier
+class RegisterFormNotifier extends StateNotifier<RegisterFormState> {
+  RegisterFormNotifier() : super(const RegisterFormState());
+
+  void setName(String name) {
+    state = state.copyWith(name: name, nameError: null);
+  }
+
+  void setEmail(String email) {
+    state = state.copyWith(email: email, emailError: null);
+  }
+
+  void setPassword(String password) {
+    state = state.copyWith(password: password, passwordError: null);
+  }
+
+  void setConfirmPassword(String confirmPassword) {
+    state = state.copyWith(
+        confirmPassword: confirmPassword, confirmPasswordError: null);
+  }
+
+  void togglePasswordVisibility() {
+    state = state.copyWith(obscurePassword: !state.obscurePassword);
+  }
+
+  void toggleConfirmPasswordVisibility() {
+    state =
+        state.copyWith(obscureConfirmPassword: !state.obscureConfirmPassword);
+  }
+
+  bool validate() {
+    String? nameError;
+    String? emailError;
+    String? passwordError;
+    String? confirmPasswordError;
+
+    if (state.name.isEmpty) {
+      nameError = 'Name is required';
+    }
+
+    if (state.email.isEmpty) {
+      emailError = 'Email is required';
+    } else if (!_isValidEmail(state.email)) {
+      emailError = 'Invalid email format';
+    }
+
+    if (state.password.isEmpty) {
+      passwordError = 'Password is required';
+    } else if (state.password.length < 6) {
+      passwordError = 'Password must be at least 6 characters';
+    }
+
+    if (state.confirmPassword.isEmpty) {
+      confirmPasswordError = 'Please confirm your password';
+    } else if (state.password != state.confirmPassword) {
+      confirmPasswordError = 'Passwords do not match';
+    }
+
+    state = state.copyWith(
+      nameError: nameError,
+      emailError: emailError,
+      passwordError: passwordError,
+      confirmPasswordError: confirmPasswordError,
+    );
+
+    return nameError == null &&
+        emailError == null &&
+        passwordError == null &&
+        confirmPasswordError == null;
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}\$').hasMatch(email);
+  }
+
+  void reset() {
+    state = const RegisterFormState();
+  }
+}
+
+/// Provider for register form state
+final registerFormProvider = StateNotifierProvider.autoDispose<
+    RegisterFormNotifier, RegisterFormState>((ref) {
+  return RegisterFormNotifier();
+});
+""";
+}
+
+String _authLoginPage(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../providers/auth_provider.dart';
+import '../providers/login_form_provider.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/auth_button.dart';
+
+/// Login page
+class LoginPage extends ConsumerWidget {
+  const LoginPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final formState = ref.watch(loginFormProvider);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo or Title
+                Icon(
+                  Icons.lock_outline,
+                  size: 80,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Welcome Back',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sign in to continue',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 48),
+
+                // Email field
+                AuthTextField(
+                  label: 'Email',
+                  hintText: 'Enter your email',
+                  keyboardType: TextInputType.emailAddress,
+                  value: formState.email,
+                  errorText: formState.emailError,
+                  onChanged: (value) {
+                    ref.read(loginFormProvider.notifier).setEmail(value);
+                  },
+                  prefixIcon: Icons.email_outlined,
+                ),
+                const SizedBox(height: 16),
+
+                // Password field
+                AuthTextField(
+                  label: 'Password',
+                  hintText: 'Enter your password',
+                  value: formState.password,
+                  errorText: formState.passwordError,
+                  obscureText: formState.obscurePassword,
+                  onChanged: (value) {
+                    ref.read(loginFormProvider.notifier).setPassword(value);
+                  },
+                  prefixIcon: Icons.lock_outlined,
+                  suffixIcon: formState.obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  onSuffixIconTap: () {
+                    ref
+                        .read(loginFormProvider.notifier)
+                        .togglePasswordVisibility();
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Error message
+                if (authState.error != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red[300]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            authState.error!,
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Login button
+                AuthButton(
+                  label: 'Login',
+                  isLoading: authState.isLoading,
+                  onPressed: () async {
+                    // Validate form
+                    if (!ref.read(loginFormProvider.notifier).validate()) {
+                      return;
+                    }
+
+                    // Perform login
+                    final success = await ref.read(authProvider.notifier).login(
+                          formState.email,
+                          formState.password,
+                        );
+
+                    if (success && context.mounted) {
+                      // Navigate to home on success
+                      Navigator.of(context).pushReplacementNamed('/home');
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Register link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Don\\'t have an account? ',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacementNamed('/register');
+                      },
+                      child: const Text('Register'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+""";
+}
+
+String _authRegisterPage(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../providers/auth_provider.dart';
+import '../providers/register_form_provider.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/auth_button.dart';
+
+/// Register page
+class RegisterPage extends ConsumerWidget {
+  const RegisterPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final formState = ref.watch(registerFormProvider);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo or Title
+                Icon(
+                  Icons.person_add_outlined,
+                  size: 80,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Create Account',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sign up to get started',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 48),
+
+                // Name field
+                AuthTextField(
+                  label: 'Full Name',
+                  hintText: 'Enter your name',
+                  value: formState.name,
+                  errorText: formState.nameError,
+                  onChanged: (value) {
+                    ref.read(registerFormProvider.notifier).setName(value);
+                  },
+                  prefixIcon: Icons.person_outlined,
+                ),
+                const SizedBox(height: 16),
+
+                // Email field
+                AuthTextField(
+                  label: 'Email',
+                  hintText: 'Enter your email',
+                  keyboardType: TextInputType.emailAddress,
+                  value: formState.email,
+                  errorText: formState.emailError,
+                  onChanged: (value) {
+                    ref.read(registerFormProvider.notifier).setEmail(value);
+                  },
+                  prefixIcon: Icons.email_outlined,
+                ),
+                const SizedBox(height: 16),
+
+                // Password field
+                AuthTextField(
+                  label: 'Password',
+                  hintText: 'Enter your password',
+                  value: formState.password,
+                  errorText: formState.passwordError,
+                  obscureText: formState.obscurePassword,
+                  onChanged: (value) {
+                    ref.read(registerFormProvider.notifier).setPassword(value);
+                  },
+                  prefixIcon: Icons.lock_outlined,
+                  suffixIcon: formState.obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  onSuffixIconTap: () {
+                    ref
+                        .read(registerFormProvider.notifier)
+                        .togglePasswordVisibility();
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm Password field
+                AuthTextField(
+                  label: 'Confirm Password',
+                  hintText: 'Re-enter your password',
+                  value: formState.confirmPassword,
+                  errorText: formState.confirmPasswordError,
+                  obscureText: formState.obscureConfirmPassword,
+                  onChanged: (value) {
+                    ref
+                        .read(registerFormProvider.notifier)
+                        .setConfirmPassword(value);
+                  },
+                  prefixIcon: Icons.lock_outlined,
+                  suffixIcon: formState.obscureConfirmPassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  onSuffixIconTap: () {
+                    ref
+                        .read(registerFormProvider.notifier)
+                        .toggleConfirmPasswordVisibility();
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Error message
+                if (authState.error != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red[300]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            authState.error!,
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Register button
+                AuthButton(
+                  label: 'Register',
+                  isLoading: authState.isLoading,
+                  onPressed: () async {
+                    // Validate form
+                    if (!ref.read(registerFormProvider.notifier).validate()) {
+                      return;
+                    }
+
+                    // Perform registration
+                    final success =
+                        await ref.read(authProvider.notifier).register(
+                              formState.email,
+                              formState.password,
+                              formState.name,
+                            );
+
+                    if (success && context.mounted) {
+                      // Navigate to home on success
+                      Navigator.of(context).pushReplacementNamed('/home');
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Login link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account? ',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      },
+                      child: const Text('Login'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+""";
+}
+
+String _authTextField(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+
+/// Custom text field for authentication forms
+class AuthTextField extends StatelessWidget {
+  const AuthTextField({
+    super.key,
+    required this.label,
+    required this.hintText,
+    required this.value,
+    required this.onChanged,
+    this.errorText,
+    this.obscureText = false,
+    this.keyboardType,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.onSuffixIconTap,
+  });
+
+  final String label;
+  final String hintText;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final String? errorText;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final IconData? prefixIcon;
+  final IconData? suffixIcon;
+  final VoidCallback? onSuffixIconTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: TextEditingController(text: value)
+            ..selection = TextSelection.collapsed(offset: value.length),
+          onChanged: onChanged,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hintText,
+            errorText: errorText,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+            suffixIcon: suffixIcon != null
+                ? IconButton(
+                    icon: Icon(suffixIcon),
+                    onPressed: onSuffixIconTap,
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).primaryColor,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+        ),
+      ],
+    );
+  }
+}
+""";
+}
+
+String _authButton(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+
+/// Custom button for authentication forms
+class AuthButton extends StatelessWidget {
+  const AuthButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.isLoading = false,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+      ),
+    );
+  }
+}
+""";
+}
+
+// ============================================================================
+// PROFILE FEATURE TEMPLATE FUNCTIONS
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// Data Layer
+// ----------------------------------------------------------------------------
+
+String _profileModel(BlueprintConfig config) {
+  return """import '../../../auth/domain/entities/user_entity.dart';
+import '../../../../core/storage/local_storage.dart';
+
+class ProfileModel {
+  const ProfileModel({
+    required this.id,
+    required this.email,
+    required this.name,
+    this.avatar,
+    this.bio,
+    this.phone,
+    this.location,
+    this.joinedDate,
+  });
+
+  final String id;
+  final String email;
+  final String name;
+  final String? avatar;
+  final String? bio;
+  final String? phone;
+  final String? location;
+  final DateTime? joinedDate;
+
+  factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    return ProfileModel(
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      avatar: json['avatar']?.toString(),
+      bio: json['bio']?.toString(),
+      phone: json['phone']?.toString(),
+      location: json['location']?.toString(),
+      joinedDate: json['joinedDate'] != null
+          ? DateTime.tryParse(json['joinedDate'].toString())
+          : null,
+    );
+  }
+
+  factory ProfileModel.fromUserEntity(UserEntity user) {
+    return ProfileModel(
+      id: user.id,
+      email: user.email,
+      name: user.name ?? '',
+      avatar: user.avatar,
+      bio: null,
+      phone: null,
+      location: null,
+      joinedDate: DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'name': name,
+      'avatar': avatar,
+      'bio': bio,
+      'phone': phone,
+      'location': location,
+      'joinedDate': joinedDate?.toIso8601String(),
+    };
+  }
+
+  ProfileModel copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? avatar,
+    String? bio,
+    String? phone,
+    String? location,
+    DateTime? joinedDate,
+  }) {
+    return ProfileModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      avatar: avatar ?? this.avatar,
+      bio: bio ?? this.bio,
+      phone: phone ?? this.phone,
+      location: location ?? this.location,
+      joinedDate: joinedDate ?? this.joinedDate,
+    );
+  }
+
+  Future<void> saveToCache(LocalStorage storage) async {
+    await storage.setJson('cached_profile', toJson());
+  }
+
+  static Future<ProfileModel?> loadFromCache(LocalStorage storage) async {
+    final data = storage.getJson('cached_profile');
+    if (data == null) return null;
+    return ProfileModel.fromJson(data);
+  }
+}
+""";
+}
+
+String _profileRemoteDataSource(BlueprintConfig config) {
+  return """import '../../../../core/api/api_client.dart';
+import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/utils/logger.dart';
+import '../models/profile_model.dart';
+
+abstract class ProfileRemoteDataSource {
+  Future<ProfileModel> getProfile();
+  Future<ProfileModel> updateProfile({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+  });
+  Future<String> uploadAvatar(String filePath);
+}
+
+class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
+  const ProfileRemoteDataSourceImpl({
+    required this.apiClient,
+  });
+
+  final ApiClient apiClient;
+
+  @override
+  Future<ProfileModel> getProfile() async {
+    try {
+      AppLogger.debug('Fetching user profile from API');
+      final response = await apiClient.get(ApiEndpoints.profile);
+      return ProfileModel.fromJson(response.data as Map<String, dynamic>);
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to fetch profile', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ProfileModel> updateProfile({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+  }) async {
+    try {
+      AppLogger.debug('Updating user profile');
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (bio != null) data['bio'] = bio;
+      if (phone != null) data['phone'] = phone;
+      if (location != null) data['location'] = location;
+
+      final response = await apiClient.put(
+        ApiEndpoints.profile,
+        data: data,
+      );
+      AppLogger.info('Profile updated successfully');
+      return ProfileModel.fromJson(response.data as Map<String, dynamic>);
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to update profile', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> uploadAvatar(String filePath) async {
+    try {
+      AppLogger.debug('Uploading avatar image');
+      // In a real app, you would use FormData to upload the file
+      // For demo purposes, we'll simulate by returning a mock URL
+      await Future.delayed(const Duration(seconds: 2));
+      final avatarUrl = 'https://i.pravatar.cc/150?img=\${DateTime.now().millisecondsSinceEpoch % 70}';
+      AppLogger.info('Avatar uploaded successfully');
+      return avatarUrl;
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to upload avatar', e, stackTrace);
+      rethrow;
+    }
+  }
+}
+""";
+}
+
+String _profileLocalDataSource(BlueprintConfig config) {
+  return """import '../../../../core/utils/logger.dart';
+import '../../../../core/storage/local_storage.dart';
+import '../models/profile_model.dart';
+
+abstract class ProfileLocalDataSource {
+  Future<ProfileModel?> getCachedProfile();
+  Future<void> cacheProfile(ProfileModel profile);
+  Future<void> clearCachedProfile();
+}
+
+class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
+  const ProfileLocalDataSourceImpl({
+    required this.localStorage,
+  });
+
+  final LocalStorage localStorage;
+
+  static const String _profileKey = 'cached_profile';
+  static const String _profileTimestampKey = 'cached_profile_timestamp';
+
+  @override
+  Future<ProfileModel?> getCachedProfile() async {
+    try {
+      final timestamp = localStorage.getString(_profileTimestampKey);
+      if (timestamp != null) {
+        final cacheTime = DateTime.fromMillisecondsSinceEpoch(int.parse(timestamp));
+        final now = DateTime.now();
+        final difference = now.difference(cacheTime);
+        
+        // Cache expires after 1 hour
+        if (difference.inHours >= 1) {
+          AppLogger.debug('Profile cache expired');
+          await clearCachedProfile();
+          return null;
+        }
+      }
+
+      final profileData = localStorage.getJson(_profileKey);
+      if (profileData == null) {
+        AppLogger.debug('No cached profile found');
+        return null;
+      }
+
+      AppLogger.debug('Retrieved cached profile');
+      return ProfileModel.fromJson(profileData);
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to get cached profile', e, stackTrace);
+      return null;
+    }
+  }
+
+  @override
+  Future<void> cacheProfile(ProfileModel profile) async {
+    try {
+      await localStorage.setJson(_profileKey, profile.toJson());
+      await localStorage.setString(_profileTimestampKey, DateTime.now().millisecondsSinceEpoch.toString());
+      AppLogger.debug('Profile cached successfully');
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to cache profile', e, stackTrace);
+    }
+  }
+
+  @override
+  Future<void> clearCachedProfile() async {
+    try {
+      await localStorage.remove(_profileKey);
+      await localStorage.remove(_profileTimestampKey);
+      AppLogger.debug('Cached profile cleared');
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to clear cached profile', e, stackTrace);
+    }
+  }
+}
+""";
+}
+
+String _profileRepositoryImpl(BlueprintConfig config) {
+  return """import '../../../../core/utils/logger.dart';
+import '../../domain/repositories/profile_repository.dart';
+import '../datasources/profile_local_data_source.dart';
+import '../datasources/profile_remote_data_source.dart';
+import '../models/profile_model.dart';
+
+class ProfileRepositoryImpl implements ProfileRepository {
+  const ProfileRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
+
+  final ProfileRemoteDataSource remoteDataSource;
+  final ProfileLocalDataSource localDataSource;
+
+  @override
+  Future<ProfileModel> getProfile({bool forceRefresh = false}) async {
+    try {
+      // Try cache first unless force refresh
+      if (!forceRefresh) {
+        final cachedProfile = await localDataSource.getCachedProfile();
+        if (cachedProfile != null) {
+          AppLogger.debug('Returning cached profile');
+          return cachedProfile;
+        }
+      }
+
+      // Fetch from API
+      AppLogger.debug('Fetching profile from API');
+      final profile = await remoteDataSource.getProfile();
+      
+      // Cache the result
+      await localDataSource.cacheProfile(profile);
+      
+      return profile;
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to get profile', e, stackTrace);
+      
+      // Try to return cached data as fallback
+      final cachedProfile = await localDataSource.getCachedProfile();
+      if (cachedProfile != null) {
+        AppLogger.debug('Returning cached profile as fallback');
+        return cachedProfile;
+      }
+      
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ProfileModel> updateProfile({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+  }) async {
+    try {
+      final updatedProfile = await remoteDataSource.updateProfile(
+        name: name,
+        bio: bio,
+        phone: phone,
+        location: location,
+      );
+      
+      // Update cache
+      await localDataSource.cacheProfile(updatedProfile);
+      
+      return updatedProfile;
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to update profile', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> uploadAvatar(String filePath) async {
+    try {
+      return await remoteDataSource.uploadAvatar(filePath);
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to upload avatar', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> clearCache() async {
+    await localDataSource.clearCachedProfile();
+  }
+}
+""";
+}
+
+// ----------------------------------------------------------------------------
+// Domain Layer
+// ----------------------------------------------------------------------------
+
+String _profileRepository(BlueprintConfig config) {
+  return """import '../../data/models/profile_model.dart';
+
+abstract class ProfileRepository {
+  Future<ProfileModel> getProfile({bool forceRefresh = false});
+  Future<ProfileModel> updateProfile({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+  });
+  Future<String> uploadAvatar(String filePath);
+  Future<void> clearCache();
+}
+""";
+}
+
+String _profileGetUsecase(BlueprintConfig config) {
+  return """import '../repositories/profile_repository.dart';
+import '../../data/models/profile_model.dart';
+
+class GetProfileUsecase {
+  const GetProfileUsecase(this.repository);
+
+  final ProfileRepository repository;
+
+  Future<ProfileModel> call({bool forceRefresh = false}) {
+    return repository.getProfile(forceRefresh: forceRefresh);
+  }
+}
+""";
+}
+
+String _profileUpdateUsecase(BlueprintConfig config) {
+  return """import '../repositories/profile_repository.dart';
+import '../../data/models/profile_model.dart';
+
+class UpdateProfileUsecase {
+  const UpdateProfileUsecase(this.repository);
+
+  final ProfileRepository repository;
+
+  Future<ProfileModel> call({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+  }) {
+    return repository.updateProfile(
+      name: name,
+      bio: bio,
+      phone: phone,
+      location: location,
+    );
+  }
+}
+""";
+}
+
+// ----------------------------------------------------------------------------
+// Presentation Layer
+// ----------------------------------------------------------------------------
+
+String _profileProvider(BlueprintConfig config) {
+  return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/providers/app_providers.dart';
+import '../../data/datasources/profile_local_data_source.dart';
+import '../../data/datasources/profile_remote_data_source.dart';
+import '../../data/models/profile_model.dart';
+import '../../data/repositories/profile_repository_impl.dart';
+import '../../domain/repositories/profile_repository.dart';
+import '../../domain/usecases/get_profile_usecase.dart';
+import '../../domain/usecases/update_profile_usecase.dart';
+
+// Data Sources
+final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((ref) {
+  return ProfileRemoteDataSourceImpl(
+    apiClient: ref.watch(apiClientProvider),
+  );
+});
+
+final profileLocalDataSourceProvider = Provider<ProfileLocalDataSource>((ref) {
+  return ProfileLocalDataSourceImpl(
+    localStorage: ref.watch(localStorageProvider),
+  );
+});
+
+// Repository
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepositoryImpl(
+    remoteDataSource: ref.watch(profileRemoteDataSourceProvider),
+    localDataSource: ref.watch(profileLocalDataSourceProvider),
+  );
+});
+
+// Use Cases
+final getProfileUsecaseProvider = Provider<GetProfileUsecase>((ref) {
+  return GetProfileUsecase(ref.watch(profileRepositoryProvider));
+});
+
+final updateProfileUsecaseProvider = Provider<UpdateProfileUsecase>((ref) {
+  return UpdateProfileUsecase(ref.watch(profileRepositoryProvider));
+});
+
+// Profile State
+class ProfileState {
+  const ProfileState({
+    this.profile,
+    this.isLoading = false,
+    this.error,
+  });
+
+  final ProfileModel? profile;
+  final bool isLoading;
+  final String? error;
+
+  ProfileState copyWith({
+    ProfileModel? profile,
+    bool? isLoading,
+    String? error,
+  }) {
+    return ProfileState(
+      profile: profile ?? this.profile,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+// Profile Notifier
+class ProfileNotifier extends StateNotifier<ProfileState> {
+  ProfileNotifier(this.ref) : super(const ProfileState()) {
+    _loadProfile();
+  }
+
+  final Ref ref;
+
+  Future<void> _loadProfile() async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final usecase = ref.read(getProfileUsecaseProvider);
+      final profile = await usecase();
+      state = state.copyWith(
+        profile: profile,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<void> refreshProfile() async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      final usecase = ref.read(getProfileUsecaseProvider);
+      final profile = await usecase(forceRefresh: true);
+      state = state.copyWith(
+        profile: profile,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<void> updateProfile({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+  }) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      final usecase = ref.read(updateProfileUsecaseProvider);
+      final updatedProfile = await usecase(
+        name: name,
+        bio: bio,
+        phone: phone,
+        location: location,
+      );
+      state = state.copyWith(
+        profile: updatedProfile,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<void> uploadAvatar(String filePath) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      final repository = ref.read(profileRepositoryProvider);
+      final avatarUrl = await repository.uploadAvatar(filePath);
+      
+      // Update profile with new avatar
+      final updatedProfile = state.profile?.copyWith(avatar: avatarUrl);
+      if (updatedProfile != null) {
+        final localDataSource = ref.read(profileLocalDataSourceProvider);
+        await localDataSource.cacheProfile(updatedProfile);
+      }
+      
+      state = state.copyWith(
+        profile: updatedProfile,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+}
+
+final profileProvider = StateNotifierProvider<ProfileNotifier, ProfileState>((ref) {
+  return ProfileNotifier(ref);
+});
+""";
+}
+
+String _profileFormProvider(BlueprintConfig config) {
+  return """import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class ProfileFormState {
+  const ProfileFormState({
+    this.name = '',
+    this.bio = '',
+    this.phone = '',
+    this.location = '',
+    this.errors = const {},
+  });
+
+  final String name;
+  final String bio;
+  final String phone;
+  final String location;
+  final Map<String, String> errors;
+
+  ProfileFormState copyWith({
+    String? name,
+    String? bio,
+    String? phone,
+    String? location,
+    Map<String, String>? errors,
+  }) {
+    return ProfileFormState(
+      name: name ?? this.name,
+      bio: bio ?? this.bio,
+      phone: phone ?? this.phone,
+      location: location ?? this.location,
+      errors: errors ?? this.errors,
+    );
+  }
+}
+
+class ProfileFormNotifier extends StateNotifier<ProfileFormState> {
+  ProfileFormNotifier() : super(const ProfileFormState());
+
+  void setName(String name) {
+    state = state.copyWith(
+      name: name,
+      errors: {...state.errors}..remove('name'),
+    );
+  }
+
+  void setBio(String bio) {
+    state = state.copyWith(bio: bio);
+  }
+
+  void setPhone(String phone) {
+    state = state.copyWith(
+      phone: phone,
+      errors: {...state.errors}..remove('phone'),
+    );
+  }
+
+  void setLocation(String location) {
+    state = state.copyWith(location: location);
+  }
+
+  void initialize({
+    required String name,
+    String? bio,
+    String? phone,
+    String? location,
+  }) {
+    state = ProfileFormState(
+      name: name,
+      bio: bio ?? '',
+      phone: phone ?? '',
+      location: location ?? '',
+    );
+  }
+
+  bool validate() {
+    final errors = <String, String>{};
+
+    if (state.name.trim().isEmpty) {
+      errors['name'] = 'Name is required';
+    } else if (state.name.trim().length < 2) {
+      errors['name'] = 'Name must be at least 2 characters';
+    }
+
+    if (state.phone.isNotEmpty && !_isValidPhone(state.phone)) {
+      errors['phone'] = 'Invalid phone number';
+    }
+
+    if (errors.isNotEmpty) {
+      state = state.copyWith(errors: errors);
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _isValidPhone(String phone) {
+    // Basic phone validation - allow digits, spaces, dashes, parentheses, and plus
+    final phoneRegex = RegExp(r'^[\\d\\s\\-()\\+]+\$');
+    return phoneRegex.hasMatch(phone) && phone.replaceAll(RegExp(r'[^\\d]'), '').length >= 10;
+  }
+
+  void reset() {
+    state = const ProfileFormState();
+  }
+}
+
+final profileFormProvider = StateNotifierProvider.autoDispose<ProfileFormNotifier, ProfileFormState>((ref) {
+  return ProfileFormNotifier();
+});
+""";
+}
+
+String _profilePage(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/routing/app_router.dart';
+import '../providers/profile_provider.dart';
+import '../widgets/profile_avatar.dart';
+import '../widgets/profile_info_tile.dart';
+
+class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileState = ref.watch(profileProvider);
+    final profile = profileState.profile;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          if (profile != null)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                Navigator.pushNamed(context, AppRouter.editProfile);
+              },
+            ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              // In a real app, you would call the logout functionality here
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRouter.login,
+                (route) => false,
+              );
+            },
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(profileProvider.notifier).refreshProfile();
+        },
+        child: profileState.isLoading && profile == null
+            ? const Center(child: CircularProgressIndicator())
+            : profileState.error != null && profile == null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error: \${profileState.error}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            ref.read(profileProvider.notifier).refreshProfile();
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 24),
+                        ProfileAvatar(
+                          avatarUrl: profile?.avatar,
+                          size: 120,
+                          onTap: () {
+                            // In a real app, this would open image picker
+                            _showAvatarOptions(context, ref);
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          profile?.name ?? 'Unknown User',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          profile?.email ?? '',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey,
+                              ),
+                        ),
+                        const SizedBox(height: 32),
+                        Card(
+                          child: Column(
+                            children: [
+                              ProfileInfoTile(
+                                icon: Icons.info_outline,
+                                label: 'Bio',
+                                value: profile?.bio ?? 'No bio yet',
+                              ),
+                              const Divider(height: 1),
+                              ProfileInfoTile(
+                                icon: Icons.phone_outlined,
+                                label: 'Phone',
+                                value: profile?.phone ?? 'Not set',
+                              ),
+                              const Divider(height: 1),
+                              ProfileInfoTile(
+                                icon: Icons.location_on_outlined,
+                                label: 'Location',
+                                value: profile?.location ?? 'Not set',
+                              ),
+                              const Divider(height: 1),
+                              ProfileInfoTile(
+                                icon: Icons.calendar_today_outlined,
+                                label: 'Joined',
+                                value: profile?.joinedDate != null
+                                    ? _formatDate(profile!.joinedDate!)
+                                    : 'Unknown',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+      ),
+    );
+  }
+
+  void _showAvatarOptions(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                // In a real app, open camera
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Camera not implemented in demo')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                // In a real app, open gallery
+                ref.read(profileProvider.notifier).uploadAvatar('demo_path');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '\${months[date.month - 1]} \${date.day}, \${date.year}';
+  }
+}
+""";
+}
+
+String _editProfilePage(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../providers/profile_form_provider.dart';
+import '../providers/profile_provider.dart';
+import '../widgets/profile_avatar.dart';
+
+class EditProfilePage extends ConsumerStatefulWidget {
+  const EditProfilePage({super.key});
+
+  @override
+  ConsumerState<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends ConsumerState<EditProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profile = ref.read(profileProvider).profile;
+      if (profile != null) {
+        ref.read(profileFormProvider.notifier).initialize(
+              name: profile.name,
+              bio: profile.bio,
+              phone: profile.phone,
+              location: profile.location,
+            );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profileState = ref.watch(profileProvider);
+    final formState = ref.watch(profileFormProvider);
+    final profile = profileState.profile;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        actions: [
+          TextButton(
+            onPressed: profileState.isLoading ? null : () => _saveProfile(),
+            child: const Text(
+              'Save',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      body: profileState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 24),
+                  Stack(
+                    children: [
+                      ProfileAvatar(
+                        avatarUrl: profile?.avatar,
+                        size: 120,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: CircleAvatar(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          radius: 20,
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt, size: 20),
+                            color: Colors.white,
+                            onPressed: () {
+                              _showAvatarOptions();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      hintText: 'Enter your name',
+                      errorText: formState.errors['name'],
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    controller: TextEditingController(text: formState.name)
+                      ..selection = TextSelection.collapsed(
+                        offset: formState.name.length,
+                      ),
+                    onChanged: (value) {
+                      ref.read(profileFormProvider.notifier).setName(value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Bio',
+                      hintText: 'Tell us about yourself',
+                      prefixIcon: const Icon(Icons.info_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    controller: TextEditingController(text: formState.bio)
+                      ..selection = TextSelection.collapsed(
+                        offset: formState.bio.length,
+                      ),
+                    onChanged: (value) {
+                      ref.read(profileFormProvider.notifier).setBio(value);
+                    },
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Phone',
+                      hintText: 'Enter your phone number',
+                      errorText: formState.errors['phone'],
+                      prefixIcon: const Icon(Icons.phone_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    controller: TextEditingController(text: formState.phone)
+                      ..selection = TextSelection.collapsed(
+                        offset: formState.phone.length,
+                      ),
+                    onChanged: (value) {
+                      ref.read(profileFormProvider.notifier).setPhone(value);
+                    },
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Location',
+                      hintText: 'Enter your location',
+                      prefixIcon: const Icon(Icons.location_on_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    controller: TextEditingController(text: formState.location)
+                      ..selection = TextSelection.collapsed(
+                        offset: formState.location.length,
+                      ),
+                    onChanged: (value) {
+                      ref.read(profileFormProvider.notifier).setLocation(value);
+                    },
+                  ),
+                  if (profileState.error != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red.shade700),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              profileState.error!,
+                              style: TextStyle(color: Colors.red.shade700),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+    );
+  }
+
+  Future<void> _saveProfile() async {
+    final formNotifier = ref.read(profileFormProvider.notifier);
+    
+    if (!formNotifier.validate()) {
+      return;
+    }
+
+    final formState = ref.read(profileFormProvider);
+    await ref.read(profileProvider.notifier).updateProfile(
+          name: formState.name.isNotEmpty ? formState.name : null,
+          bio: formState.bio.isNotEmpty ? formState.bio : null,
+          phone: formState.phone.isNotEmpty ? formState.phone : null,
+          location: formState.location.isNotEmpty ? formState.location : null,
+        );
+
+    final profileState = ref.read(profileProvider);
+    if (!mounted) return;
+
+    if (profileState.error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully')),
+      );
+      Navigator.pop(context);
+    }
+  }
+
+  void _showAvatarOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Camera not implemented in demo')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                ref.read(profileProvider.notifier).uploadAvatar('demo_path');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+""";
+}
+
+String _profileAvatar(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+
+class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({
+    super.key,
+    this.avatarUrl,
+    this.size = 80,
+    this.onTap,
+  });
+
+  final String? avatarUrl;
+  final double size;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Theme.of(context).primaryColor,
+            width: 3,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: avatarUrl != null && avatarUrl!.isNotEmpty
+              ? Image.network(
+                  avatarUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildPlaceholder(context);
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return _buildPlaceholder(context);
+                  },
+                )
+              : _buildPlaceholder(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(BuildContext context) {
+    return Container(
+      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+      child: Icon(
+        Icons.person,
+        size: size * 0.5,
+        color: Theme.of(context).primaryColor,
+      ),
+    );
+  }
+}
+""";
+}
+
+String _profileInfoTile(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+
+class ProfileInfoTile extends StatelessWidget {
+  const ProfileInfoTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Theme.of(context).primaryColor,
+            size: 24,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+""";
+}
+
+// ============================================================================
+// SETTINGS FEATURE TEMPLATE FUNCTIONS
+// ============================================================================
+
+String _settingsProvider(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/providers/app_providers.dart';
+import '../../../../core/storage/local_storage.dart';
+
+// Settings State
+class SettingsState {
+  const SettingsState({
+    this.themeMode = ThemeMode.system,
+    this.notificationsEnabled = true,
+    this.biometricsEnabled = false,
+    this.language = 'en',
+  });
+
+  final ThemeMode themeMode;
+  final bool notificationsEnabled;
+  final bool biometricsEnabled;
+  final String language;
+
+  SettingsState copyWith({
+    ThemeMode? themeMode,
+    bool? notificationsEnabled,
+    bool? biometricsEnabled,
+    String? language,
+  }) {
+    return SettingsState(
+      themeMode: themeMode ?? this.themeMode,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      biometricsEnabled: biometricsEnabled ?? this.biometricsEnabled,
+      language: language ?? this.language,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'themeMode': themeMode.name,
+      'notificationsEnabled': notificationsEnabled,
+      'biometricsEnabled': biometricsEnabled,
+      'language': language,
+    };
+  }
+
+  factory SettingsState.fromJson(Map<String, dynamic> json) {
+    return SettingsState(
+      themeMode: ThemeMode.values.firstWhere(
+        (mode) => mode.name == json['themeMode'],
+        orElse: () => ThemeMode.system,
+      ),
+      notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+      biometricsEnabled: json['biometricsEnabled'] as bool? ?? false,
+      language: json['language'] as String? ?? 'en',
+    );
+  }
+}
+
+// Settings Notifier
+class SettingsNotifier extends StateNotifier<SettingsState> {
+  SettingsNotifier(this.localStorage) : super(const SettingsState()) {
+    _loadSettings();
+  }
+
+  final LocalStorage localStorage;
+  static const String _settingsKey = 'app_settings';
+
+  Future<void> _loadSettings() async {
+    try {
+      final data = localStorage.getJson(_settingsKey);
+      if (data != null) {
+        state = SettingsState.fromJson(data);
+      }
+    } catch (e) {
+      // If loading fails, keep default settings
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    try {
+      await localStorage.setJson(_settingsKey, state.toJson());
+    } catch (e) {
+      // Handle save error
+    }
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    state = state.copyWith(themeMode: mode);
+    await _saveSettings();
+  }
+
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    state = state.copyWith(notificationsEnabled: enabled);
+    await _saveSettings();
+  }
+
+  Future<void> setBiometricsEnabled(bool enabled) async {
+    state = state.copyWith(biometricsEnabled: enabled);
+    await _saveSettings();
+  }
+
+  Future<void> setLanguage(String language) async {
+    state = state.copyWith(language: language);
+    await _saveSettings();
+  }
+
+  Future<void> clearAllData() async {
+    // Clear all app data (cache, settings, etc.)
+    await localStorage.clear();
+    state = const SettingsState();
+  }
+}
+
+final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>((ref) {
+  return SettingsNotifier(ref.watch(localStorageProvider));
+});
+""";
+}
+
+String _settingsPage(BlueprintConfig config) {
+  final buffer = StringBuffer();
+
+  buffer.write("""import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/routing/app_router.dart';
+import '../providers/settings_provider.dart';
+import '../widgets/settings_section.dart';
+import '../widgets/settings_tile.dart';
+""");
+
+  if (config.includeApi) {
+    buffer.writeln(
+        "import '../../../auth/presentation/providers/auth_provider.dart';");
+  }
+
+  buffer.write("""
+class SettingsPage extends ConsumerWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsState = ref.watch(settingsProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: ListView(
+        children: [
+          SettingsSection(
+            title: 'Appearance',
+            children: [
+              SettingsTile(
+                icon: Icons.palette_outlined,
+                title: 'Theme',
+                subtitle: _getThemeName(settingsState.themeMode),
+                onTap: () => _showThemeDialog(context, ref),
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: 'Notifications',
+            children: [
+              SettingsTile(
+                icon: Icons.notifications_outlined,
+                title: 'Push Notifications',
+                subtitle: settingsState.notificationsEnabled
+                    ? 'Enabled'
+                    : 'Disabled',
+                trailing: Switch(
+                  value: settingsState.notificationsEnabled,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setNotificationsEnabled(value);
+                  },
+                ),
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: 'Security',
+            children: [
+              SettingsTile(
+                icon: Icons.fingerprint,
+                title: 'Biometric Login',
+                subtitle: settingsState.biometricsEnabled
+                    ? 'Enabled'
+                    : 'Disabled',
+                trailing: Switch(
+                  value: settingsState.biometricsEnabled,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setBiometricsEnabled(value);
+                  },
+                ),
+              ),
+            ],
+          ),""");
+
+  if (config.includeApi) {
+    buffer.write("""
+          SettingsSection(
+            title: 'Account',
+            children: [
+              SettingsTile(
+                icon: Icons.person_outline,
+                title: 'Profile',
+                subtitle: 'View and edit your profile',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRouter.profile);
+                },
+              ),
+              SettingsTile(
+                icon: Icons.logout,
+                title: 'Logout',
+                subtitle: 'Sign out of your account',
+                onTap: () => _showLogoutDialog(context, ref),
+              ),
+            ],
+          ),""");
+  }
+
+  buffer.write("""
+          SettingsSection(
+            title: 'About',
+            children: [
+              SettingsTile(
+                icon: Icons.info_outline,
+                title: 'Version',
+                subtitle: '1.0.0',
+              ),
+              SettingsTile(
+                icon: Icons.description_outlined,
+                title: 'Terms of Service',
+                onTap: () {
+                  // Navigate to terms
+                },
+              ),
+              SettingsTile(
+                icon: Icons.privacy_tip_outlined,
+                title: 'Privacy Policy',
+                onTap: () {
+                  // Navigate to privacy policy
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: 'Danger Zone',
+            children: [
+              SettingsTile(
+                icon: Icons.delete_outline,
+                title: 'Clear All Data',
+                subtitle: 'Remove all cached data',
+                titleColor: Colors.red,
+                onTap: () => _showClearDataDialog(context, ref),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  String _getThemeName(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.system:
+        return 'System';
+    }
+  }
+
+  void _showThemeDialog(BuildContext context, WidgetRef ref) {
+    final currentTheme = ref.read(settingsProvider).themeMode;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Theme'),
+        content: RadioGroup<ThemeMode>(
+          groupValue: currentTheme,
+          onChanged: (value) {
+            if (value != null) {
+              ref.read(settingsProvider.notifier).setThemeMode(value);
+              Navigator.pop(context);
+            }
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                title: const Text('Light'),
+                value: ThemeMode.light,
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Dark'),
+                value: ThemeMode.dark,
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('System'),
+                value: ThemeMode.system,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showClearDataDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear All Data?'),
+        content: const Text(
+          'This will remove all cached data and reset the app to its initial state. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ref.read(settingsProvider.notifier).clearAllData();
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('All data cleared')),
+                );
+              }
+            },
+            child: const Text(
+              'Clear',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }""");
+
+  if (config.includeApi) {
+    buffer.write("""
+
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout?'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRouter.login,
+                  (route) => false,
+                );
+              }
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }""");
+  }
+
+  buffer.writeln("}");
+
+  return buffer.toString();
+}
+
+String _settingsTile(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+
+class SettingsTile extends StatelessWidget {
+  const SettingsTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.titleColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Color? titleColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: titleColor ?? Theme.of(context).iconTheme.color,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: titleColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey,
+                  ),
+            )
+          : null,
+      trailing: trailing ??
+          (onTap != null
+              ? const Icon(Icons.chevron_right)
+              : null),
+      onTap: onTap,
+    );
+  }
+}
+""";
+}
+
+String _settingsSection(BlueprintConfig config) {
+  return """import 'package:flutter/material.dart';
+
+class SettingsSection extends StatelessWidget {
+  const SettingsSection({
+    super.key,
+    required this.title,
+    required this.children,
+  });
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+          child: Text(
+            title.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+          ),
+        ),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: children,
+          ),
+        ),
+      ],
+    );
+  }
+}
+""";
+}
