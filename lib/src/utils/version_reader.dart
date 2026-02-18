@@ -10,7 +10,7 @@ class VersionReader {
 
   /// Current version - UPDATE THIS WHEN RELEASING A NEW VERSION
   /// This is the fallback when pubspec.yaml cannot be read (common in pub global)
-  static const String _currentVersion = '2.0.1';
+  static const String _currentVersion = '2.0.2';
 
   /// Get the current package version
   /// Priority: 1) Cached value 2) Local pubspec 3) Pub cache 4) Fallback constant
