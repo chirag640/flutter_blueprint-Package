@@ -107,8 +107,7 @@ class VersionReader {
 
           // Prefer the version string from the pubspec inside the directory.
           try {
-            final pubspecFile =
-                File(path.join(entity.path, 'pubspec.yaml'));
+            final pubspecFile = File(path.join(entity.path, 'pubspec.yaml'));
             if (await pubspecFile.exists()) {
               final content = await pubspecFile.readAsString();
               final yaml = loadYaml(content) as Map;
@@ -142,8 +141,10 @@ class VersionReader {
     String stripPre(String v) => v.split('-').first;
     bool hasPre(String v) => v.contains('-');
 
-    final aParts = stripPre(a).split('.').map((s) => int.tryParse(s) ?? 0).toList();
-    final bParts = stripPre(b).split('.').map((s) => int.tryParse(s) ?? 0).toList();
+    final aParts =
+        stripPre(a).split('.').map((s) => int.tryParse(s) ?? 0).toList();
+    final bParts =
+        stripPre(b).split('.').map((s) => int.tryParse(s) ?? 0).toList();
 
     final len = aParts.length > bParts.length ? aParts.length : bParts.length;
     for (var i = 0; i < len; i++) {
