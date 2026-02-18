@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.1 - 2025-01-XX
+## 2.0.1
 
 **Feature-Complete Release: Production-Ready Apps** 🚀
 
@@ -70,7 +70,7 @@ When you run `flutter_blueprint init my_app --api`, you now get:
 - Improved app.dart with auth state checking
 - All new code covered by existing test suite (334 tests passing)
 
-## 2.0.0 - 2025-01-XX
+## 2.0.0
 
 **Major Release: Enterprise Security & Production Features** 🎉
 
