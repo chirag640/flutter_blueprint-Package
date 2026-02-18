@@ -7,6 +7,7 @@ import 'hive_templates.dart';
 import 'pagination_templates.dart';
 import 'template_bundle.dart';
 import 'shared_templates.dart';
+import 'ui_kit_templates.dart';
 
 TemplateBundle buildProviderMobileBundle() {
   return TemplateBundle(
@@ -114,6 +115,21 @@ TemplateBundle buildProviderMobileBundle() {
       TemplateFile(
           path: p.join('lib', 'core', 'widgets', 'custom_text_field.dart'),
           build: _customTextField),
+      // UI Kit — always generated, zero extra deps
+      TemplateFile(
+          path: p.join('lib', 'core', 'utils', 'app_responsive.dart'),
+          build: (c) => generateAppResponsive(c)),
+      TemplateFile(
+          path: p.join('lib', 'core', 'widgets', 'validation_ack_scope.dart'),
+          build: (c) => generateValidationAckScope(c)),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'widgets', 'app_text_field_with_label.dart'),
+          build: (c) => generateAppTextFieldWithLabel(c)),
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'widgets', 'app_dropdown_form_field.dart'),
+          build: (c) => generateAppDropdownFormField(c)),
 
       // Core: API
       TemplateFile(
@@ -739,44 +755,8 @@ class ApiClient {
 """;
 }
 
-String _loggerInterceptor(BlueprintConfig config) {
-  final buffer = StringBuffer()
-    ..writeln("import 'package:dio/dio.dart';")
-    ..writeln("import 'package:flutter/foundation.dart';")
-    ..writeln()
-    ..writeln('class LoggerInterceptor extends Interceptor {')
-    ..writeln('  @override')
-    ..writeln(
-        '  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {')
-    ..writeln('    // Basic logging for demo purposes.')
-    ..writeln('    // Replace with structured logging where appropriate.')
-    ..writeln('    if (kDebugMode) {')
-    ..writeln("      print('Request: \${options.method} \${options.path}');")
-    ..writeln('    }')
-    ..writeln('    super.onRequest(options, handler);')
-    ..writeln('  }')
-    ..writeln()
-    ..writeln('  @override')
-    ..writeln(
-        '  void onResponse(Response response, ResponseInterceptorHandler handler) {')
-    ..writeln('    if (kDebugMode) {')
-    ..writeln(
-        "      print('Response: \${response.statusCode} \${response.requestOptions.path}');")
-    ..writeln('    }')
-    ..writeln('    super.onResponse(response, handler);')
-    ..writeln('  }')
-    ..writeln()
-    ..writeln('  @override')
-    ..writeln(
-        '  void onError(DioException err, ErrorInterceptorHandler handler) {')
-    ..writeln('    if (kDebugMode) {')
-    ..writeln("      print('Error: \${err.message}');")
-    ..writeln('    }')
-    ..writeln('    super.onError(err, handler);')
-    ..writeln('  }')
-    ..writeln('}');
-  return buffer.toString();
-}
+String _loggerInterceptor(BlueprintConfig config) =>
+    generateLoggerInterceptor(config);
 
 String _homePage(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
@@ -1152,7 +1132,9 @@ String _validators(BlueprintConfig config) {
 }
 
 String _extensions(BlueprintConfig config) {
-  return """import 'package:flutter/material.dart';
+  return """// BuildContext responsive/theme extensions are in app_responsive.dart (ResponsiveContext).
+// Re-export so any file that imports extensions.dart also gets context helpers.
+export 'app_responsive.dart' show ResponsiveContext, AppResponsive, AppDeviceType;
 
 /// String extensions for common operations
 extension StringExtensions on String {
@@ -1199,42 +1181,6 @@ extension DateTimeExtensions on DateTime {
            month == yesterday.month && 
            day == yesterday.day;
   }
-}
-
-/// BuildContext extensions
-extension ContextExtensions on BuildContext {
-  /// Get theme
-  ThemeData get theme => Theme.of(this);
-  
-  /// Get text theme
-  TextTheme get textTheme => theme.textTheme;
-  
-  /// Get color scheme
-  ColorScheme get colors => theme.colorScheme;
-  
-  /// Get media query
-  MediaQueryData get mediaQuery => MediaQuery.of(this);
-  
-  /// Get screen size
-  Size get screenSize => mediaQuery.size;
-  
-  /// Get screen width
-  double get width => screenSize.width;
-  
-  /// Get screen height
-  double get height => screenSize.height;
-  
-  /// Show snackbar (legacy method - use SnackbarUtils for better options)
-  void showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(this).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? colors.error : null,
-      ),
-    );
-  }
-  
-
 }
 """;
 }
@@ -1297,6 +1243,8 @@ class AppColors {
 String _loadingIndicator(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
 
+import '../utils/app_responsive.dart';
+
 /// Reusable loading indicator widget
 class LoadingIndicator extends StatelessWidget {
   const LoadingIndicator({
@@ -1312,13 +1260,14 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaledSize = context.rs(size);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: size,
-            height: size,
+            width: scaledSize,
+            height: scaledSize,
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
                 color ?? Theme.of(context).colorScheme.primary,
@@ -1326,7 +1275,7 @@ class LoadingIndicator extends StatelessWidget {
             ),
           ),
           if (message != null) ...[
-            const SizedBox(height: 16),
+            context.rVSpace(16),
             Text(
               message!,
               style: Theme.of(context).textTheme.bodyMedium,
@@ -1343,6 +1292,8 @@ class LoadingIndicator extends StatelessWidget {
 String _errorView(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
 
+import '../utils/app_responsive.dart';
+
 /// Reusable error view widget
 class ErrorView extends StatelessWidget {
   const ErrorView({
@@ -1358,29 +1309,29 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: context.rPaddingAll(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.error_outline,
-              size: 64,
+              size: context.rIcon(64),
               color: Theme.of(context).colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            context.rVSpace(16),
             Text(
               'Oops! Something went wrong',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: context.rFont(20)),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            context.rVSpace(8),
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
-              const SizedBox(height: 24),
+              context.rVSpace(24),
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
@@ -1398,6 +1349,8 @@ class ErrorView extends StatelessWidget {
 
 String _emptyState(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
+
+import '../utils/app_responsive.dart';
 
 /// Reusable empty state widget
 class EmptyState extends StatelessWidget {
@@ -1418,23 +1371,23 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: context.rPaddingAll(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 64,
+              size: context.rIcon(64),
               color: Theme.of(context).colorScheme.secondary,
             ),
-            const SizedBox(height: 16),
+            context.rVSpace(16),
             Text(
               message,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             if (action != null && actionLabel != null) ...[
-              const SizedBox(height: 24),
+              context.rVSpace(24),
               ElevatedButton(
                 onPressed: action,
                 child: Text(actionLabel!),
@@ -1451,6 +1404,8 @@ class EmptyState extends StatelessWidget {
 
 String _customButton(BlueprintConfig config) {
   return """import 'package:flutter/material.dart';
+
+import '../utils/app_responsive.dart';
 
 /// Custom button with loading state
 class CustomButton extends StatelessWidget {
@@ -1486,10 +1441,10 @@ class CustomButton extends StatelessWidget {
   
   Widget _buildChild(BuildContext context) {
     if (isLoading) {
-      return const SizedBox(
-        height: 20,
-        width: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
+      return SizedBox(
+        height: context.rs(20),
+        width: context.rs(20),
+        child: const CircularProgressIndicator(strokeWidth: 2),
       );
     }
     
@@ -1497,8 +1452,8 @@ class CustomButton extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
+          Icon(icon, size: context.rIcon(20)),
+          context.rHSpace(8),
           Text(text),
         ],
       );
@@ -1765,6 +1720,7 @@ import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/widgets/loading_indicator.dart';
 import '../../../../core/widgets/error_view.dart';
+import '../../../../core/utils/app_responsive.dart';
 
 /// Home screen content widget
 class HomeContent extends StatelessWidget {
@@ -1791,9 +1747,11 @@ class HomeContent extends StatelessWidget {
             children: [
               Text(
                 'Counter: \${provider.counter}',
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontSize: context.rFont(28),
+                ),
               ),
-              const SizedBox(height: 24),
+              context.rVSpace(24),
               ElevatedButton(
                 onPressed: provider.incrementCounter,
                 child: const Text('Increment'),
