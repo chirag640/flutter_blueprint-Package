@@ -56,7 +56,8 @@ class CliRunnerV2 {
     final updateCompleter = Completer<UpdateInfo?>();
     unawaited(
       UpdateChecker()
-          .checkForUpdates()
+          .clearCacheIfStale() // evict stale cache if user just upgraded
+          .then((_) => UpdateChecker().checkForUpdates())
           .then(updateCompleter.complete)
           .catchError((_) => updateCompleter.complete(null)),
     );

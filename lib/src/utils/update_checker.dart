@@ -16,54 +16,122 @@ class UpdateChecker {
 
   /// Check for updates, respecting the check interval to avoid excessive API calls.
   ///
-  /// Now caches the actual update result, not just the check time.
-  /// This avoids unnecessary HTTP calls and file I/O within the check interval.
+  /// Caching strategy (modelled on npm's update-notifier):
+  ///   • The cache stores ONLY the latest version from pub.dev + a timestamp.
+  ///   • The current (running) version is NEVER stored in the cache — it is
+  ///     always read fresh from the live binary at display time via
+  ///     [VersionReader.getVersion()]. This prevents the classic "stale current
+  ///     version" bug where the banner shows the pre-upgrade version even after
+  ///     the user has already updated.
+  ///   • On cache hit, we still compare against the live current version, so
+  ///     if the user upgraded between two runs the banner disappears correctly.
+  ///   • Suppressed on CI environments.
   Future<UpdateInfo?> checkForUpdates() async {
-    // Try to load cached update info first
+    // Suppress on CI — update notifications are noise in automated pipelines.
+    if (_isRunningOnCi()) return null;
+
+    // Always read the live current version from the running binary.
+    final currentVersionStr = await VersionReader.getVersion();
+
+    // Try to load cached latest version first.
     final cachedResult = await _loadCachedResult();
 
     if (cachedResult != null) {
       final cacheAge = DateTime.now().difference(cachedResult.timestamp);
 
-      // If cache is still valid, return the cached update info immediately
+      // Cache still valid — compare live current against cached latest.
       if (cacheAge < _checkInterval) {
-        return cachedResult.updateInfo;
+        return _buildUpdateInfo(currentVersionStr, cachedResult.latestVersion);
       }
     }
 
-    // Cache is expired or doesn't exist - perform actual check
+    // Cache is expired or doesn't exist — fetch from pub.dev.
     try {
       final latestVersionStr = await _getLatestVersion();
       if (latestVersionStr == null) {
-        // Network error - keep returning old cache if available
-        return cachedResult?.updateInfo;
+        // Network error — fall back to cached latest if available, still
+        // comparing against the live current version (not the cached one).
+        if (cachedResult != null) {
+          return _buildUpdateInfo(
+              currentVersionStr, cachedResult.latestVersion);
+        }
+        return null;
       }
 
-      // Get current version from pubspec.yaml
-      final currentVersionStr = await VersionReader.getVersion();
-      final currentVersion = Version.parse(currentVersionStr);
-      final latestVersion = Version.parse(latestVersionStr);
+      // Persist ONLY the latest version + current timestamp.
+      await _saveCachedResult(_CachedResult(
+        latestVersion: latestVersionStr,
+        timestamp: DateTime.now(),
+      ));
 
-      UpdateInfo? updateInfo;
-      if (latestVersion > currentVersion) {
-        updateInfo = UpdateInfo(
+      return _buildUpdateInfo(currentVersionStr, latestVersionStr);
+    } catch (e) {
+      // Fail silently — update check is a best-effort feature.
+      if (cachedResult != null) {
+        return _buildUpdateInfo(currentVersionStr, cachedResult.latestVersion);
+      }
+      return null;
+    }
+  }
+
+  /// Returns an [UpdateInfo] only when [latestVersionStr] is strictly newer
+  /// than [currentVersionStr]. Returns null otherwise (up-to-date).
+  UpdateInfo? _buildUpdateInfo(
+      String currentVersionStr, String latestVersionStr) {
+    try {
+      final current = Version.parse(currentVersionStr);
+      final latest = Version.parse(latestVersionStr);
+      if (latest > current) {
+        return UpdateInfo(
           latestVersion: latestVersionStr,
           currentVersion: currentVersionStr,
         );
       }
-
-      // Cache the result (even if null) to avoid repeated checks
-      await _saveCachedResult(_CachedResult(
-        updateInfo: updateInfo,
-        timestamp: DateTime.now(),
-      ));
-
-      return updateInfo;
-    } catch (e) {
-      // Fail silently - update check shouldn't break the CLI
-      // Return old cache if available
-      return cachedResult?.updateInfo;
+    } catch (_) {
+      // Malformed version string — suppress banner.
     }
+    return null;
+  }
+
+  /// Clears the cache file if the cached latestVersion is older than or equal
+  /// to the currently-running version.
+  ///
+  /// Call this once at startup (before the background check is kicked off).
+  /// It handles the scenario where the user just upgraded the tool: the cache
+  /// still holds the old "latest" which is now behind the current binary, so
+  /// we delete it to force a fresh pub.dev fetch on this (or the next) run.
+  Future<void> clearCacheIfStale() async {
+    try {
+      final cachedResult = await _loadCachedResult();
+      if (cachedResult == null) return;
+
+      final currentVersionStr = await VersionReader.getVersion();
+      final current = Version.parse(currentVersionStr);
+      final cached = Version.parse(cachedResult.latestVersion);
+
+      // Cache is stale if current >= cached latest (user has already upgraded
+      // to or beyond what was reported as "latest").
+      if (current >= cached) {
+        final file = await _getCacheFile();
+        if (await file.exists()) await file.delete();
+      }
+    } catch (_) {
+      // Fail silently — never break the CLI over cache housekeeping.
+    }
+  }
+
+  /// Matches the same env-var set used by `is-ci` (npm) and `melos`.
+  bool _isRunningOnCi() {
+    final env = Platform.environment;
+    return env.containsKey('CI') ||
+        env.containsKey('CONTINUOUS_INTEGRATION') ||
+        env.containsKey('BUILD_NUMBER') || // Jenkins / TeamCity
+        env.containsKey('RUN_ID') || // GitHub Actions
+        env.containsKey('GITHUB_ACTIONS') ||
+        env.containsKey('GITLAB_CI') ||
+        env.containsKey('CIRCLECI') ||
+        env.containsKey('TRAVIS') ||
+        env.containsKey('TF_BUILD'); // Azure Pipelines
   }
 
   /// Get the latest version from pub.dev API
@@ -133,36 +201,38 @@ class UpdateChecker {
   }
 }
 
-/// Internal cached result structure
+/// Internal cached result structure.
+/// Stores ONLY the latest version from pub.dev + the check timestamp.
+/// The current version is intentionally NOT cached — it is always read
+/// from the live binary at display time to avoid stale-version banners.
 class _CachedResult {
-  final UpdateInfo? updateInfo;
+  final String latestVersion;
   final DateTime timestamp;
 
   _CachedResult({
-    required this.updateInfo,
+    required this.latestVersion,
     required this.timestamp,
   });
 
   Map<String, dynamic> toJson() => {
         'timestamp': timestamp.toIso8601String(),
-        'updateInfo': updateInfo == null
-            ? null
-            : {
-                'latestVersion': updateInfo!.latestVersion,
-                'currentVersion': updateInfo!.currentVersion,
-              },
+        'latestVersion': latestVersion,
       };
 
   factory _CachedResult.fromJson(Map<String, dynamic> json) {
-    final updateInfoJson = json['updateInfo'] as Map<String, dynamic>?;
+    // Support old cache format that stored { updateInfo: { latestVersion, currentVersion } }
+    // so existing installs don't crash on the first run after upgrading.
+    String? latest = json['latestVersion'] as String?;
+    if (latest == null) {
+      final updateInfo = json['updateInfo'] as Map<String, dynamic>?;
+      latest = updateInfo?['latestVersion'] as String?;
+    }
+    if (latest == null) {
+      throw const FormatException('Missing latestVersion in cache');
+    }
     return _CachedResult(
+      latestVersion: latest,
       timestamp: DateTime.parse(json['timestamp'] as String),
-      updateInfo: updateInfoJson == null
-          ? null
-          : UpdateInfo(
-              latestVersion: updateInfoJson['latestVersion'] as String,
-              currentVersion: updateInfoJson['currentVersion'] as String,
-            ),
     );
   }
 }

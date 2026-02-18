@@ -10,7 +10,7 @@ class VersionReader {
 
   /// Current version - UPDATE THIS WHEN RELEASING A NEW VERSION
   /// This is the fallback when pubspec.yaml cannot be read (common in pub global)
-  static const String _currentVersion = '2.0.0';
+  static const String _currentVersion = '2.0.1';
 
   /// Get the current package version
   /// Priority: 1) Cached value 2) Local pubspec 3) Pub cache 4) Fallback constant
@@ -65,11 +65,15 @@ class VersionReader {
     return null;
   }
 
-  /// Read version from pub cache (global activation mode)
+  /// Read version from pub cache (global activation mode).
   /// The package is installed at: ~/.pub-cache/hosted/pub.dev/flutter_blueprint-X.Y.Z/
+  ///
+  /// Collects ALL matching flutter_blueprint-* directories and returns the
+  /// **highest semver** among them. This prevents an old directory (e.g.
+  /// flutter_blueprint-0.2.0-dev.2) from being returned ahead of 2.0.1 simply
+  /// because directory.list() happens to yield it first.
   static Future<String?> _readFromPubCache() async {
     try {
-      // Get pub cache directory
       final home = Platform.environment['HOME'] ??
           Platform.environment['USERPROFILE'] ??
           '';
@@ -86,39 +90,72 @@ class VersionReader {
             'pub.dartlang.org'),
       ];
 
+      // Collect every flutter_blueprint version found across all cache dirs.
+      final candidates = <String>[];
+
       for (final cacheDir in cacheLocations) {
         final dir = Directory(cacheDir);
         if (!await dir.exists()) continue;
 
-        // Find flutter_blueprint packages
         await for (final entity in dir.list()) {
-          if (entity is Directory) {
-            final name = path.basename(entity.path);
-            if (name.startsWith('flutter_blueprint-')) {
-              // Extract version from directory name
-              final version = name.replaceFirst('flutter_blueprint-', '');
-              if (version.isNotEmpty && _isValidVersion(version)) {
-                // Verify by reading pubspec
-                final pubspecPath = path.join(entity.path, 'pubspec.yaml');
-                final pubspecFile = File(pubspecPath);
-                if (await pubspecFile.exists()) {
-                  final content = await pubspecFile.readAsString();
-                  final yaml = loadYaml(content) as Map;
-                  final pubspecVersion = yaml['version'] as String?;
-                  if (pubspecVersion != null) {
-                    return pubspecVersion;
-                  }
-                }
-                return version; // Fallback to directory name version
+          if (entity is! Directory) continue;
+          final name = path.basename(entity.path);
+          if (!name.startsWith('flutter_blueprint-')) continue;
+
+          final version = name.replaceFirst('flutter_blueprint-', '');
+          if (version.isEmpty || !_isValidVersion(version)) continue;
+
+          // Prefer the version string from the pubspec inside the directory.
+          try {
+            final pubspecFile =
+                File(path.join(entity.path, 'pubspec.yaml'));
+            if (await pubspecFile.exists()) {
+              final content = await pubspecFile.readAsString();
+              final yaml = loadYaml(content) as Map;
+              final pubspecVersion = yaml['version'] as String?;
+              if (pubspecVersion != null && pubspecVersion.isNotEmpty) {
+                candidates.add(pubspecVersion);
+                continue;
               }
             }
-          }
+          } catch (_) {}
+
+          candidates.add(version);
         }
       }
+
+      if (candidates.isEmpty) return null;
+
+      // Return the highest semver among all candidates.
+      candidates.sort(_compareVersions);
+      return candidates.last;
     } catch (_) {
       // Fail silently
     }
     return null;
+  }
+
+  /// Compare two dotted-version strings (e.g. "2.0.1" vs "0.2.0-dev.2").
+  /// Pre-release suffixes (anything after `-`) sort lower than the release.
+  static int _compareVersions(String a, String b) {
+    // Strip pre-release suffix for numeric comparison, but keep track of it.
+    String stripPre(String v) => v.split('-').first;
+    bool hasPre(String v) => v.contains('-');
+
+    final aParts = stripPre(a).split('.').map((s) => int.tryParse(s) ?? 0).toList();
+    final bParts = stripPre(b).split('.').map((s) => int.tryParse(s) ?? 0).toList();
+
+    final len = aParts.length > bParts.length ? aParts.length : bParts.length;
+    for (var i = 0; i < len; i++) {
+      final av = i < aParts.length ? aParts[i] : 0;
+      final bv = i < bParts.length ? bParts[i] : 0;
+      if (av != bv) return av.compareTo(bv);
+    }
+
+    // Equal numeric parts: release > pre-release
+    if (hasPre(a) && !hasPre(b)) return -1;
+    if (!hasPre(a) && hasPre(b)) return 1;
+    return a.compareTo(b);
   }
 
   /// Validate version string format
