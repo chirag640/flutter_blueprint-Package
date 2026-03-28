@@ -34,6 +34,9 @@ class PresentationLayerTemplate {
       case StateManagement.bloc:
         templates.addAll(_generateBlocFiles(featureName, pascalName));
         break;
+      case StateManagement.getx:
+        templates.addAll(_generateGetxFiles(featureName, pascalName));
+        break;
     }
 
     return templates;
@@ -51,24 +54,29 @@ class PresentationLayerTemplate {
         "import 'package:flutter_riverpod/flutter_riverpod.dart';\nimport '../provider/${featureName}_provider.dart';",
       StateManagement.bloc =>
         "import 'package:flutter_bloc/flutter_bloc.dart';\nimport '../bloc/${featureName}_bloc.dart';\nimport '../bloc/${featureName}_event.dart';\nimport '../bloc/${featureName}_state.dart';",
+      StateManagement.getx =>
+        "import 'package:get/get.dart';\nimport '../controllers/${featureName}_controller.dart';",
     };
 
     final widgetType = switch (stateManagement) {
       StateManagement.provider => 'StatelessWidget',
       StateManagement.riverpod => 'ConsumerWidget',
       StateManagement.bloc => 'StatelessWidget',
+      StateManagement.getx => 'GetView<${pascalName}Controller>',
     };
 
     final buildParams = switch (stateManagement) {
       StateManagement.provider => 'BuildContext context',
       StateManagement.riverpod => 'BuildContext context, WidgetRef ref',
       StateManagement.bloc => 'BuildContext context',
+      StateManagement.getx => 'BuildContext context',
     };
 
     final body = switch (stateManagement) {
       StateManagement.provider => _providerPageBody(featureName, pascalName),
       StateManagement.riverpod => _riverpodPageBody(featureName, pascalName),
       StateManagement.bloc => _blocPageBody(featureName, pascalName),
+      StateManagement.getx => _getxPageBody(featureName, pascalName),
     };
 
     return '''
@@ -83,6 +91,195 @@ class ${pascalName}Page extends $widgetType {
   @override
   Widget build($buildParams) {
 $body  }
+
+  Widget _responsiveBody({
+    required Widget child,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontalPadding = width >= 1024
+            ? 48.0
+            : width >= 600
+                ? 24.0
+                : 12.0;
+        final maxContentWidth = width >= 1440
+            ? 1100.0
+            : width >= 1024
+                ? 960.0
+                : width >= 600
+                    ? 720.0
+                    : width;
+
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 8,
+              ),
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+''';
+  }
+
+  static String _getxPageBody(String featureName, String pascalName) {
+    return '''    return Scaffold(
+      appBar: AppBar(
+        title: const Text('${featureName.replaceAll('_', ' ')}'),
+      ),
+      body: _responsiveBody(
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.error.value.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: \${controller.error.value}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: controller.loadItems,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (controller.items.isEmpty) {
+            return const Center(child: Text('No items found'));
+          }
+
+          return ListView.builder(
+            itemCount: controller.items.length,
+            itemBuilder: (context, index) {
+              final item = controller.items[index];
+              return ${pascalName}ListItem(
+                item: item,
+                onTap: () {
+                  // Get.toNamed('/\${featureName}-detail', arguments: item);
+                },
+              );
+            },
+          );
+        }),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: controller.loadItems,
+        child: const Icon(Icons.refresh),
+      ),
+    );''';
+  }
+
+  static List<FileTemplate> _generateGetxFiles(
+      String featureName, String pascalName) {
+    return [
+      FileTemplate(
+        relativePath: 'presentation/controllers/${featureName}_controller.dart',
+        content: _getxControllerTemplate(featureName, pascalName),
+      ),
+      FileTemplate(
+        relativePath: 'presentation/bindings/${featureName}_binding.dart',
+        content: _getxBindingTemplate(featureName, pascalName),
+      ),
+    ];
+  }
+
+  static String _getxControllerTemplate(String featureName, String pascalName) {
+    return '''
+import 'package:get/get.dart';
+
+import '../../domain/entities/${featureName}_entity.dart';
+import '../../domain/usecases/get_${featureName}_list.dart';
+
+/// GetX controller for $pascalName feature.
+///
+/// Exposes reactive state via [RxList], [RxBool], and [RxString].
+/// Observe state in widgets using [Obx] or [GetX].
+class ${pascalName}Controller extends GetxController {
+  ${pascalName}Controller(this._getList);
+
+  final Get${pascalName}List _getList;
+
+  // ── Reactive State ────────────────────────────────────────────
+  final RxList<${pascalName}Entity> items = <${pascalName}Entity>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxString error = ''.obs;
+
+  // ── Lifecycle ─────────────────────────────────────────────────
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadItems();
+  }
+
+  // ── Methods ───────────────────────────────────────────────────
+
+  /// Loads $featureName items from the use case.
+  Future<void> loadItems() async {
+    isLoading.value = true;
+    error.value = '';
+
+    try {
+      final result = await _getList();
+      items.assignAll(result);
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+}
+''';
+  }
+
+  static String _getxBindingTemplate(String featureName, String pascalName) {
+    return '''
+import 'package:get/get.dart';
+
+import '../../domain/repositories/${featureName}_repository.dart';
+import '../../domain/usecases/get_${featureName}_list.dart';
+import '../controllers/${featureName}_controller.dart';
+
+/// Binding for $pascalName feature.
+///
+/// Lazily registers [${pascalName}Controller] and its dependencies
+/// before the page is shown. GetX auto-disposes them when the page is closed.
+class ${pascalName}Binding extends Bindings {
+  @override
+  void dependencies() {
+    if (!Get.isRegistered<${pascalName}Repository>()) {
+      throw StateError(
+        '${pascalName}Repository is not registered. '
+        'Register it before navigating to ${pascalName}Page.',
+      );
+    }
+
+    if (!Get.isRegistered<Get${pascalName}List>()) {
+      Get.lazyPut<Get${pascalName}List>(
+        () => Get${pascalName}List(Get.find<${pascalName}Repository>()),
+        fenix: true,
+      );
+    }
+
+    Get.lazyPut<${pascalName}Controller>(
+      () => ${pascalName}Controller(Get.find<Get${pascalName}List>()),
+      fenix: true,
+    );
+  }
 }
 ''';
   }
@@ -92,53 +289,55 @@ $body  }
       appBar: AppBar(
         title: const Text('${featureName.toTitleCase()}'),
       ),
-      body: Consumer<${pascalName}Provider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: _responsiveBody(
+        child: Consumer<${pascalName}Provider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (provider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Error: \${provider.error}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => provider.loadItems(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (provider.items.isEmpty) {
-            return const Center(child: Text('No items found'));
-          }
-
-          return ListView.builder(
-            itemCount: provider.items.length,
-            itemBuilder: (context, index) {
-              final item = provider.items[index];
-              return ${pascalName}ListItem(
-                item: item,
-                onTap: () {
-                  // Navigate to detail page
-                  // Navigator.pushNamed(context, '/${featureName}/detail', arguments: item);
-                  // Or with MaterialPageRoute:
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ${pascalName}DetailPage(item: item),
-                  //   ),
-                  // );
-                },
+            if (provider.error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: \${provider.error}'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => provider.loadItems(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               );
-            },
-          );
-        },
+            }
+
+            if (provider.items.isEmpty) {
+              return const Center(child: Text('No items found'));
+            }
+
+            return ListView.builder(
+              itemCount: provider.items.length,
+              itemBuilder: (context, index) {
+                final item = provider.items[index];
+                return ${pascalName}ListItem(
+                  item: item,
+                  onTap: () {
+                    // Navigate to detail page
+                    // Navigator.pushNamed(context, '/$featureName/detail', arguments: item);
+                    // Or with MaterialPageRoute:
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => ${pascalName}DetailPage(item: item),
+                    //   ),
+                    // );
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -157,48 +356,50 @@ $body  }
       appBar: AppBar(
         title: const Text('${featureName.toTitleCase()}'),
       ),
-      body: ${camelName}State.when(
-        initial: () => const Center(child: Text('Press refresh to load data')),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        loaded: (items) {
-          if (items.isEmpty) {
-            return const Center(child: Text('No items found'));
-          }
+      body: _responsiveBody(
+        child: ${camelName}State.when(
+          initial: () => const Center(child: Text('Press refresh to load data')),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          loaded: (items) {
+            if (items.isEmpty) {
+              return const Center(child: Text('No items found'));
+            }
 
-          return ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return ${pascalName}ListItem(
-                item: item,
-                onTap: () {
-                  // Navigate to detail page
-                  // Navigator.pushNamed(context, '/${featureName}/detail', arguments: item);
-                  // Or with MaterialPageRoute:
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ${pascalName}DetailPage(item: item),
-                  //   ),
-                  // );
-                },
-              );
-            },
-          );
-        },
-        error: (message) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: \$message'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(${camelName}Provider.notifier).loadItems();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
+            return ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return ${pascalName}ListItem(
+                  item: item,
+                  onTap: () {
+                    // Navigate to detail page
+                    // Navigator.pushNamed(context, '/$featureName/detail', arguments: item);
+                    // Or with MaterialPageRoute:
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => ${pascalName}DetailPage(item: item),
+                    //   ),
+                    // );
+                  },
+                );
+              },
+            );
+          },
+          error: (message) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error: \$message'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    ref.read(${camelName}Provider.notifier).loadItems();
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -216,63 +417,65 @@ $body  }
       appBar: AppBar(
         title: const Text('${featureName.toTitleCase()}'),
       ),
-      body: BlocBuilder<${pascalName}Bloc, ${pascalName}State>(
-        builder: (context, state) {
-          if (state is ${pascalName}InitialState) {
-            return const Center(child: Text('Press refresh to load data'));
-          }
-
-          if (state is ${pascalName}LoadingState) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is ${pascalName}ErrorState) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Error: \${state.message}'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<${pascalName}Bloc>().add(const Load${pascalName}Event());
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (state is ${pascalName}LoadedState) {
-            if (state.items.isEmpty) {
-              return const Center(child: Text('No items found'));
+      body: _responsiveBody(
+        child: BlocBuilder<${pascalName}Bloc, ${pascalName}State>(
+          builder: (context, state) {
+            if (state is ${pascalName}InitialState) {
+              return const Center(child: Text('Press refresh to load data'));
             }
 
-            return ListView.builder(
-              itemCount: state.items.length,
-              itemBuilder: (context, index) {
-                final item = state.items[index];
-                return ${pascalName}ListItem(
-                  item: item,
-                  onTap: () {
-                    // Navigate to detail page
-                    // Navigator.pushNamed(context, '/${featureName}/detail', arguments: item);
-                    // Or with MaterialPageRoute:
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => ${pascalName}DetailPage(item: item),
-                    //   ),
-                    // );
-                  },
-                );
-              },
-            );
-          }
+            if (state is ${pascalName}LoadingState) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return const SizedBox.shrink();
-        },
+            if (state is ${pascalName}ErrorState) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: \${state.message}'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<${pascalName}Bloc>().add(const Load${pascalName}Event());
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (state is ${pascalName}LoadedState) {
+              if (state.items.isEmpty) {
+                return const Center(child: Text('No items found'));
+              }
+
+              return ListView.builder(
+                itemCount: state.items.length,
+                itemBuilder: (context, index) {
+                  final item = state.items[index];
+                  return ${pascalName}ListItem(
+                    item: item,
+                    onTap: () {
+                      // Navigate to detail page
+                      // Navigator.pushNamed(context, '/$featureName/detail', arguments: item);
+                      // Or with MaterialPageRoute:
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => ${pascalName}DetailPage(item: item),
+                      //   ),
+                      // );
+                    },
+                  );
+                },
+              );
+            }
+
+            return const SizedBox.shrink();
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -328,6 +531,8 @@ class ${pascalName}ListItem extends StatelessWidget {
 
   static String _providerTemplate(String featureName, String pascalName) {
     return '''
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/${featureName}_entity.dart';
@@ -343,7 +548,8 @@ class ${pascalName}Provider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  List<${pascalName}Entity> get items => _items;
+  UnmodifiableListView<${pascalName}Entity> get items =>
+      UnmodifiableListView(_items);
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -354,7 +560,7 @@ class ${pascalName}Provider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _items = await _getList();
+      _items = List<${pascalName}Entity>.unmodifiable(await _getList());
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -381,91 +587,66 @@ class ${pascalName}Provider extends ChangeNotifier {
       String featureName, String pascalName) {
     final camelName = featureName.toCamelCase();
     return '''
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/${featureName}_entity.dart';
+import '../../domain/repositories/${featureName}_repository.dart';
 import '../../domain/usecases/get_${featureName}_list.dart';
 
+part '${featureName}_provider.freezed.dart';
+
 /// State for $pascalName feature.
-sealed class ${pascalName}State {
-  const ${pascalName}State();
-}
-
-class ${pascalName}InitialState extends ${pascalName}State {
-  const ${pascalName}InitialState();
-}
-
-class ${pascalName}LoadingState extends ${pascalName}State {
-  const ${pascalName}LoadingState();
-}
-
-class ${pascalName}LoadedState extends ${pascalName}State {
-  const ${pascalName}LoadedState(this.items);
-
-  final List<${pascalName}Entity> items;
-}
-
-class ${pascalName}ErrorState extends ${pascalName}State {
-  const ${pascalName}ErrorState(this.message);
-
-  final String message;
-}
-
-/// Extension for pattern matching on state.
-extension ${pascalName}StateExtension on ${pascalName}State {
-  T when<T>({
-    required T Function() initial,
-    required T Function() loading,
-    required T Function(List<${pascalName}Entity> items) loaded,
-    required T Function(String message) error,
-  }) {
-    final state = this;
-    if (state is ${pascalName}InitialState) return initial();
-    if (state is ${pascalName}LoadingState) return loading();
-    if (state is ${pascalName}LoadedState) return loaded(state.items);
-    if (state is ${pascalName}ErrorState) return error(state.message);
-    throw StateError('Unhandled state: \$state');
-  }
+@freezed
+sealed class ${pascalName}State with _\$${pascalName}State {
+  const factory ${pascalName}State.initial() = ${pascalName}InitialState;
+  const factory ${pascalName}State.loading() = ${pascalName}LoadingState;
+  const factory ${pascalName}State.loaded(List<${pascalName}Entity> items) =
+      ${pascalName}LoadedState;
+  const factory ${pascalName}State.error(String message) =
+      ${pascalName}ErrorState;
 }
 
 /// Notifier for managing $pascalName state.
 class ${pascalName}Notifier extends StateNotifier<${pascalName}State> {
-  ${pascalName}Notifier(this._getList) : super(const ${pascalName}InitialState());
+  ${pascalName}Notifier(this._getList)
+      : super(const ${pascalName}State.initial());
 
   final Get${pascalName}List _getList;
 
   /// Loads $featureName items.
   Future<void> loadItems() async {
-    state = const ${pascalName}LoadingState();
+    state = const ${pascalName}State.loading();
 
     try {
       final items = await _getList();
-      state = ${pascalName}LoadedState(items);
+      state = ${pascalName}State.loaded(items);
     } catch (e) {
-      state = ${pascalName}ErrorState(e.toString());
+      state = ${pascalName}State.error(e.toString());
     }
   }
 }
 
-/// Provider for $pascalName feature.
-/// 
-/// Example dependency injection:
-/// ```dart
-/// final ${camelName}Provider = StateNotifierProvider<${pascalName}Notifier, ${pascalName}State>((ref) {
-///   final repository = ref.watch(${camelName}RepositoryProvider);
-///   final getList = Get${pascalName}List(repository);
-///   return ${pascalName}Notifier(getList);
-/// });
-/// ```
-final ${camelName}Provider = StateNotifierProvider<${pascalName}Notifier, ${pascalName}State>((ref) {
-  // Inject dependencies here:
-  // 1. Create or get the repository from a provider
-  // 2. Create the use case with the repository
-  // 3. Create the notifier with the use case
-  throw UnimplementedError(
-    'Inject dependencies: repository -> use case -> notifier. '
-    'See documentation above for example.',
+/// Contract provider for injecting the repository implementation.
+///
+/// Override this in `ProviderScope` with your concrete repository.
+final ${camelName}RepositoryProvider = Provider<${pascalName}Repository>((ref) {
+  throw StateError(
+    'No ${pascalName}Repository provided. '
+    'Override ${camelName}RepositoryProvider in ProviderScope.',
   );
+});
+
+/// Use case provider wired through the repository provider.
+final ${camelName}GetListUseCaseProvider = Provider<Get${pascalName}List>((ref) {
+  final repository = ref.watch(${camelName}RepositoryProvider);
+  return Get${pascalName}List(repository);
+});
+
+/// StateNotifier provider with constructor injection.
+final ${camelName}Provider = StateNotifierProvider<${pascalName}Notifier, ${pascalName}State>((ref) {
+  final getList = ref.watch(${camelName}GetListUseCaseProvider);
+  return ${pascalName}Notifier(getList);
 });
 ''';
   }
@@ -490,70 +671,46 @@ final ${camelName}Provider = StateNotifierProvider<${pascalName}Notifier, ${pasc
 
   static String _blocEventTemplate(String featureName, String pascalName) {
     return '''
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part '${featureName}_event.freezed.dart';
 
 /// Base event for $pascalName feature.
-sealed class ${pascalName}Event extends Equatable {
-  const ${pascalName}Event();
+@freezed
+sealed class ${pascalName}Event with _\$${pascalName}Event {
+  /// Event to load $featureName items.
+  const factory ${pascalName}Event.load() = Load${pascalName}Event;
 
-  @override
-  List<Object?> get props => [];
-}
-
-/// Event to load $featureName items.
-class Load${pascalName}Event extends ${pascalName}Event {
-  const Load${pascalName}Event();
-}
-
-/// Event to refresh $featureName items.
-class Refresh${pascalName}Event extends ${pascalName}Event {
-  const Refresh${pascalName}Event();
+  /// Event to refresh $featureName items.
+  const factory ${pascalName}Event.refresh() = Refresh${pascalName}Event;
 }
 ''';
   }
 
   static String _blocStateTemplate(String featureName, String pascalName) {
     return '''
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/${featureName}_entity.dart';
 
+part '${featureName}_state.freezed.dart';
+
 /// Base state for $pascalName feature.
-sealed class ${pascalName}State extends Equatable {
-  const ${pascalName}State();
+@freezed
+sealed class ${pascalName}State with _\$${pascalName}State {
+  /// Initial state.
+  const factory ${pascalName}State.initial() = ${pascalName}InitialState;
 
-  @override
-  List<Object?> get props => [];
-}
+  /// Loading state.
+  const factory ${pascalName}State.loading() = ${pascalName}LoadingState;
 
-/// Initial state.
-class ${pascalName}InitialState extends ${pascalName}State {
-  const ${pascalName}InitialState();
-}
+  /// Loaded state with items.
+  const factory ${pascalName}State.loaded(List<${pascalName}Entity> items) =
+      ${pascalName}LoadedState;
 
-/// Loading state.
-class ${pascalName}LoadingState extends ${pascalName}State {
-  const ${pascalName}LoadingState();
-}
-
-/// Loaded state with items.
-class ${pascalName}LoadedState extends ${pascalName}State {
-  const ${pascalName}LoadedState(this.items);
-
-  final List<${pascalName}Entity> items;
-
-  @override
-  List<Object?> get props => [items];
-}
-
-/// Error state with message.
-class ${pascalName}ErrorState extends ${pascalName}State {
-  const ${pascalName}ErrorState(this.message);
-
-  final String message;
-
-  @override
-  List<Object?> get props => [message];
+  /// Error state with message.
+  const factory ${pascalName}State.error(String message) =
+      ${pascalName}ErrorState;
 }
 ''';
   }
@@ -568,7 +725,8 @@ import '${featureName}_state.dart';
 
 /// BLoC for managing $pascalName feature.
 class ${pascalName}Bloc extends Bloc<${pascalName}Event, ${pascalName}State> {
-  ${pascalName}Bloc(this._getList) : super(const ${pascalName}InitialState()) {
+  ${pascalName}Bloc(this._getList)
+      : super(const ${pascalName}State.initial()) {
     on<Load${pascalName}Event>(_onLoad);
     on<Refresh${pascalName}Event>(_onRefresh);
   }
@@ -579,13 +737,13 @@ class ${pascalName}Bloc extends Bloc<${pascalName}Event, ${pascalName}State> {
     Load${pascalName}Event event,
     Emitter<${pascalName}State> emit,
   ) async {
-    emit(const ${pascalName}LoadingState());
+    emit(const ${pascalName}State.loading());
 
     try {
       final items = await _getList();
-      emit(${pascalName}LoadedState(items));
+      emit(${pascalName}State.loaded(items));
     } catch (e) {
-      emit(${pascalName}ErrorState(e.toString()));
+      emit(${pascalName}State.error(e.toString()));
     }
   }
 
@@ -594,13 +752,13 @@ class ${pascalName}Bloc extends Bloc<${pascalName}Event, ${pascalName}State> {
     Emitter<${pascalName}State> emit,
   ) async {
     // Same as load for now
-    emit(const ${pascalName}LoadingState());
+    emit(const ${pascalName}State.loading());
 
     try {
       final items = await _getList();
-      emit(${pascalName}LoadedState(items));
+      emit(${pascalName}State.loaded(items));
     } catch (e) {
-      emit(${pascalName}ErrorState(e.toString()));
+      emit(${pascalName}State.error(e.toString()));
     }
   }
 }

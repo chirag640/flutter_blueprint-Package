@@ -9,16 +9,15 @@ import 'package:flutter_blueprint/src/prompts/interactive_prompter.dart';
 
 /// Minimal test command for registry tests.
 class _TestCommand extends BaseCommand {
-  _TestCommand({this.testName = 'test', this.testDescription = 'A test cmd'});
+  _TestCommand({this.testName = 'test'});
 
   final String testName;
-  final String testDescription;
 
   @override
   String get name => testName;
 
   @override
-  String get description => testDescription;
+  String get description => 'A test cmd';
 
   @override
   String get usage => '$testName usage';

@@ -120,6 +120,10 @@ class ProjectPreview {
         buffer.writeln('│   │           ├── 📄 home_event.dart');
         buffer.writeln('│   │           └── 📄 home_state.dart');
         break;
+      case StateManagement.getx:
+        buffer.writeln('│   │           ├── 📄 home_controller.dart');
+        buffer.writeln('│   │           └── 📄 home_binding.dart');
+        break;
     }
 
     buffer.writeln('│   ├── 📁 core/');
@@ -228,6 +232,10 @@ class ProjectPreview {
         break;
       case StateManagement.bloc:
         dartFiles += 3;
+        break;
+      case StateManagement.getx:
+        // controller + binding per feature
+        dartFiles += 2;
         break;
     }
 

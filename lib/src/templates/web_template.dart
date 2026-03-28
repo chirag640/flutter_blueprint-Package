@@ -3,7 +3,7 @@ import 'package:path/path.dart' as p;
 import '../config/blueprint_config.dart';
 import 'template_bundle.dart';
 
-/// Builds a web-optimized Flutter template with BLoC architecture
+/// Builds a web-optimized Flutter template.
 TemplateBundle buildWebTemplate(StateManagement stateManagement) {
   switch (stateManagement) {
     case StateManagement.bloc:
@@ -12,6 +12,8 @@ TemplateBundle buildWebTemplate(StateManagement stateManagement) {
       return _buildProviderWebBundle();
     case StateManagement.riverpod:
       return _buildRiverpodWebBundle();
+    case StateManagement.getx:
+      return _buildGetxWebBundle();
   }
 }
 
@@ -176,6 +178,211 @@ TemplateBundle _buildRiverpodWebBundle() {
   return _buildBlocWebBundle(); // Placeholder - implement full riverpod version
 }
 
+TemplateBundle _buildGetxWebBundle() {
+  // GetX web bundle — uses the same HTML/manifest/analysis scaffolding
+  // as the BLoC bundle, but with GetX-specific pubspec, main.dart, and app.dart.
+  final blocBundle = _buildBlocWebBundle();
+  final getxOverrides = {
+    'pubspec.yaml': _pubspecGetx,
+    p.join('lib', 'main.dart'): _mainDartGetx,
+    p.join('lib', 'app', 'app.dart'): _appDartGetx,
+  };
+
+  // Replace files that differ for GetX
+  final files = blocBundle.files.map((f) {
+    final override = getxOverrides[f.path];
+    if (override != null) {
+      return TemplateFile(path: f.path, build: override);
+    }
+    return f;
+  }).toList();
+
+  // Add GetX routing files that replace the Navigator-1.0 router
+  final extras = [
+    TemplateFile(
+      path: p.join('lib', 'core', 'routing', 'app_pages.dart'),
+      build: _appPagesGetx,
+    ),
+    TemplateFile(
+      path: p.join('lib', 'core', 'routing', 'routes.dart'),
+      build: _routesGetx,
+    ),
+  ];
+
+  return TemplateBundle(
+    files: [...files, ...extras],
+    additionalDependencies: {'get': '^4.6.6'},
+  );
+}
+
+String _pubspecGetx(BlueprintConfig config) {
+  final buffer = StringBuffer()
+    ..writeln('name: ${config.appName}')
+    ..writeln(
+        'description: "A Flutter web app scaffolded by flutter_blueprint with GetX."')
+    ..writeln('publish_to: "none"')
+    ..writeln('')
+    ..writeln('version: 0.1.0+1')
+    ..writeln('')
+    ..writeln('environment:')
+    ..writeln('  sdk: ">=3.3.0 <4.0.0"')
+    ..writeln('  flutter: ">=3.24.0"')
+    ..writeln('')
+    ..writeln('dependencies:')
+    ..writeln('  flutter:')
+    ..writeln('    sdk: flutter');
+
+  buffer
+    ..writeln('  get: ^4.6.6')
+    ..writeln('  shared_preferences: ^2.2.3')
+    ..writeln('  flutter_secure_storage: ^9.2.2')
+    ..writeln('  freezed_annotation: ^3.1.0')
+    ..writeln('  equatable: ^2.0.5')
+    ..writeln('  url_strategy: ^0.3.0');
+
+  if (config.includeLocalization) {
+    buffer
+      ..writeln('  flutter_localizations:')
+      ..writeln('    sdk: flutter')
+      ..writeln('  intl: ^0.20.2');
+  }
+  if (config.includeEnv) {
+    buffer.writeln('  flutter_dotenv: ^5.1.0');
+  }
+  if (config.includeApi) {
+    buffer
+      ..writeln('  dio: ^5.5.0')
+      ..writeln('  connectivity_plus: ^6.0.5');
+  }
+  if (config.includeGraphql) {
+    if (config.graphqlClient == GraphqlClient.ferry) {
+      buffer
+        ..writeln('  ferry: ^0.16.1+2')
+        ..writeln('  ferry_flutter: ^0.9.1+1')
+        ..writeln('  gql_http_link: ^1.2.0')
+        ..writeln('  built_value: ^8.9.2')
+        ..writeln('  built_collection: ^5.1.1');
+    } else {
+      buffer
+        ..writeln('  graphql_flutter: ^5.1.2')
+        ..writeln('  gql: ^1.0.1');
+    }
+  }
+
+  buffer
+    ..writeln('')
+    ..writeln('dev_dependencies:')
+    ..writeln('  flutter_test:')
+    ..writeln('    sdk: flutter')
+    ..writeln('  flutter_lints: ^5.0.0')
+    ..writeln('  freezed: ^3.2.2')
+    ..writeln('  build_runner: ^2.4.8');
+  if (config.includeTests) {
+    buffer.writeln('  mocktail: ^1.0.3');
+  }
+  if (config.includeGraphql && config.graphqlClient == GraphqlClient.ferry) {
+    buffer.writeln(
+        '  ferry_generator: 0.12.0+2'); // pinned: ^0.12.0+3 conflicts with hive_generator
+  }
+
+  buffer
+    ..writeln('')
+    ..writeln('flutter:')
+    ..writeln('  uses-material-design: true');
+  if (config.includeLocalization) {
+    buffer
+      ..writeln('  assets:')
+      ..writeln('    - assets/l10n/');
+  }
+  return buffer.toString().trimRight();
+}
+
+String _mainDartGetx(BlueprintConfig config) {
+  return '''
+import 'package:flutter/material.dart';
+import 'package:url_strategy/url_strategy.dart';
+
+import 'app/app.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  setPathUrlStrategy(); // Remove # from web URLs
+  runApp(const App());
+}
+''';
+}
+
+String _appDartGetx(BlueprintConfig config) {
+  return '''
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../core/routing/app_pages.dart';
+import '../core/routing/routes.dart';
+${config.includeTheme ? "import '../core/theme/app_theme.dart';" : ''}
+
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      title: '${_titleCase(config.appName)}',
+      debugShowCheckedModeBanner: false,
+      ${config.includeTheme ? 'theme: AppTheme.lightTheme,' : ''}
+      ${config.includeTheme ? 'darkTheme: AppTheme.darkTheme,' : ''}
+      initialRoute: Routes.home,
+      getPages: AppPages.routes,
+      defaultTransition: Transition.fade,
+    );
+  }
+}
+''';
+}
+
+String _appPagesGetx(BlueprintConfig config) {
+  return '''
+import 'package:get/get.dart';
+
+import '../../features/home/presentation/bindings/home_binding.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import 'routes.dart';
+
+/// Centralized GetX page registry.
+///
+/// Each [GetPage] entry associates a route name, a page widget factory,
+/// and an optional [Bindings] class for dependency injection.
+class AppPages {
+  AppPages._();
+
+  static final routes = <GetPage>[
+    GetPage(
+      name: Routes.home,
+      page: () => const HomePage(),
+      binding: HomeBinding(),
+      transition: Transition.fade,
+    ),
+  ];
+}
+''';
+}
+
+String _routesGetx(BlueprintConfig config) {
+  return '''
+/// Central registry of all route name constants.
+///
+/// Usage: `Get.toNamed(Routes.home)`
+abstract class Routes {
+  Routes._();
+
+  static const String home = '/';
+  // Add more routes here as you create features:
+  // static const String profile = '/profile';
+  // static const String settings = '/settings';
+}
+''';
+}
+
 // ============================================================================
 // TEMPLATE BUILDERS
 // ============================================================================
@@ -205,6 +412,7 @@ String _pubspecBloc(BlueprintConfig config) {
     ..writeln('  flutter_bloc: ^8.1.6')
     ..writeln('  bloc: ^8.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
+  buffer.writeln('  freezed_annotation: ^3.1.0');
   buffer.writeln('  equatable: ^2.0.5');
   buffer.writeln('  url_strategy: ^0.3.0'); // For web URL strategies
 
@@ -228,7 +436,9 @@ String _pubspecBloc(BlueprintConfig config) {
     ..writeln('dev_dependencies:')
     ..writeln('  flutter_test:')
     ..writeln('    sdk: flutter')
-    ..writeln('  flutter_lints: ^5.0.0');
+    ..writeln('  flutter_lints: ^5.0.0')
+    ..writeln('  freezed: ^3.2.2')
+    ..writeln('  build_runner: ^2.4.8');
   if (config.includeTests) {
     buffer
       ..writeln('  mocktail: ^1.0.3')
@@ -918,42 +1128,25 @@ class HomePage extends StatelessWidget {
 ''';
 
 String _homeEvent(BlueprintConfig config) => '''
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-sealed class HomeEvent extends Equatable {
-  const HomeEvent();
-  @override
-  List<Object?> get props => [];
-}
+part 'home_event.freezed.dart';
 
-class IncrementCounterEvent extends HomeEvent {
-  const IncrementCounterEvent();
+@freezed
+sealed class HomeEvent with _\$HomeEvent {
+  const factory HomeEvent.incrementCounter() = IncrementCounterEvent;
 }
 ''';
 
 String _homeState(BlueprintConfig config) => '''
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-sealed class HomeState extends Equatable {
-  const HomeState();
-  @override
-  List<Object?> get props => [];
-}
+part 'home_state.freezed.dart';
 
-class HomeInitialState extends HomeState {
-  const HomeInitialState();
-}
-
-class HomeLoadedState extends HomeState {
-  const HomeLoadedState({this.counter = 0});
-  final int counter;
-  
-  @override
-  List<Object?> get props => [counter];
-  
-  HomeLoadedState copyWith({int? counter}) {
-    return HomeLoadedState(counter: counter ?? this.counter);
-  }
+@freezed
+sealed class HomeState with _\$HomeState {
+  const factory HomeState.initial() = HomeInitialState;
+  const factory HomeState.loaded({@Default(0) int counter}) = HomeLoadedState;
 }
 ''';
 
@@ -963,7 +1156,7 @@ import 'home_event.dart';
 import 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(const HomeInitialState()) {
+  HomeBloc() : super(const HomeState.initial()) {
     on<IncrementCounterEvent>(_onIncrementCounter);
   }
 
@@ -975,7 +1168,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final currentState = state as HomeLoadedState;
       emit(currentState.copyWith(counter: currentState.counter + 1));
     } else {
-      emit(const HomeLoadedState(counter: 1));
+      emit(const HomeState.loaded(counter: 1));
     }
   }
 }
@@ -1049,3 +1242,4 @@ String _titleCase(String input) {
     return lower[0].toUpperCase() + lower.substring(1);
   }).join(' ');
 }
+

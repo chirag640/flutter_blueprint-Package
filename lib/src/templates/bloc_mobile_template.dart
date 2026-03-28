@@ -5,6 +5,7 @@ import 'accessibility_templates.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
+import 'graphql_templates.dart';
 import 'template_bundle.dart';
 import 'shared_templates.dart';
 import 'ui_kit_templates.dart';
@@ -243,6 +244,66 @@ TemplateBundle buildBlocMobileBundle() {
           shouldGenerate: (config) =>
               config.includeAccessibility && config.includeTests),
 
+      // Core: GraphQL
+      TemplateFile(
+          path: p.join('lib', 'core', 'graphql', 'graphql_client.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/graphql_client.dart'] ??
+              '',
+          shouldGenerate: (config) => config.includeGraphql),
+      TemplateFile(
+          path: p.join('lib', 'core', 'graphql', 'graphql_service.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/graphql_service.dart'] ??
+              '',
+          shouldGenerate: (config) => config.includeGraphql),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'graphql', 'queries', 'example_queries.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/queries/example_queries.dart'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.graphqlFlutter),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'graphql', 'mutations', 'example_mutations.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/mutations/example_mutations.dart'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.graphqlFlutter),
+      TemplateFile(
+          path: p.join('lib', 'core', 'graphql', 'schema.graphql'),
+          build: (c) =>
+              GraphqlTemplates.files(c)['lib/core/graphql/schema.graphql'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.ferry),
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'graphql', 'operations', 'example.graphql'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/operations/example.graphql'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.ferry),
+      TemplateFile(
+          path: 'build.yaml',
+          build: (c) => GraphqlTemplates.files(c)['build.yaml'] ?? '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.ferry),
+
       // Features: Home
       TemplateFile(
           path: p.join('lib', 'features', 'home', 'presentation', 'pages',
@@ -325,6 +386,7 @@ String _pubspec(BlueprintConfig config) {
     ..writeln('  bloc: ^8.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
+  buffer.writeln('  freezed_annotation: ^3.1.0');
   buffer.writeln('  equatable: ^2.0.5');
 
   if (config.includeLocalization) {
@@ -359,17 +421,35 @@ String _pubspec(BlueprintConfig config) {
         ..writeln('  firebase_performance: ^0.10.0+8');
     }
   }
+  if (config.includeGraphql) {
+    if (config.graphqlClient == GraphqlClient.graphqlFlutter) {
+      buffer.writeln('  graphql_flutter: ^5.1.2');
+    } else if (config.graphqlClient == GraphqlClient.ferry) {
+      buffer
+        ..writeln('  ferry: ^0.16.1+2')
+        ..writeln('  ferry_flutter: ^0.9.1+1')
+        ..writeln('  gql_http_link: ^1.2.0')
+        ..writeln('  built_value: ^8.9.2')
+        ..writeln('  built_collection: ^5.1.1');
+    }
+  }
 
   buffer
     ..writeln('')
     ..writeln('dev_dependencies:')
     ..writeln('  flutter_test:')
     ..writeln('    sdk: flutter')
-    ..writeln('  flutter_lints: ^5.0.0');
+    ..writeln('  flutter_lints: ^5.0.0')
+    ..writeln('  freezed: ^3.2.2')
+    ..writeln('  build_runner: ^2.4.8');
   if (config.includeTests) {
     buffer
       ..writeln('  mocktail: ^1.0.3')
       ..writeln('  bloc_test: ^9.1.7');
+  }
+  if (config.includeGraphql && config.graphqlClient == GraphqlClient.ferry) {
+    buffer.writeln(
+        '  ferry_generator: 0.12.0+2'); // pinned: ^0.12.0+3 conflicts with hive_generator
   }
 
   buffer
@@ -1614,86 +1694,47 @@ class SecureStorage {
 // ============================================================================
 
 String _homeEvent(BlueprintConfig config) {
-  return """import 'package:equatable/equatable.dart';
+  return """import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'home_event.freezed.dart';
 
 /// Base class for all Home events
-sealed class HomeEvent extends Equatable {
-  const HomeEvent();
+@freezed
+sealed class HomeEvent with _\$HomeEvent {
+  /// Event to increment the counter
+  const factory HomeEvent.incrementCounter() = IncrementCounterEvent;
 
-  @override
-  List<Object?> get props => [];
-}
+  /// Event to load data from API
+  const factory HomeEvent.loadData() = LoadDataEvent;
 
-/// Event to increment the counter
-class IncrementCounterEvent extends HomeEvent {
-  const IncrementCounterEvent();
-}
-
-/// Event to load data from API
-class LoadDataEvent extends HomeEvent {
-  const LoadDataEvent();
-}
-
-/// Event to reset the home state
-class ResetHomeEvent extends HomeEvent {
-  const ResetHomeEvent();
+  /// Event to reset the home state
+  const factory HomeEvent.resetHome() = ResetHomeEvent;
 }
 """;
 }
 
 String _homeState(BlueprintConfig config) {
-  return """import 'package:equatable/equatable.dart';
+  return """import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'home_state.freezed.dart';
 
 /// Base class for all Home states
-sealed class HomeState extends Equatable {
-  const HomeState();
+@freezed
+sealed class HomeState with _\$HomeState {
+  /// Initial state when the bloc is created
+  const factory HomeState.initial() = HomeInitialState;
 
-  @override
-  List<Object?> get props => [];
-}
+  /// State when data is being loaded
+  const factory HomeState.loading() = HomeLoadingState;
 
-/// Initial state when the bloc is created
-class HomeInitialState extends HomeState {
-  const HomeInitialState();
-}
-
-/// State when data is being loaded
-class HomeLoadingState extends HomeState {
-  const HomeLoadingState();
-}
-
-/// State when data is successfully loaded
-class HomeLoadedState extends HomeState {
-  const HomeLoadedState({
-    this.counter = 0,
-    this.message,
-  });
-
-  final int counter;
-  final String? message;
-
-  @override
-  List<Object?> get props => [counter, message];
-
-  HomeLoadedState copyWith({
-    int? counter,
+  /// State when data is successfully loaded
+  const factory HomeState.loaded({
+    @Default(0) int counter,
     String? message,
-  }) {
-    return HomeLoadedState(
-      counter: counter ?? this.counter,
-      message: message ?? this.message,
-    );
-  }
-}
+  }) = HomeLoadedState;
 
-/// State when an error occurs
-class HomeErrorState extends HomeState {
-  const HomeErrorState({required this.message});
-
-  final String message;
-
-  @override
-  List<Object?> get props => [message];
+  /// State when an error occurs
+  const factory HomeState.error({required String message}) = HomeErrorState;
 }
 """;
 }
@@ -1706,7 +1747,7 @@ import 'home_state.dart';
 
 /// BLoC for managing home screen state
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(const HomeInitialState()) {
+  HomeBloc() : super(const HomeState.initial()) {
     on<IncrementCounterEvent>(_onIncrementCounter);
     on<LoadDataEvent>(_onLoadData);
     on<ResetHomeEvent>(_onResetHome);
@@ -1721,7 +1762,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final currentState = state as HomeLoadedState;
       emit(currentState.copyWith(counter: currentState.counter + 1));
     } else {
-      emit(const HomeLoadedState(counter: 1));
+      emit(const HomeState.loaded(counter: 1));
     }
   }
 
@@ -1730,19 +1771,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadDataEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(const HomeLoadingState());
+    emit(const HomeState.loading());
 
     try {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
       
       // Success - emit loaded state
-      emit(const HomeLoadedState(
+      emit(const HomeState.loaded(
         counter: 0,
         message: 'Data loaded successfully!',
       ));
     } catch (e) {
-      emit(HomeErrorState(message: e.toString()));
+      emit(HomeState.error(message: e.toString()));
     }
   }
 
@@ -1751,7 +1792,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ResetHomeEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(const HomeInitialState());
+    emit(const HomeState.initial());
   }
 }
 """;
@@ -2357,3 +2398,4 @@ String _accessibilityConfig(BlueprintConfig config) =>
     generateAccessibilityConfig();
 String _accessibilityTestUtils(BlueprintConfig config) =>
     generateAccessibilityTestUtils();
+

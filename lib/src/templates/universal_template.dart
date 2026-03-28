@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter_blueprint/src/config/blueprint_config.dart';
 import 'package:flutter_blueprint/src/templates/bloc_mobile_template.dart';
+import 'package:flutter_blueprint/src/templates/getx_mobile_template.dart';
 import 'package:flutter_blueprint/src/templates/provider_mobile_template.dart';
 import 'package:flutter_blueprint/src/templates/riverpod_mobile_template.dart';
 import 'package:flutter_blueprint/src/templates/responsive_template.dart';
@@ -61,6 +62,8 @@ TemplateBundle _getMobileBundle(BlueprintConfig config) {
   switch (config.stateManagement) {
     case StateManagement.bloc:
       return buildBlocMobileBundle();
+    case StateManagement.getx:
+      return buildGetxMobileBundle();
     case StateManagement.provider:
       return buildProviderMobileBundle();
     case StateManagement.riverpod:
@@ -357,6 +360,8 @@ String _getStateManagementSetup(StateManagement stateManagement) {
       return "import 'package:provider/provider.dart';";
     case StateManagement.riverpod:
       return "import 'package:flutter_riverpod/flutter_riverpod.dart';";
+    case StateManagement.getx:
+      return "import 'package:get/get.dart';";
   }
 }
 
@@ -368,6 +373,8 @@ String _getAppWrapper(StateManagement stateManagement, String app) {
       return app;
     case StateManagement.riverpod:
       return 'ProviderScope(child: $app)';
+    case StateManagement.getx:
+      return app;
   }
 }
 
@@ -419,6 +426,7 @@ String _buildUniversalPubspec(BlueprintConfig config) {
 
   // Common dependencies
   dependencies.add('  flutter:\n    sdk: flutter');
+  dependencies.add('  freezed_annotation: ^3.1.0');
 
   // State management dependencies
   switch (config.stateManagement) {
@@ -436,6 +444,9 @@ String _buildUniversalPubspec(BlueprintConfig config) {
       dependencies.add('  flutter_riverpod: ^2.6.1');
       dependencies.add('  riverpod_annotation: ^2.6.1');
       dependencies.add('  equatable: ^2.0.5'); // Used for value equality
+      break;
+    case StateManagement.getx:
+      dependencies.add('  get: ^4.6.6');
       break;
   }
 
@@ -488,6 +499,8 @@ String _buildUniversalPubspec(BlueprintConfig config) {
   final devDependencies = <String>[];
   devDependencies.add('  flutter_test:\n    sdk: flutter');
   devDependencies.add('  flutter_lints: ^5.0.0');
+  devDependencies.add('  freezed: ^3.2.2');
+  devDependencies.add('  build_runner: ^2.4.8');
 
   if (config.includeTests) {
     devDependencies.add('  mocktail: ^1.0.3');
@@ -600,3 +613,4 @@ This project uses adaptive layouts that automatically adjust based on screen siz
 Generated with ❤️ by **Flutter Blueprint**
 ''';
 }
+

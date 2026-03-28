@@ -14,8 +14,6 @@ import '../../config/blueprint_config.dart';
 import '../../config/api_config.dart';
 import '../../config/config_repository.dart';
 import '../../generator/project_generator.dart';
-import '../../generator/feature_generator.dart';
-import '../../templates/template_library.dart';
 import '../../utils/input_validator.dart';
 import '../../utils/project_preview.dart';
 import '../../utils/logger.dart';
@@ -46,22 +44,17 @@ class InitCommand extends BaseCommand {
     parser
       ..addOption('state',
           abbr: 's',
-          help: 'State management (provider, riverpod, bloc)',
-          allowed: ['provider', 'riverpod', 'bloc'])
+          help: 'State management (provider, riverpod, bloc, getx)',
+          allowed: ['provider', 'riverpod', 'bloc', 'getx'])
       ..addOption('platforms',
           abbr: 'p',
           help: 'Target platforms (comma-separated: mobile,web,desktop)')
       ..addOption('ci',
           help: 'CI/CD provider', allowed: ['github', 'gitlab', 'azure'])
-      ..addOption('template', abbr: 't', help: 'Project template', allowed: [
-        'blank',
-        'ecommerce',
-        'social-media',
-        'fitness-tracker',
-        'finance-app',
-        'food-delivery',
-        'chat-app'
-      ])
+      ..addOption('graphql-client',
+          help: 'GraphQL client library (none, graphql_flutter, ferry)',
+          allowed: ['none', 'graphql_flutter', 'ferry'],
+          defaultsTo: 'none')
       ..addOption('from-config',
           help: 'Load project settings from a shared configuration')
       ..addFlag('preview',
@@ -71,7 +64,7 @@ class InitCommand extends BaseCommand {
       ..addFlag('theme', help: 'Include theme', defaultsTo: null)
       ..addFlag('localization', help: 'Include localization', defaultsTo: null)
       ..addFlag('env', help: 'Include environment config', defaultsTo: null)
-      ..addFlag('api', help: 'Include API client', defaultsTo: null)
+      ..addFlag('api', help: 'Include REST API client (Dio)', defaultsTo: null)
       ..addFlag('tests', help: 'Include test scaffolding', defaultsTo: null)
       ..addFlag('hive', help: 'Include Hive caching', defaultsTo: null)
       ..addFlag('pagination', help: 'Include pagination', defaultsTo: null)
@@ -116,17 +109,6 @@ class InitCommand extends BaseCommand {
 
       // Gather config from flags
       final config = await _gatherConfig(args, appName, context);
-
-      // Parse template
-      final templateArg = args['template'] as String?;
-      final template = templateArg != null
-          ? ProjectTemplate.parse(templateArg)
-          : ProjectTemplate.blank;
-
-      // Show template info
-      if (template != ProjectTemplate.blank) {
-        _showTemplateInfo(context.logger, template);
-      }
 
       // Show preview if requested
       final showPreview = args['preview'] as bool? ?? false;
@@ -181,32 +163,6 @@ class InitCommand extends BaseCommand {
         '✅ Generated ${genResult.valueOrNull!.filesGenerated} files',
       );
 
-      // Template features
-      if (template != ProjectTemplate.blank) {
-        final templateBundle = TemplateLibrary.getTemplate(template, config);
-        if (templateBundle.requiredFeatures.isNotEmpty) {
-          context.logger.info('');
-          context.logger.info('🎯 Generating template features...');
-
-          final featureGen = FeatureGenerator(logger: context.logger);
-          for (final featureName in templateBundle.requiredFeatures) {
-            context.logger.info('   • $featureName');
-            await featureGen.generate(
-              featureName: featureName,
-              config: config,
-              targetPath: targetPath,
-              includeData: true,
-              includeDomain: true,
-              includePresentation: true,
-              includeApi: config.includeApi,
-              updateRouter: true,
-            );
-          }
-
-          context.logger.success('✅ Template features generated successfully!');
-        }
-      }
-
       return const Result.success(CommandResult.ok('Project created'));
     } catch (e) {
       return Result.failure(
@@ -228,26 +184,9 @@ class InitCommand extends BaseCommand {
       '   Let\'s create your Flutter app with professional architecture.',
     );
     logger.info('');
-
-    // Template selection
-    final templateChoice = await prompter.choose(
-      '📦 Choose a project template',
-      [
-        'Blank - Basic architecture',
-        'E-Commerce - Product catalog & checkout',
-        'Social Media - Posts, comments & likes',
-        'Fitness Tracker - Workout logging & progress',
-        'Finance App - Transaction management',
-        'Food Delivery - Restaurant & order tracking',
-        'Chat App - Real-time messaging',
-      ],
-      defaultValue: 'Blank - Basic architecture',
-    );
-    final template = _parseTemplateChoice(templateChoice);
-
-    if (template != ProjectTemplate.blank) {
-      _showTemplateInfo(logger, template);
-    }
+    logger.info(
+        '📌 Every project starts blank — add domain features as you need them.');
+    logger.info('');
 
     // App name with validation
     String appName;
@@ -279,10 +218,16 @@ class InitCommand extends BaseCommand {
     logger.info('');
     final stateChoice = await prompter.choose(
       '🎯 Choose state management',
-      ['provider', 'riverpod', 'bloc'],
-      defaultValue: 'provider',
+      [
+        'provider   — ChangeNotifier + Consumer (simple & lightweight)',
+        'riverpod   — Providers & StateNotifier (safe & testable)',
+        'bloc       — Event/State streams (strict & scalable)',
+        'getx       — GetxController + Obx (all-in-one: state, routing, DI)',
+      ],
+      defaultValue: 'riverpod   — Providers & StateNotifier (safe & testable)',
     );
-    final stateMgmt = StateManagement.parse(stateChoice);
+    final stateMgmt =
+        StateManagement.parse(stateChoice.split(' ').first.trim());
 
     // CI/CD
     logger.info('');
@@ -301,7 +246,7 @@ class InitCommand extends BaseCommand {
         'Theme system (Light/Dark modes)',
         'Localization (i18n support)',
         'Environment config (.env)',
-        'API client (Dio + interceptors)',
+        'REST API client (Dio + interceptors)',
         'Test scaffolding',
         'Hive offline caching',
         'Pagination support',
@@ -332,6 +277,28 @@ class InitCommand extends BaseCommand {
         defaultValue: 'firebase',
       );
       analyticsProvider = AnalyticsProvider.parse(providerChoice);
+    }
+
+    // GraphQL client
+    logger.info('');
+    final graphqlChoice = await prompter.choose(
+      '🔌 Include GraphQL support?',
+      [
+        'none             — REST/Dio only (no GraphQL)',
+        'graphql_flutter  — Simple queries, mutations & subscriptions',
+        'ferry            — Type-safe code generation (requires build_runner)',
+      ],
+      defaultValue: 'none             — REST/Dio only (no GraphQL)',
+    );
+    final graphqlClient = GraphqlClient.parse(
+      graphqlChoice.split(' ').first.trim(),
+    );
+
+    if (graphqlClient == GraphqlClient.ferry) {
+      logger.info('');
+      logger.info('💡 ferry setup: after generation, run:');
+      logger
+          .info('   dart run build_runner build --delete-conflicting-outputs');
     }
 
     // API config
@@ -378,10 +345,11 @@ class InitCommand extends BaseCommand {
       includeSocialAuth: features['social_auth']!,
       includeThemeMode: features['theme_mode']!,
       includeAccessibility: features['accessibility']!,
+      graphqlClient: graphqlClient,
     );
 
     // Summary
-    _printConfigSummary(logger, config, template);
+    _printConfigSummary(logger, config);
 
     // Preview
     final wantPreview = await prompter.confirm(
@@ -428,17 +396,6 @@ class InitCommand extends BaseCommand {
     final targetPath =
         Directory.current.path + Platform.pathSeparator + config.appName;
     await _generator.generate(config, targetPath);
-
-    if (template != ProjectTemplate.blank) {
-      final templateBundle = TemplateLibrary.getTemplate(template, config);
-      if (templateBundle.requiredFeatures.isNotEmpty) {
-        logger.info('');
-        logger.info('🎯 Generating template features...');
-        logger.info(
-          '   Note: Template feature generation will be available in a future update',
-        );
-      }
-    }
 
     return const Result.success(CommandResult.ok('Project created'));
   }
@@ -499,6 +456,9 @@ class InitCommand extends BaseCommand {
       analyticsProvider = AnalyticsProvider.none;
     }
 
+    final graphqlArg = results['graphql-client'] as String? ?? 'none';
+    final graphqlClient = GraphqlClient.parse(graphqlArg);
+
     return BlueprintConfig(
       appName: appName,
       platforms: targetPlatforms,
@@ -521,6 +481,7 @@ class InitCommand extends BaseCommand {
       includeSocialAuth: _resolveBool(results, 'social-auth', false),
       includeThemeMode: _resolveBool(results, 'theme-mode', false),
       includeAccessibility: _resolveBool(results, 'a11y', false),
+      graphqlClient: graphqlClient,
     );
   }
 
@@ -529,41 +490,23 @@ class InitCommand extends BaseCommand {
     return value ?? defaultValue;
   }
 
-  void _showTemplateInfo(Logger logger, ProjectTemplate template) {
-    logger.info('');
-    logger.info('📦 Using template: ${template.label}');
-    logger.info('   ${template.description}');
-    logger.info('');
-    logger.info('   Features included:');
-    for (final feature in template.features.take(5)) {
-      logger.info('     • $feature');
-    }
-    if (template.features.length > 5) {
-      logger.info('     ... and ${template.features.length - 5} more');
-    }
-    logger.info('');
-  }
-
   void _printConfigSummary(
     Logger logger,
     BlueprintConfig config,
-    ProjectTemplate template,
   ) {
     logger.info('');
     logger.info('📋 Configuration Summary:');
-    if (template != ProjectTemplate.blank) {
-      logger.info('   Template: ${template.label}');
-    }
     logger.info('   App name: ${config.appName}');
     logger.info(
       '   Platforms: ${config.platforms.map((p) => p.label).join(', ')}',
     );
     logger.info('   State management: ${config.stateManagement.label}');
+    logger.info('   GraphQL: ${config.graphqlClient.label}');
     logger.info('   CI/CD: ${config.ciProvider.label}');
     _printFeatureFlag(logger, 'Theme', config.includeTheme);
     _printFeatureFlag(logger, 'Localization', config.includeLocalization);
     _printFeatureFlag(logger, 'Environment', config.includeEnv);
-    _printFeatureFlag(logger, 'API client', config.includeApi);
+    _printFeatureFlag(logger, 'REST API client', config.includeApi);
     _printFeatureFlag(logger, 'Tests', config.includeTests);
     _printFeatureFlag(logger, 'Hive caching', config.includeHive);
     _printFeatureFlag(logger, 'Pagination', config.includePagination);
@@ -592,19 +535,6 @@ class InitCommand extends BaseCommand {
     logger.info('   $name: ${enabled ? '✅' : '❌'}');
   }
 
-  ProjectTemplate _parseTemplateChoice(String choice) {
-    if (choice.startsWith('Blank')) return ProjectTemplate.blank;
-    if (choice.startsWith('E-Commerce')) return ProjectTemplate.ecommerce;
-    if (choice.startsWith('Social Media')) return ProjectTemplate.socialMedia;
-    if (choice.startsWith('Fitness Tracker')) {
-      return ProjectTemplate.fitnessTracker;
-    }
-    if (choice.startsWith('Finance App')) return ProjectTemplate.financeApp;
-    if (choice.startsWith('Food Delivery')) return ProjectTemplate.foodDelivery;
-    if (choice.startsWith('Chat App')) return ProjectTemplate.chatApp;
-    return ProjectTemplate.blank;
-  }
-
   List<TargetPlatform> _parsePlatformSelections(List<String> selections) {
     final platforms = <TargetPlatform>[];
     if (selections.any((s) => s.contains('Mobile'))) {
@@ -625,7 +555,8 @@ class InitCommand extends BaseCommand {
       'theme': selections.any((f) => f.contains('Theme system')),
       'localization': selections.any((f) => f.contains('Localization')),
       'env': selections.any((f) => f.contains('Environment')),
-      'api': selections.any((f) => f.contains('API')),
+      'api': selections
+          .any((f) => f.contains('REST API') || f.contains('API client')),
       'tests': selections.any((f) => f.contains('Test')),
       'hive': selections.any((f) => f.contains('Hive')),
       'pagination': selections.any((f) => f.contains('Pagination')),

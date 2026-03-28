@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_blueprint/src/generator/project_generator.dart';
@@ -10,15 +11,13 @@ void main() {
     late ProjectGenerator generator;
     late Directory tempDir;
 
-    setUp(() {
+    setUp(() async {
       generator = ProjectGenerator();
-      tempDir = Directory.systemTemp.createTempSync('project_gen_test_');
+      tempDir = await Directory.systemTemp.createTemp('project_gen_test_');
     });
 
-    tearDown(() {
-      if (tempDir.existsSync()) {
-        tempDir.deleteSync(recursive: true);
-      }
+    tearDown(() async {
+      await _deleteDirectoryWithRetry(tempDir);
     });
 
     test('creates instance with default dependencies', () {
@@ -231,7 +230,7 @@ void main() {
       expect(config.appName, equals('test_app'));
       expect(config.stateManagement, equals(StateManagement.riverpod));
     });
-  });
+  }, timeout: const Timeout(Duration(minutes: 8)));
 
   group('GenerationResult', () {
     test('creates result with file count', () {
@@ -264,4 +263,25 @@ void main() {
       expect(result.toString(), contains('/test/path'));
     });
   });
+}
+
+Future<void> _deleteDirectoryWithRetry(Directory directory) async {
+  const maxAttempts = 8;
+  for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (!await directory.exists()) {
+      return;
+    }
+
+    try {
+      await directory.delete(recursive: true);
+      return;
+    } on FileSystemException {
+      if (attempt == maxAttempts) {
+        // Non-fatal in tests: Windows file handles from spawned processes
+        // can linger briefly and cause transient cleanup failures.
+        return;
+      }
+      await Future<void>.delayed(Duration(milliseconds: 500 * attempt));
+    }
+  }
 }

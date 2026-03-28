@@ -2,6 +2,7 @@ import 'package:flutter_blueprint/src/config/blueprint_config.dart';
 import 'package:flutter_blueprint/src/templates/provider_mobile_template.dart';
 import 'package:flutter_blueprint/src/templates/riverpod_mobile_template.dart';
 import 'package:flutter_blueprint/src/templates/bloc_mobile_template.dart';
+import 'package:flutter_blueprint/src/templates/getx_mobile_template.dart';
 import 'package:flutter_blueprint/src/templates/web_template.dart';
 import 'package:flutter_blueprint/src/templates/desktop_template.dart';
 import 'package:flutter_blueprint/src/templates/universal_template.dart';
@@ -28,8 +29,12 @@ void main() {
         expect(bundle, isNotNull);
         expect(bundle.files, isNotEmpty);
 
-        // Verify all files can build content
+        // Verify all enabled files can build content
         for (final file in bundle.files) {
+          if (file.shouldGenerate != null &&
+              !file.shouldGenerate!(testConfig)) {
+            continue;
+          }
           final content = file.build(testConfig);
           expect(content.trim(), isNotEmpty,
               reason: 'File ${file.path} should have content');
@@ -71,6 +76,10 @@ void main() {
         expect(bundle.files, isNotEmpty);
 
         for (final file in bundle.files) {
+          if (file.shouldGenerate != null &&
+              !file.shouldGenerate!(testConfig)) {
+            continue;
+          }
           final content = file.build(testConfig);
           expect(content.trim(), isNotEmpty,
               reason: 'File ${file.path} should have content');
@@ -99,6 +108,10 @@ void main() {
         expect(bundle.files, isNotEmpty);
 
         for (final file in bundle.files) {
+          if (file.shouldGenerate != null &&
+              !file.shouldGenerate!(testConfig)) {
+            continue;
+          }
           final content = file.build(testConfig);
           expect(content.trim(), isNotEmpty,
               reason: 'File ${file.path} should have content');
@@ -114,6 +127,71 @@ void main() {
         });
         expect(hasBlocContent, isTrue,
             reason: 'Should include BLoC state management code');
+      });
+    });
+
+    group('GetX Mobile Template', () {
+      final getxConfig = BlueprintConfig(
+        appName: 'getx_app',
+        stateManagement: StateManagement.getx,
+        platforms: [TargetPlatform.mobile],
+        includeTheme: true,
+        includeLocalization: false,
+        includeEnv: false,
+        includeApi: false,
+        includeTests: false,
+      );
+
+      test('renders valid template bundle', () {
+        final bundle = buildGetxMobileBundle();
+        expect(bundle, isNotNull);
+        expect(bundle.files, isNotEmpty);
+        for (final file in bundle.files) {
+          if (file.shouldGenerate != null &&
+              !file.shouldGenerate!(getxConfig)) {
+            continue;
+          }
+          final content = file.build(getxConfig);
+          expect(content.trim(), isNotEmpty,
+              reason: 'File ${file.path} should have content');
+        }
+      });
+
+      test('includes essential files', () {
+        final bundle = buildGetxMobileBundle();
+        final paths = bundle.files.map((f) => f.path).toList();
+        expect(paths.any((p) => p.contains('pubspec.yaml')), isTrue,
+            reason: 'Should include pubspec.yaml');
+        expect(paths.any((p) => p.contains('main.dart')), isTrue,
+            reason: 'Should include main.dart');
+      });
+
+      test('includes GetX-specific content', () {
+        final bundle = buildGetxMobileBundle();
+        final hasGetxContent = bundle.files.any((f) {
+          final content = f.build(getxConfig);
+          return content.contains('GetxController') ||
+              content.contains('GetView') ||
+              content.contains('GetMaterialApp');
+        });
+        expect(hasGetxContent, isTrue,
+            reason: 'Should include GetX state management code');
+      });
+
+      test('pubspec includes get dependency', () {
+        final bundle = buildGetxMobileBundle();
+        final pubspecFile =
+            bundle.files.firstWhere((f) => f.path.contains('pubspec.yaml'));
+        final content = pubspecFile.build(getxConfig);
+        expect(content, contains('get:'),
+            reason: 'pubspec should include get package for GetX');
+      });
+
+      test('includes GetX routing file (app_pages)', () {
+        final bundle = buildGetxMobileBundle();
+        final paths = bundle.files.map((f) => f.path).toList();
+        expect(paths.any((p) => p.contains('app_pages')), isTrue,
+            reason: 'Should include GetX routing (app_pages.dart)');
       });
     });
 
@@ -234,6 +312,7 @@ void main() {
           buildProviderMobileBundle(),
           buildRiverpodMobileBundle(),
           buildBlocMobileBundle(),
+          buildGetxMobileBundle(),
           buildWebTemplate(StateManagement.riverpod),
           buildDesktopTemplate(StateManagement.riverpod),
         ];
@@ -255,6 +334,7 @@ void main() {
           buildProviderMobileBundle(),
           buildRiverpodMobileBundle(),
           buildBlocMobileBundle(),
+          buildGetxMobileBundle(),
         ];
 
         for (final bundle in bundles) {
@@ -270,6 +350,7 @@ void main() {
           buildProviderMobileBundle(),
           buildRiverpodMobileBundle(),
           buildBlocMobileBundle(),
+          buildGetxMobileBundle(),
         ];
 
         for (final bundle in bundles) {
@@ -285,6 +366,7 @@ void main() {
           buildProviderMobileBundle(),
           buildRiverpodMobileBundle(),
           buildBlocMobileBundle(),
+          buildGetxMobileBundle(),
         ];
 
         for (final bundle in bundles) {
@@ -300,12 +382,71 @@ void main() {
           buildProviderMobileBundle(),
           buildRiverpodMobileBundle(),
           buildBlocMobileBundle(),
+          buildGetxMobileBundle(),
         ];
 
         for (final bundle in bundles) {
           final hasGitignore =
               bundle.files.any((f) => f.path.contains('.gitignore'));
           expect(hasGitignore, isTrue, reason: 'Should include .gitignore');
+        }
+      });
+
+      test('GraphQL files generated when graphqlClient is graphqlFlutter', () {
+        final graphqlConfig = BlueprintConfig(
+          appName: 'gql_app',
+          stateManagement: StateManagement.riverpod,
+          platforms: [TargetPlatform.mobile],
+          includeTheme: false,
+          includeLocalization: false,
+          includeEnv: false,
+          includeApi: false,
+          includeTests: false,
+          graphqlClient: GraphqlClient.graphqlFlutter,
+        );
+
+        for (final bundle in [
+          buildRiverpodMobileBundle(),
+          buildBlocMobileBundle(),
+          buildProviderMobileBundle(),
+          buildGetxMobileBundle(),
+        ]) {
+          final graphqlFiles = bundle.files
+              .where((f) =>
+                  f.path.contains('graphql') &&
+                  (f.shouldGenerate == null ||
+                      f.shouldGenerate!(graphqlConfig)))
+              .toList();
+          expect(graphqlFiles, isNotEmpty,
+              reason: 'Should have GraphQL files when graphqlFlutter enabled');
+        }
+      });
+
+      test('GraphQL files not generated when graphqlClient is none', () {
+        final noGraphqlConfig = BlueprintConfig(
+          appName: 'no_gql',
+          stateManagement: StateManagement.riverpod,
+          platforms: [TargetPlatform.mobile],
+          includeTheme: false,
+          includeLocalization: false,
+          includeEnv: false,
+          includeApi: false,
+          includeTests: false,
+        );
+
+        for (final bundle in [
+          buildRiverpodMobileBundle(),
+          buildGetxMobileBundle(),
+        ]) {
+          final generatedGraphqlFiles = bundle.files
+              .where((f) =>
+                  f.path.contains('graphql') &&
+                  f.shouldGenerate != null &&
+                  f.shouldGenerate!(noGraphqlConfig))
+              .toList();
+          expect(generatedGraphqlFiles, isEmpty,
+              reason:
+                  'No GraphQL files should generate when graphqlClient is none');
         }
       });
 

@@ -5,6 +5,7 @@ import 'accessibility_templates.dart';
 import 'analytics_templates.dart';
 import 'hive_templates.dart';
 import 'pagination_templates.dart';
+import 'graphql_templates.dart';
 import 'template_bundle.dart';
 import 'shared_templates.dart';
 import 'ui_kit_templates.dart';
@@ -244,6 +245,66 @@ TemplateBundle buildProviderMobileBundle() {
           shouldGenerate: (config) =>
               config.includeAccessibility && config.includeTests),
 
+      // Core: GraphQL
+      TemplateFile(
+          path: p.join('lib', 'core', 'graphql', 'graphql_client.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/graphql_client.dart'] ??
+              '',
+          shouldGenerate: (config) => config.includeGraphql),
+      TemplateFile(
+          path: p.join('lib', 'core', 'graphql', 'graphql_service.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/graphql_service.dart'] ??
+              '',
+          shouldGenerate: (config) => config.includeGraphql),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'graphql', 'queries', 'example_queries.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/queries/example_queries.dart'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.graphqlFlutter),
+      TemplateFile(
+          path: p.join(
+              'lib', 'core', 'graphql', 'mutations', 'example_mutations.dart'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/mutations/example_mutations.dart'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.graphqlFlutter),
+      TemplateFile(
+          path: p.join('lib', 'core', 'graphql', 'schema.graphql'),
+          build: (c) =>
+              GraphqlTemplates.files(c)['lib/core/graphql/schema.graphql'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.ferry),
+      TemplateFile(
+          path:
+              p.join('lib', 'core', 'graphql', 'operations', 'example.graphql'),
+          build: (c) =>
+              GraphqlTemplates.files(
+                  c)['lib/core/graphql/operations/example.graphql'] ??
+              '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.ferry),
+      TemplateFile(
+          path: 'build.yaml',
+          build: (c) => GraphqlTemplates.files(c)['build.yaml'] ?? '',
+          shouldGenerate: (config) =>
+              config.includeGraphql &&
+              config.graphqlClient == GraphqlClient.ferry),
+
       // Features: Home
       TemplateFile(
           path: p.join('lib', 'features', 'home', 'presentation', 'pages',
@@ -314,6 +375,7 @@ String _pubspec(BlueprintConfig config) {
   buffer.writeln('  provider: ^6.1.4');
   buffer.writeln('  shared_preferences: ^2.2.3');
   buffer.writeln('  flutter_secure_storage: ^9.2.2');
+  buffer.writeln('  freezed_annotation: ^3.1.0');
   buffer.writeln('  equatable: ^2.0.5');
 
   if (config.includeLocalization) {
@@ -348,15 +410,33 @@ String _pubspec(BlueprintConfig config) {
         ..writeln('  firebase_performance: ^0.10.0+8');
     }
   }
+  if (config.includeGraphql) {
+    if (config.graphqlClient == GraphqlClient.graphqlFlutter) {
+      buffer.writeln('  graphql_flutter: ^5.1.2');
+    } else if (config.graphqlClient == GraphqlClient.ferry) {
+      buffer
+        ..writeln('  ferry: ^0.16.1+2')
+        ..writeln('  ferry_flutter: ^0.9.1+1')
+        ..writeln('  gql_http_link: ^1.2.0')
+        ..writeln('  built_value: ^8.9.2')
+        ..writeln('  built_collection: ^5.1.1');
+    }
+  }
 
   buffer
     ..writeln('')
     ..writeln('dev_dependencies:')
     ..writeln('  flutter_test:')
     ..writeln('    sdk: flutter')
-    ..writeln('  flutter_lints: ^5.0.0');
+    ..writeln('  flutter_lints: ^5.0.0')
+    ..writeln('  freezed: ^3.2.2')
+    ..writeln('  build_runner: ^2.4.8');
   if (config.includeTests) {
     buffer.writeln('  mocktail: ^1.0.3');
+  }
+  if (config.includeGraphql && config.graphqlClient == GraphqlClient.ferry) {
+    buffer.writeln(
+        '  ferry_generator: 0.12.0+2'); // pinned: ^0.12.0+3 conflicts with hive_generator
   }
 
   buffer
@@ -2426,3 +2506,4 @@ String _accessibilityConfig(BlueprintConfig config) {
 String _accessibilityTestUtils(BlueprintConfig config) {
   return generateAccessibilityTestUtils();
 }
+

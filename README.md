@@ -58,7 +58,8 @@ flutter_blueprint init my_app --state riverpod --api --theme --tests
 | --------------------- | ------------------------------------------------------------------------------------------- |
 | **Architecture**      | Clean architecture, 60+ files, feature-based structure                                      |
 | **Complete Features** | Home (API + pagination), Auth (login/register), Profile (view/edit), Settings (theme/prefs) |
-| **State Management**  | Provider, Riverpod, or Bloc                                                                 |
+| **State Management**  | Provider, Riverpod, BLoC, or GetX                                                           |
+| **GraphQL**           | Optional GraphQL layer — graphql_flutter or Ferry client                                    |
 | **API Layer**         | Dio + Auth/Retry/Logger/Security/RateLimit interceptors, Universal API Configurator         |
 | **Storage**           | LocalStorage + SecureStorage + Hive caching with JSON serialization                         |
 | **Security**          | OWASP headers, error sanitization, SSRF prevention, certificate pinning, rate limiting      |
@@ -157,19 +158,20 @@ print('Security checks: ${result.passed} passed, ${result.issues.length} issues'
 flutter_blueprint init <app_name> [options]
 ```
 
-| Flag                     | Description                                      |
-| ------------------------ | ------------------------------------------------ |
-| `--state <choice>`       | State management: `provider`, `riverpod`, `bloc` |
-| `--platforms <list>`     | Target: `mobile`, `web`, `desktop`, `all`        |
-| `--ci <provider>`        | CI/CD: `github`, `gitlab`, `azure`               |
-| `--api`                  | Include API client (prompts for backend type)    |
-| `--theme`                | Include theme system                             |
-| `--env`                  | Include environment config                       |
-| `--tests`                | Include test scaffolding                         |
-| `--hive`                 | Include Hive offline caching                     |
-| `--pagination`           | Include pagination support                       |
-| `--analytics <provider>` | Analytics: `firebase`, `sentry`                  |
-| `--security <level>`     | Security: `basic`, `standard`, `enterprise`      |
+| Flag                     | Description                                                  |
+| ------------------------ | ------------------------------------------------------------ |
+| `--state <choice>`       | State management: `provider`, `riverpod`, `bloc`, `getx`     |
+| `--graphql-client`       | GraphQL client: `none` (default), `graphql_flutter`, `ferry` |
+| `--platforms <list>`     | Target: `mobile`, `web`, `desktop`, `all`                    |
+| `--ci <provider>`        | CI/CD: `github`, `gitlab`, `azure`                           |
+| `--api`                  | Include API client (prompts for backend type)                |
+| `--theme`                | Include theme system                                         |
+| `--env`                  | Include environment config                                   |
+| `--tests`                | Include test scaffolding                                     |
+| `--hive`                 | Include Hive offline caching                                 |
+| `--pagination`           | Include pagination support                                   |
+| `--analytics <provider>` | Analytics: `firebase`, `sentry`                              |
+| `--security <level>`     | Security: `basic`, `standard`, `enterprise`                  |
 
 ### 🔌 API Backend Presets
 

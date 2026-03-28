@@ -107,6 +107,9 @@ class AuthFeatureTemplates {
       case StateManagement.bloc:
         files.addAll(_generateBlocFiles(config));
         break;
+      case StateManagement.getx:
+        files.addAll(_generateGetxFiles(config));
+        break;
     }
 
     return files;
@@ -155,6 +158,122 @@ class AuthFeatureTemplates {
         content: _authState(config),
       ),
     ];
+  }
+
+  static List<AuthTemplateFile> _generateGetxFiles(BlueprintConfig config) {
+    return [
+      AuthTemplateFile(
+        path: 'lib/features/auth/presentation/controllers/auth_controller.dart',
+        content: _authGetxController(config),
+      ),
+      AuthTemplateFile(
+        path: 'lib/features/auth/presentation/bindings/auth_binding.dart',
+        content: _authGetxBinding(config),
+      ),
+    ];
+  }
+
+  static String _authGetxController(BlueprintConfig config) {
+    return """import 'package:get/get.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+
+/// Auth controller using GetX
+class AuthController extends GetxController {
+  AuthController({
+    required LoginUsecase loginUsecase,
+    required RegisterUsecase registerUsecase,
+    required LogoutUsecase logoutUsecase,
+  })  : _loginUsecase = loginUsecase,
+        _registerUsecase = registerUsecase,
+        _logoutUsecase = logoutUsecase;
+
+  final LoginUsecase _loginUsecase;
+  final RegisterUsecase _registerUsecase;
+  final LogoutUsecase _logoutUsecase;
+
+  final isLoading = false.obs;
+  final errorMessage = RxnString();
+  final currentUser = Rxn<UserEntity>();
+
+  bool get isAuthenticated => currentUser.value != null;
+
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = null;
+      final user = await _loginUsecase(email: email, password: password);
+      currentUser.value = user;
+      Get.offAllNamed('/home');
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> register({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = null;
+      final user = await _registerUsecase(
+        email: email,
+        password: password,
+        name: name,
+      );
+      currentUser.value = user;
+      Get.offAllNamed('/home');
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await _logoutUsecase();
+      currentUser.value = null;
+      Get.offAllNamed('/login');
+    } catch (e) {
+      errorMessage.value = e.toString();
+    }
+  }
+}
+""";
+  }
+
+  static String _authGetxBinding(BlueprintConfig config) {
+    return """import 'package:get/get.dart';
+import '../controllers/auth_controller.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+
+/// Auth feature dependency injection binding
+class AuthBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<AuthController>(
+      () => AuthController(
+        loginUsecase: LoginUsecase(Get.find()),
+        registerUsecase: RegisterUsecase(Get.find()),
+        logoutUsecase: LogoutUsecase(Get.find()),
+      ),
+    );
+  }
+}
+""";
   }
 
   // ========== DOMAIN LAYER ==========

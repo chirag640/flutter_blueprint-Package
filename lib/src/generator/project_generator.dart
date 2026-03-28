@@ -20,6 +20,7 @@ import '../templates/template_bundle.dart';
 import '../templates/provider_mobile_template.dart';
 import '../templates/riverpod_mobile_template.dart';
 import '../templates/bloc_mobile_template.dart';
+import '../templates/getx_mobile_template.dart';
 import '../templates/web_template.dart';
 import '../templates/desktop_template.dart';
 import '../templates/universal_template.dart';
@@ -281,46 +282,99 @@ class ProjectGenerator {
   Future<void> _runFlutterCreate(String targetPath) async {
     _logger.info('');
     _logger.info('🎯 Initializing Flutter project...');
-    try {
-      final cmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
-      final result = await Process.run(
-        cmd,
-        ['create', '.'],
-        workingDirectory: targetPath,
-        runInShell: true,
-      ).timeout(const Duration(minutes: 3));
+    const maxAttempts = 3;
+    const retryDelays = [Duration(seconds: 3), Duration(seconds: 8)];
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final cmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
+        final result = await Process.run(
+          cmd,
+          ['create', '.'],
+          workingDirectory: targetPath,
+          runInShell: true,
+        ).timeout(const Duration(minutes: 3));
 
-      if (result.exitCode == 0) {
-        _logger.success('✅ Flutter project initialized successfully!');
-      } else {
-        _logger.warning('⚠️  flutter create failed (exit ${result.exitCode})');
+        if (result.exitCode == 0) {
+          _logger.success('✅ Flutter project initialized successfully!');
+          return;
+        } else {
+          final stderr = result.stderr.toString().trim();
+          final stdout = result.stdout.toString().trim();
+          if (attempt < maxAttempts) {
+            final delay = retryDelays[attempt - 1];
+            _logger.warning(
+                '⚠️  flutter create failed (exit ${result.exitCode}), retrying in ${delay.inSeconds}s... (attempt $attempt/$maxAttempts)');
+            if (stderr.isNotEmpty) _logger.warning('   stderr: $stderr');
+            await Future.delayed(delay);
+          } else {
+            _logger
+                .warning('⚠️  flutter create failed (exit ${result.exitCode})');
+            if (stderr.isNotEmpty) _logger.warning('   stderr: $stderr');
+            if (stdout.contains('Error') || stdout.contains('error')) {
+              _logger.warning('   stdout: $stdout');
+            }
+            _logger.warning('   Run "flutter create ." manually.');
+          }
+        }
+      } catch (e) {
+        if (attempt < maxAttempts) {
+          final delay = retryDelays[attempt - 1];
+          _logger.warning(
+              '⚠️  flutter create error: $e — retrying in ${delay.inSeconds}s...');
+          await Future.delayed(delay);
+        } else {
+          _logger.warning('⚠️  Could not run flutter create: $e');
+          _logger.warning('   Run "flutter create ." manually.');
+        }
       }
-    } catch (e) {
-      _logger.warning('⚠️  Could not run flutter create: $e');
-      _logger.warning('   Run "flutter create ." manually.');
     }
   }
 
   Future<void> _runFlutterPubGet(String targetPath) async {
     _logger.info('');
     _logger.info('📦 Installing dependencies...');
-    try {
-      final cmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
-      final result = await Process.run(
-        cmd,
-        ['pub', 'get'],
-        workingDirectory: targetPath,
-        runInShell: true,
-      ).timeout(const Duration(minutes: 5));
+    const maxAttempts = 3;
+    const retryDelays = [Duration(seconds: 5), Duration(seconds: 15)];
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final cmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
+        final result = await Process.run(
+          cmd,
+          ['pub', 'get'],
+          workingDirectory: targetPath,
+          runInShell: true,
+        ).timeout(const Duration(minutes: 5));
 
-      if (result.exitCode == 0) {
-        _logger.success('✅ Dependencies installed successfully!');
-      } else {
-        _logger.warning('⚠️  flutter pub get failed (exit ${result.exitCode})');
-        _logger.warning('   Run "flutter pub get" manually.');
+        if (result.exitCode == 0) {
+          _logger.success('✅ Dependencies installed successfully!');
+          return;
+        } else {
+          final stderr = result.stderr.toString().trim();
+          final stdout = result.stdout.toString().trim();
+          if (attempt < maxAttempts) {
+            final delay = retryDelays[attempt - 1];
+            _logger.warning(
+                '⚠️  flutter pub get failed (exit ${result.exitCode}), retrying in ${delay.inSeconds}s... (attempt $attempt/$maxAttempts)');
+            if (stderr.isNotEmpty) _logger.warning('   stderr: $stderr');
+            await Future.delayed(delay);
+          } else {
+            _logger.warning(
+                '⚠️  flutter pub get failed (exit ${result.exitCode})');
+            if (stderr.isNotEmpty) _logger.warning('   stderr: $stderr');
+            if (stdout.isNotEmpty) _logger.warning('   stdout: $stdout');
+            _logger.warning('   Run "flutter pub get" manually.');
+          }
+        }
+      } catch (e) {
+        if (attempt < maxAttempts) {
+          final delay = retryDelays[attempt - 1];
+          _logger.warning(
+              '⚠️  flutter pub get error: $e — retrying in ${delay.inSeconds}s...');
+          await Future.delayed(delay);
+        } else {
+          _logger.warning('⚠️  Could not run flutter pub get: $e');
+        }
       }
-    } catch (e) {
-      _logger.warning('⚠️  Could not run flutter pub get: $e');
     }
   }
 
@@ -359,6 +413,15 @@ class ProjectGenerator {
           templateName: 'mobile_bloc',
           templateDescription: 'Mobile template using BLoC state management',
           builder: buildBlocMobileBundle,
+        ),
+      ),
+    );
+    registry.register(
+      CachedTemplateRenderer(
+        delegate: SimpleTemplateBundleAdapter(
+          templateName: 'mobile_getx',
+          templateDescription: 'Mobile template using GetX state management',
+          builder: buildGetxMobileBundle,
         ),
       ),
     );

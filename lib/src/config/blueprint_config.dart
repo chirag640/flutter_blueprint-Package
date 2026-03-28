@@ -6,7 +6,8 @@ import 'api_config.dart';
 enum StateManagement {
   provider,
   riverpod,
-  bloc;
+  bloc,
+  getx;
 
   String get label => name;
 
@@ -18,6 +19,40 @@ enum StateManagement {
       }
     }
     throw ArgumentError('Unsupported state management option: $value');
+  }
+}
+
+/// Supported GraphQL client libraries.
+enum GraphqlClient {
+  /// No GraphQL support — use REST/Dio only.
+  none,
+
+  /// graphql_flutter — simple Query/Mutation/Subscription widgets + hooks.
+  /// Best for: straightforward GraphQL integration without codegen.
+  graphqlFlutter,
+
+  /// ferry — type-safe, schema-driven code generation.
+  /// Best for: large projects that want fully-typed GraphQL operations.
+  /// Requires running: dart run build_runner build
+  ferry;
+
+  String get label => switch (this) {
+        GraphqlClient.none => 'none',
+        GraphqlClient.graphqlFlutter => 'graphql_flutter',
+        GraphqlClient.ferry => 'ferry',
+      };
+
+  static GraphqlClient parse(String value) {
+    final normalized =
+        value.trim().toLowerCase().replaceAll('_', '').replaceAll('-', '');
+    for (final candidate in GraphqlClient.values) {
+      if (candidate.name.toLowerCase() == normalized ||
+          candidate.label.replaceAll('_', '').toLowerCase() == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError(
+        'Unsupported GraphQL client: $value. Use: none, graphql_flutter, ferry');
   }
 }
 
@@ -153,6 +188,7 @@ class BlueprintConfig {
     this.includeSocialAuth = false,
     this.includeThemeMode = false,
     this.includeAccessibility = false,
+    this.graphqlClient = GraphqlClient.none,
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -218,6 +254,12 @@ class BlueprintConfig {
   /// Whether to include accessibility (a11y) utilities and helpers.
   final bool includeAccessibility;
 
+  /// The GraphQL client library to scaffold, or [GraphqlClient.none] for REST-only projects.
+  final GraphqlClient graphqlClient;
+
+  /// Whether the project includes any GraphQL support.
+  bool get includeGraphql => graphqlClient != GraphqlClient.none;
+
   /// Check if multiple platforms are selected
   bool get isMultiPlatform => platforms.length > 1;
 
@@ -266,6 +308,7 @@ class BlueprintConfig {
     bool? includeSocialAuth,
     bool? includeThemeMode,
     bool? includeAccessibility,
+    GraphqlClient? graphqlClient,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -290,6 +333,7 @@ class BlueprintConfig {
       includeSocialAuth: includeSocialAuth ?? this.includeSocialAuth,
       includeThemeMode: includeThemeMode ?? this.includeThemeMode,
       includeAccessibility: includeAccessibility ?? this.includeAccessibility,
+      graphqlClient: graphqlClient ?? this.graphqlClient,
     );
   }
 
@@ -319,6 +363,7 @@ class BlueprintConfig {
         'accessibility': includeAccessibility,
       }),
       'api_config': apiConfig.toMap(),
+      'graphql_client': graphqlClient.label,
     };
   }
 
@@ -384,6 +429,9 @@ class BlueprintConfig {
           ? ApiConfig.fromMap(
               Map<String, dynamic>.from(map['api_config'] as Map))
           : ApiConfig.modern,
+      graphqlClient: map.containsKey('graphql_client')
+          ? GraphqlClient.parse((map['graphql_client'] ?? 'none') as String)
+          : GraphqlClient.none,
     );
   }
 

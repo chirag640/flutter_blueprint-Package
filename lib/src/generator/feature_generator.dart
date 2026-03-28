@@ -163,6 +163,19 @@ class FeatureGenerator {
     required String targetPath,
     required BlueprintConfig config,
   }) async {
+    // GetX projects use app_pages.dart with GetPage entries
+    if (config.stateManagement == StateManagement.getx) {
+      await _updateGetxRouter(featureName: featureName, targetPath: targetPath);
+    } else {
+      await _updateNavigatorRouter(
+          featureName: featureName, targetPath: targetPath);
+    }
+  }
+
+  Future<void> _updateNavigatorRouter({
+    required String featureName,
+    required String targetPath,
+  }) async {
     final routerPath = p.join(
       targetPath,
       'lib',
@@ -230,6 +243,86 @@ class FeatureGenerator {
 
     await routerFile.writeAsString(updatedContent);
     _logger.success('✅ Updated app_router.dart with new route');
+  }
+
+  Future<void> _updateGetxRouter({
+    required String featureName,
+    required String targetPath,
+  }) async {
+    final pagesPath = p.join(
+      targetPath,
+      'lib',
+      'core',
+      'routing',
+      'app_pages.dart',
+    );
+
+    final pagesFile = File(pagesPath);
+    if (!await pagesFile.exists()) {
+      _logger.warning(
+        '⚠️  app_pages.dart not found. Skipping GetX router update.',
+      );
+      _logger.info(
+        '   Manually add a GetPage entry for /$featureName in app_pages.dart.',
+      );
+      return;
+    }
+
+    final content = await pagesFile.readAsString();
+    final pascalName = featureName.toPascalCase();
+
+    // Check if route is already registered
+    if (content.contains("'/$featureName'")) {
+      _logger.info('ℹ️  Route /$featureName already exists in app_pages.dart');
+      return;
+    }
+
+    // Add imports
+    final pageImport =
+        "import '../../features/$featureName/presentation/pages/${featureName}_page.dart';";
+    final bindingImport =
+        "import '../../features/$featureName/presentation/bindings/${featureName}_binding.dart';";
+
+    String updatedContent = content;
+
+    final lastImportIndex = content.lastIndexOf("import '");
+    if (lastImportIndex != -1) {
+      final endOfImport = content.indexOf(';', lastImportIndex);
+      updatedContent = '${content.substring(0, endOfImport + 1)}'
+          '\n$pageImport\n$bindingImport'
+          '${content.substring(endOfImport + 1)}';
+    }
+
+    // Add static route constant to Routes class
+    final routeConst =
+        "  static const String ${featureName.toCamelCase()} = '/$featureName';";
+    final routesClassMatch =
+        RegExp(r'class Routes\s*\{([^}]+)\}').firstMatch(updatedContent);
+    if (routesClassMatch != null) {
+      final classEnd = routesClassMatch.end - 1;
+      updatedContent = '${updatedContent.substring(0, classEnd)}'
+          '\n$routeConst\n'
+          '${updatedContent.substring(classEnd)}';
+    }
+
+    // Add GetPage entry
+    final getPageEntry = '''
+    GetPage(
+      name: Routes.${featureName.toCamelCase()},
+      page: () => const ${pascalName}Page(),
+      binding: ${pascalName}Binding(),
+    ),''';
+
+    // Insert before the last ]; in the routes list
+    final lastBracket = updatedContent.lastIndexOf('];');
+    if (lastBracket != -1) {
+      updatedContent = '${updatedContent.substring(0, lastBracket)}'
+          '$getPageEntry\n  '
+          '${updatedContent.substring(lastBracket)}';
+    }
+
+    await pagesFile.writeAsString(updatedContent);
+    _logger.success('✅ Updated app_pages.dart with new GetPage route');
   }
 }
 

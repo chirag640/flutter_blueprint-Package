@@ -54,7 +54,7 @@ void main() {
         expect(parser.options.containsKey('state'), isTrue);
         expect(parser.options.containsKey('platforms'), isTrue);
         expect(parser.options.containsKey('ci'), isTrue);
-        expect(parser.options.containsKey('template'), isTrue);
+        expect(parser.options.containsKey('graphql-client'), isTrue);
       });
 
       test('state option has valid values', () {
@@ -62,8 +62,8 @@ void main() {
         command.configureArgs(parser);
 
         final stateOption = parser.options['state']!;
-        expect(
-            stateOption.allowed, containsAll(['provider', 'riverpod', 'bloc']));
+        expect(stateOption.allowed,
+            containsAll(['provider', 'riverpod', 'bloc', 'getx']));
       });
     });
 

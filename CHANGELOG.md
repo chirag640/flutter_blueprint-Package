@@ -1,5 +1,67 @@
 # Changelog
 
+## 2.1.1
+
+**New-Feature Quality Patch** 🔧
+
+Bugs found and fixed by the [new combination test suite](test/e2e/new_features_combinations_test.dart) (111 tests covering all GetX × GraphQL combinations):
+
+### 🐛 Fixed
+
+| Template                   | Bug                                                                | Fix                                                         |
+| -------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------- |
+| `getx_mobile_template`     | Ferry deps used `^0.15.0` instead of `^0.15.2`                     | Updated to `^0.15.2` for all three ferry packages           |
+| `getx_mobile_template`     | Missing `gql_http_link: ^0.4.4` in ferry pubspec block             | Added `gql_http_link: ^0.4.4`                               |
+| `getx_mobile_template`     | Spurious `gql: ^1.0.1` added for both `graphqlFlutter` and `ferry` | Removed — not a direct dependency of either client          |
+| `getx_mobile_template`     | `ferry_generator` dev-dep used `^0.15.0`                           | Updated to `^0.15.2`                                        |
+| `riverpod_mobile_template` | Missing `ferry_flutter: ^0.15.2` in ferry pubspec block            | Added `ferry_flutter: ^0.15.2`                              |
+| `bloc_mobile_template`     | Missing `build.yaml` TemplateFile for ferry code-gen               | Added `build.yaml` entry with `shouldGenerate` = ferry only |
+| `provider_mobile_template` | Missing `build.yaml` TemplateFile for ferry code-gen               | Added `build.yaml` entry with `shouldGenerate` = ferry only |
+
+### 🧪 Added
+
+- `test/e2e/new_features_combinations_test.dart` — 111 tests covering all 12 new-feature combinations:
+  - GetX × {none, graphqlFlutter, ferry} (Sections 1a–1d)
+  - All 4 state managers × graphqlFlutter (Section 2a)
+  - All 4 state managers × ferry (Section 2b)
+  - All 4 state managers × none — zero-graphql guard (Section 2c)
+  - Pubspec dep correctness: versions, presence of `ferry_flutter`, `gql_http_link` (Section 3)
+  - Content quality: GetxController/Obx/GetMaterialApp, GraphQL setup code, schema types (Section 4)
+
+---
+
+## 2.1.0
+
+**GetX State Management + GraphQL Support** 🚀
+
+### ✨ Added
+
+- **GetX state management** (`--state getx`)
+  - Full `GetX Mobile Template` with `GetxController`, `GetView`, `GetMaterialApp`
+  - GetX-based routing, dependency injection, and reactive state
+  - Complete feature scaffolding (Home, Auth, Profile, Settings) in GetX style
+  - GetX added to `StateManagement` enum in `BlueprintConfig`
+
+- **GraphQL support** (`--graphql-client graphql_flutter|ferry`)
+  - New `GraphqlClient` enum (`none`, `graphqlFlutter`, `ferry`) in `BlueprintConfig`
+  - `graphql_templates.dart`: generates graphql_client.dart, graphql_service.dart, example queries/mutations (graphql_flutter) or schema.graphql + operations (Ferry)
+  - GraphQL files wired into all four mobile templates (Provider, Riverpod, BLoC, GetX) and web/desktop templates
+  - `--graphql-client` flag added to `init` command wizard
+  - Conditional `shouldGenerate` — GraphQL files only included when a client is selected
+
+### 🗑️ Removed
+
+- Pre-built project templates (ecommerce, social-media, etc.) — `template_library.dart` now provides blank-only base
+- `--template` CLI flag removed from `init` command
+
+### 🛠️ Internal
+
+- All `switch` statements updated for `StateManagement.getx` exhaustiveness
+- `dart analyze` — 0 issues
+- 26 template validation tests passing
+
+---
+
 ## 2.0.1
 
 **Feature-Complete Release: Production-Ready Apps** 🚀
