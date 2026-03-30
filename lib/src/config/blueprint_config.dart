@@ -157,6 +157,51 @@ enum AnalyticsProvider {
   }
 }
 
+/// AI governance scaffold level for generated repositories.
+enum AIGovernanceLevel {
+  minimal,
+  standard,
+  full;
+
+  String get label => name;
+
+  static AIGovernanceLevel parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    for (final candidate in AIGovernanceLevel.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported AI governance level: $value');
+  }
+}
+
+/// CI enforcement mode for generated AI governance policy.
+enum AICiMode {
+  advisory,
+  mixed,
+  blocking;
+
+  String get label => switch (this) {
+        AICiMode.advisory => 'advisory-only',
+        AICiMode.mixed => 'mixed',
+        AICiMode.blocking => 'blocking',
+      };
+
+  static AICiMode parse(String value) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'advisory-only') {
+      return AICiMode.advisory;
+    }
+    for (final candidate in AICiMode.values) {
+      if (candidate.name == normalized) {
+        return candidate;
+      }
+    }
+    throw ArgumentError('Unsupported AI CI mode: $value');
+  }
+}
+
 /// Configuration produced by the CLI and persisted to `blueprint.yaml`.
 ///
 /// This class holds all project generation settings including app name,
@@ -189,6 +234,10 @@ class BlueprintConfig {
     this.includeThemeMode = false,
     this.includeAccessibility = false,
     this.graphqlClient = GraphqlClient.none,
+    this.includeAiGovernance = false,
+    this.aiGovernanceLevel = AIGovernanceLevel.full,
+    this.aiCiMode = AICiMode.advisory,
+    this.aiOwner = '@your-github-handle',
   });
 
   /// The name of the Flutter application (must be valid Dart package name).
@@ -257,6 +306,18 @@ class BlueprintConfig {
   /// The GraphQL client library to scaffold, or [GraphqlClient.none] for REST-only projects.
   final GraphqlClient graphqlClient;
 
+  /// Whether to scaffold AI governance files (.github, .cursor, docs, hooks).
+  final bool includeAiGovernance;
+
+  /// The depth of AI governance scaffolding to apply.
+  final AIGovernanceLevel aiGovernanceLevel;
+
+  /// CI enforcement mode for generated AI governance templates.
+  final AICiMode aiCiMode;
+
+  /// Owner handle used for generated CODEOWNERS entries.
+  final String aiOwner;
+
   /// Whether the project includes any GraphQL support.
   bool get includeGraphql => graphqlClient != GraphqlClient.none;
 
@@ -309,6 +370,10 @@ class BlueprintConfig {
     bool? includeThemeMode,
     bool? includeAccessibility,
     GraphqlClient? graphqlClient,
+    bool? includeAiGovernance,
+    AIGovernanceLevel? aiGovernanceLevel,
+    AICiMode? aiCiMode,
+    String? aiOwner,
   }) {
     return BlueprintConfig(
       appName: appName ?? this.appName,
@@ -334,6 +399,10 @@ class BlueprintConfig {
       includeThemeMode: includeThemeMode ?? this.includeThemeMode,
       includeAccessibility: includeAccessibility ?? this.includeAccessibility,
       graphqlClient: graphqlClient ?? this.graphqlClient,
+      includeAiGovernance: includeAiGovernance ?? this.includeAiGovernance,
+      aiGovernanceLevel: aiGovernanceLevel ?? this.aiGovernanceLevel,
+      aiCiMode: aiCiMode ?? this.aiCiMode,
+      aiOwner: aiOwner ?? this.aiOwner,
     );
   }
 
@@ -364,6 +433,12 @@ class BlueprintConfig {
       }),
       'api_config': apiConfig.toMap(),
       'graphql_client': graphqlClient.label,
+      'ai_governance': {
+        'enabled': includeAiGovernance,
+        'level': aiGovernanceLevel.label,
+        'ci_mode': aiCiMode.label,
+        'owner': aiOwner,
+      },
     };
   }
 
@@ -374,6 +449,10 @@ class BlueprintConfig {
   static BlueprintConfig fromMap(Map<Object?, Object?> map) {
     final features = Map<Object?, Object?>.from(
       (map['features'] as Map?) ?? <Object?, Object?>{},
+    );
+    final aiGovernance = Map<Object?, Object?>.from(
+      ((map['ai_governance'] ?? map['aiGovernance']) as Map?) ??
+          <Object?, Object?>{},
     );
 
     // Handle both old single platform and new multiple platforms format
@@ -432,6 +511,39 @@ class BlueprintConfig {
       graphqlClient: map.containsKey('graphql_client')
           ? GraphqlClient.parse((map['graphql_client'] ?? 'none') as String)
           : GraphqlClient.none,
+      includeAiGovernance: _readBool(
+        aiGovernance['enabled'] ?? features['ai_governance'],
+        fallback: false,
+      ),
+      aiGovernanceLevel: (map.containsKey('ai_governance_level') ||
+              map.containsKey('aiGovernanceLevel'))
+          ? AIGovernanceLevel.parse((map['ai_governance_level'] ??
+              map['aiGovernanceLevel'] ??
+              'full') as String)
+          : (aiGovernance.containsKey('level')
+              ? AIGovernanceLevel.parse(
+                  (aiGovernance['level'] ?? 'full').toString(),
+                )
+              : AIGovernanceLevel.full),
+      aiCiMode: (map['ai_ci_mode'] ??
+                  map['aiCiMode'] ??
+                  aiGovernance['ci_mode'] ??
+                  aiGovernance['ciMode'] ??
+                  'advisory')
+              .toString()
+              .isNotEmpty
+          ? AICiMode.parse((map['ai_ci_mode'] ??
+                  map['aiCiMode'] ??
+                  aiGovernance['ci_mode'] ??
+                  aiGovernance['ciMode'] ??
+                  'advisory')
+              .toString())
+          : AICiMode.advisory,
+      aiOwner: (map['ai_owner'] ??
+              map['aiOwner'] ??
+              aiGovernance['owner'] ??
+              '@your-github-handle')
+          .toString(),
     );
   }
 

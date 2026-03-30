@@ -220,7 +220,18 @@ import 'analytics_service.dart';
 /// Focuses on error tracking and performance monitoring using Sentry.
 /// For full analytics features, consider using Firebase alongside Sentry.
 class SentryAnalyticsService implements AnalyticsService {
-  SentryAnalyticsService();
+  SentryAnalyticsService() {
+    Sentry.configureScope((scope) {
+      scope.environment = _environment;
+      scope.setTag('release', _release);
+      scope.setTag('build_flavor', _environment);
+    });
+  }
+
+  static const String _environment =
+      String.fromEnvironment('APP_ENV', defaultValue: 'development');
+  static const String _release =
+      String.fromEnvironment('APP_RELEASE', defaultValue: 'dev-local');
   
   /// Active performance transactions (transaction name -> transaction).
   final Map<String, ISentrySpan> _transactions = {};

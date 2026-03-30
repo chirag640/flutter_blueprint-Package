@@ -32,6 +32,9 @@ void main() {
         includeEnv: true,
         includeApi: false,
         includeTests: true,
+        includeAiGovernance: true,
+        aiGovernanceLevel: AIGovernanceLevel.standard,
+        aiOwner: '@team-owner',
       );
 
       final map = config.toMap();
@@ -40,6 +43,34 @@ void main() {
       expect(restored.appName, config.appName);
       expect(restored.stateManagement, config.stateManagement);
       expect(restored.includeApi, config.includeApi);
+      expect(restored.includeAiGovernance, isTrue);
+      expect(restored.aiGovernanceLevel, AIGovernanceLevel.standard);
+      expect(restored.aiOwner, '@team-owner');
+    });
+
+    test('converts ai ci mode to and from map correctly', () {
+      final config = BlueprintConfig(
+        appName: 'test_app',
+        platforms: [TargetPlatform.mobile],
+        stateManagement: StateManagement.riverpod,
+        includeTheme: true,
+        includeLocalization: true,
+        includeEnv: true,
+        includeApi: true,
+        includeTests: true,
+        includeAiGovernance: true,
+        aiGovernanceLevel: AIGovernanceLevel.full,
+        aiCiMode: AICiMode.blocking,
+      );
+
+      final map = config.toMap();
+      final restored = BlueprintConfig.fromMap(map);
+
+      expect(restored.aiCiMode, AICiMode.blocking);
+      expect(
+        (map['ai_governance'] as Map<String, dynamic>)['ci_mode'],
+        'blocking',
+      );
     });
 
     test('parses state management from string', () {

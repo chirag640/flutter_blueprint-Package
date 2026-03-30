@@ -13,6 +13,8 @@ import '../config/blueprint_config.dart';
 import '../config/blueprint_manifest.dart';
 import '../core/errors.dart';
 import '../core/result.dart';
+import 'ai_governance_scaffolder.dart';
+import 'production_readiness_scaffolder.dart';
 import '../templates/core/template_engine.dart';
 import '../templates/core/template_interface.dart';
 import '../templates/core/cached_template_renderer.dart';
@@ -60,13 +62,16 @@ class ProjectGenerator {
     IoUtils? ioUtils,
     Logger? logger,
     TemplateRegistry? registry,
+    bool runFlutterBootstrap = true,
   })  : _ioUtils = ioUtils ?? const IoUtils(),
         _logger = logger ?? Logger(),
-        _registry = registry ?? _buildDefaultRegistry();
+        _registry = registry ?? _buildDefaultRegistry(),
+        _runFlutterBootstrap = runFlutterBootstrap;
 
   final IoUtils _ioUtils;
   final Logger _logger;
   final TemplateRegistry _registry;
+  final bool _runFlutterBootstrap;
 
   /// Generates a complete Flutter project.
   ///
@@ -152,6 +157,63 @@ class ProjectGenerator {
         fileCount++;
       }
 
+      // AI governance scaffolding
+      if (config.includeAiGovernance) {
+        final governanceFiles = AIGovernanceScaffolder.buildFiles(config);
+        if (governanceFiles.isNotEmpty) {
+          final governanceOps = governanceFiles.entries
+              .map((entry) => FileWriteOperation(
+                    relativePath: entry.key,
+                    content: entry.value,
+                  ))
+              .toList();
+          final governanceResult = await _ioUtils.writeFilesParallel(
+            validatedPath,
+            governanceOps,
+            concurrency: IoUtils.defaultConcurrency,
+          );
+          fileCount += governanceResult.successful;
+
+          if (governanceResult.failed > 0) {
+            _logger.warn(
+              '⚠️  AI governance scaffolding had ${governanceResult.failed} write failures',
+            );
+          }
+
+          _logger.info(
+            '🧠 AI governance scaffolded (${config.aiGovernanceLevel.label})',
+          );
+        }
+      }
+
+      // Production readiness scaffolding
+      final productionReadinessFiles =
+          ProductionReadinessScaffolder.buildFiles(config);
+      if (productionReadinessFiles.isNotEmpty) {
+        final readinessOps = productionReadinessFiles.entries
+            .map((entry) => FileWriteOperation(
+                  relativePath: entry.key,
+                  content: entry.value,
+                ))
+            .toList();
+
+        final readinessResult = await _ioUtils.writeFilesParallel(
+          validatedPath,
+          readinessOps,
+          concurrency: IoUtils.defaultConcurrency,
+        );
+
+        fileCount += readinessResult.successful;
+
+        if (readinessResult.failed > 0) {
+          _logger.warn(
+            '⚠️  Production readiness scaffolding had ${readinessResult.failed} write failures',
+          );
+        }
+
+        _logger.info('🛡️  Production readiness assets scaffolded');
+      }
+
       // Write manifest
       final manifest = BlueprintManifest(config: config);
       final manifestFile = File(p.join(validatedPath, 'blueprint.yaml'));
@@ -175,11 +237,15 @@ class ProjectGenerator {
         _printCISetupInstructions(config.ciProvider);
       }
 
-      // Auto-run flutter create
-      await _runFlutterCreate(validatedPath);
+      if (_runFlutterBootstrap) {
+        // Auto-run flutter create
+        await _runFlutterCreate(validatedPath);
 
-      // Auto-install dependencies
-      await _runFlutterPubGet(validatedPath);
+        // Auto-install dependencies
+        await _runFlutterPubGet(validatedPath);
+      } else {
+        _logger.info('⏭️  Skipping flutter bootstrap (test mode).');
+      }
 
       // Summary
       _logger.info('');

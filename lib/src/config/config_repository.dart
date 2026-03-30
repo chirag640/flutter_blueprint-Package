@@ -326,13 +326,7 @@ class ConfigRepository {
           }
         }
       } else if (value is String) {
-        // Quote strings if they contain special characters
-        final needsQuotes = value.contains(':') ||
-            value.contains('#') ||
-            value.contains('[') ||
-            value.contains(']') ||
-            value.contains('{') ||
-            value.contains('}');
+        final needsQuotes = _requiresYamlQuotes(value);
         if (needsQuotes) {
           buffer.writeln('$indentStr$key: "$value"');
         } else {
@@ -344,6 +338,24 @@ class ConfigRepository {
     });
 
     return buffer.toString();
+  }
+
+  bool _requiresYamlQuotes(String value) {
+    if (value.isEmpty) return true;
+
+    // YAML plain scalars cannot start with many indicator characters.
+    const leadingIndicators = ['@', '&', '*', '!', '?', '-', ':', '#'];
+    if (leadingIndicators.any(value.startsWith)) {
+      return true;
+    }
+
+    return value.contains(':') ||
+        value.contains('#') ||
+        value.contains('[') ||
+        value.contains(']') ||
+        value.contains('{') ||
+        value.contains('}') ||
+        value.contains(',');
   }
 }
 

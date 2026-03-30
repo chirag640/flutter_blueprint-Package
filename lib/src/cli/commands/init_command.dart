@@ -55,6 +55,17 @@ class InitCommand extends BaseCommand {
           help: 'GraphQL client library (none, graphql_flutter, ferry)',
           allowed: ['none', 'graphql_flutter', 'ferry'],
           defaultsTo: 'none')
+      ..addFlag('with-ai-governance',
+          help: 'Scaffold AI governance files for GitHub and Cursor',
+          defaultsTo: null)
+      ..addOption('ai-governance-level',
+          help: 'AI governance scaffold level',
+          allowed: ['minimal', 'standard', 'full'])
+      ..addOption('ai-ci-mode',
+          help: 'AI governance CI mode',
+          allowed: ['advisory', 'mixed', 'blocking'])
+      ..addOption('ai-owner',
+          help: 'Owner handle for generated CODEOWNERS entries')
       ..addOption('from-config',
           help: 'Load project settings from a shared configuration')
       ..addFlag('preview',
@@ -322,6 +333,34 @@ class InitCommand extends BaseCommand {
       }
     }
 
+    // AI governance scaffolding
+    logger.info('');
+    final includeAiGovernance = await prompter.confirm(
+      '🧠 Scaffold AI governance files (.github + .cursor)?',
+      defaultValue: true,
+    );
+    var aiGovernanceLevel = AIGovernanceLevel.full;
+    var aiCiMode = AICiMode.advisory;
+    var aiOwner = '@your-github-handle';
+    if (includeAiGovernance) {
+      final levelChoice = await prompter.choose(
+        '📁 Choose AI governance scaffold depth',
+        ['minimal', 'standard', 'full'],
+        defaultValue: 'full',
+      );
+      aiGovernanceLevel = AIGovernanceLevel.parse(levelChoice);
+      final aiCiModeChoice = await prompter.choose(
+        '🧪 Choose AI governance CI mode',
+        ['advisory', 'mixed', 'blocking'],
+        defaultValue: 'advisory',
+      );
+      aiCiMode = AICiMode.parse(aiCiModeChoice);
+      aiOwner = await prompter.prompt(
+        '👤 CODEOWNERS handle',
+        defaultValue: '@your-github-handle',
+      );
+    }
+
     // Build config
     final config = BlueprintConfig(
       appName: appName,
@@ -346,6 +385,10 @@ class InitCommand extends BaseCommand {
       includeThemeMode: features['theme_mode']!,
       includeAccessibility: features['accessibility']!,
       graphqlClient: graphqlClient,
+      includeAiGovernance: includeAiGovernance,
+      aiGovernanceLevel: aiGovernanceLevel,
+      aiCiMode: aiCiMode,
+      aiOwner: aiOwner,
     );
 
     // Summary
@@ -410,7 +453,20 @@ class InitCommand extends BaseCommand {
       final repository = ConfigRepository(logger: context.logger);
       final sharedConfig = await repository.load(fromConfig);
       context.logger.info('✅ Loaded configuration: ${sharedConfig.name}');
-      return sharedConfig.toBlueprintConfig(appName);
+
+      final includeAiGovernanceArg = results['with-ai-governance'] as bool?;
+      final aiGovernanceLevelArg = results['ai-governance-level'] as String?;
+      final aiCiModeArg = results['ai-ci-mode'] as String?;
+      final aiOwnerArg = results['ai-owner'] as String?;
+
+      return sharedConfig.toBlueprintConfig(appName).copyWith(
+            includeAiGovernance: includeAiGovernanceArg,
+            aiGovernanceLevel: aiGovernanceLevelArg != null
+                ? AIGovernanceLevel.parse(aiGovernanceLevelArg)
+                : null,
+            aiCiMode: aiCiModeArg != null ? AICiMode.parse(aiCiModeArg) : null,
+            aiOwner: aiOwnerArg,
+          );
     }
 
     if (appName.isEmpty) {
@@ -458,6 +514,18 @@ class InitCommand extends BaseCommand {
 
     final graphqlArg = results['graphql-client'] as String? ?? 'none';
     final graphqlClient = GraphqlClient.parse(graphqlArg);
+    final includeAiGovernance =
+        _resolveBool(results, 'with-ai-governance', true);
+    final aiGovernanceLevelArg = results['ai-governance-level'] as String?;
+    final aiCiModeArg = results['ai-ci-mode'] as String?;
+    final aiGovernanceLevel = aiGovernanceLevelArg != null
+        ? AIGovernanceLevel.parse(aiGovernanceLevelArg)
+        : AIGovernanceLevel.full;
+    final aiCiMode =
+        aiCiModeArg != null ? AICiMode.parse(aiCiModeArg) : AICiMode.advisory;
+    final aiOwner = (results['ai-owner'] as String?)?.trim().isNotEmpty == true
+        ? (results['ai-owner'] as String).trim()
+        : '@your-github-handle';
 
     return BlueprintConfig(
       appName: appName,
@@ -482,6 +550,10 @@ class InitCommand extends BaseCommand {
       includeThemeMode: _resolveBool(results, 'theme-mode', false),
       includeAccessibility: _resolveBool(results, 'a11y', false),
       graphqlClient: graphqlClient,
+      includeAiGovernance: includeAiGovernance,
+      aiGovernanceLevel: aiGovernanceLevel,
+      aiCiMode: aiCiMode,
+      aiOwner: aiOwner,
     );
   }
 
@@ -528,6 +600,13 @@ class InitCommand extends BaseCommand {
     _printFeatureFlag(logger, 'Social Auth', config.includeSocialAuth);
     _printFeatureFlag(logger, 'Theme Mode Detection', config.includeThemeMode);
     _printFeatureFlag(logger, 'Accessibility', config.includeAccessibility);
+    if (config.includeAiGovernance) {
+      logger.info(
+        '   AI governance: ✅ (${config.aiGovernanceLevel.label}, CI: ${config.aiCiMode.label}, owner: ${config.aiOwner})',
+      );
+    } else {
+      _printFeatureFlag(logger, 'AI governance scaffolding', false);
+    }
     logger.info('');
   }
 

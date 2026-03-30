@@ -25,6 +25,13 @@ class GitHubActionsTemplate {
     buffer.writeln('  pull_request:');
     buffer.writeln('    branches: [ main, develop ]');
     buffer.writeln();
+    buffer.writeln('permissions:');
+    buffer.writeln('  contents: read');
+    buffer.writeln();
+    buffer.writeln('concurrency:');
+    buffer.writeln('  group: ci-\${{ github.workflow }}-\${{ github.ref }}');
+    buffer.writeln('  cancel-in-progress: true');
+    buffer.writeln();
     buffer.writeln('jobs:');
 
     // Analyze job

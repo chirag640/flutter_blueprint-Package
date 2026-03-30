@@ -1,5 +1,45 @@
 # Changelog
 
+## 3.0.0
+
+**Release Safety + Doctor + Compliance Modernization** 🛡️
+
+### ✨ Added
+
+- New `doctor` command for actionable health reports:
+  - `dart analyze`
+  - `dart pub outdated`
+  - `dart fix --dry-run`
+- Production release-security scaffolding in generated projects:
+  - Secure Android/iOS release profile templates
+  - Symbolication workflow documentation
+  - Pre-release check scripts (bash + PowerShell)
+- Reproducible-build guidance and dependency hygiene docs.
+- GitHub guardrails for generated projects:
+  - `dependabot.yml` (pub + github-actions)
+  - dependency-drift workflow
+- Sentry observability baseline scaffolding (when `--analytics sentry`):
+  - release/environment tagging helper
+  - setup docs + env example
+
+### 🔐 Compliance Update
+
+- MASVS checklist generation now uses modern control-group mapping with MASWE-oriented weakness categories.
+- Deprecated legacy level-style wording in generated compliance artifacts.
+
+### 📣 Breaking-Change / Migration Callouts
+
+- **Callout:** Generated compliance checklist format changed from legacy ID-style rows to control-group + MASWE-oriented mapping.
+  - **Migration:** If internal tooling parses old checklist IDs, update parsers to read the new columns:
+    - `MASVS Control Group`
+    - `MASWE-Oriented Mapping`
+    - `Trigger`
+    - `Control Objective`
+- **Callout:** Generated GitHub projects now include stricter dependency drift governance.
+  - **Migration:** Teams should adopt a regular dependency triage cadence for Dependabot and drift-check failures.
+
+---
+
 ## 2.1.1
 
 **New-Feature Quality Patch** 🔧

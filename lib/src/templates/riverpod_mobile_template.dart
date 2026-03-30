@@ -634,7 +634,7 @@ String _pubspec(BlueprintConfig config) {
   }
   if (config.includeGraphql && config.graphqlClient == GraphqlClient.ferry) {
     buffer.writeln(
-        '  ferry_generator: 0.12.0+2'); // pinned: ^0.12.0+3 conflicts with hive_generator
+        '  ferry_generator: 0.12.0+3'); // resolved conflict with freezed ^3.2.2
   }
 
   buffer
@@ -5864,4 +5864,3 @@ class SettingsSection extends StatelessWidget {
 }
 """;
 }
-

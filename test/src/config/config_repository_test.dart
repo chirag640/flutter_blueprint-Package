@@ -496,7 +496,8 @@ String _toYamlString(Map<String, dynamic> data, [int indent = 0]) {
           value.contains('[') ||
           value.contains(']') ||
           value.contains('{') ||
-          value.contains('}');
+          value.contains('}') ||
+          value.startsWith('@');
       if (needsQuotes) {
         buffer.writeln('$indentStr$key: "$value"');
       } else {

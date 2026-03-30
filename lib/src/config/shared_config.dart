@@ -94,6 +94,10 @@ class SharedBlueprintConfig {
       includeEnv: defaults.includeEnv,
       includeApi: defaults.includeApi,
       includeTests: defaults.includeTests,
+      includeAiGovernance: defaults.includeAiGovernance,
+      aiGovernanceLevel: defaults.aiGovernanceLevel,
+      aiCiMode: defaults.aiCiMode,
+      aiOwner: defaults.aiOwner,
     );
   }
 
@@ -127,6 +131,10 @@ class SharedConfigDefaults {
   final bool includeLocalization;
   final bool includeEnv;
   final CIProvider ciProvider;
+  final bool includeAiGovernance;
+  final AIGovernanceLevel aiGovernanceLevel;
+  final AICiMode aiCiMode;
+  final String aiOwner;
 
   const SharedConfigDefaults({
     required this.stateManagement,
@@ -137,12 +145,21 @@ class SharedConfigDefaults {
     this.includeLocalization = false,
     this.includeEnv = true,
     this.ciProvider = CIProvider.none,
+    this.includeAiGovernance = true,
+    this.aiGovernanceLevel = AIGovernanceLevel.full,
+    this.aiCiMode = AICiMode.advisory,
+    this.aiOwner = '@your-github-handle',
   });
 
   factory SharedConfigDefaults.fromYaml(Map<String, dynamic> yaml) {
     final platformsList = yaml['platforms'] as List<dynamic>? ?? ['mobile'];
     final platforms =
         platformsList.map((p) => TargetPlatform.parse(p.toString())).toList();
+    final aiEnabled = (yaml['ai_governance'] ?? yaml['aiGovernance']) as bool?;
+    final aiLevel =
+        (yaml['ai_governance_level'] ?? yaml['aiGovernanceLevel']) as String?;
+    final aiCiMode = (yaml['ai_ci_mode'] ?? yaml['aiCiMode']) as String?;
+    final aiOwner = (yaml['ai_owner'] ?? yaml['aiOwner']) as String?;
 
     return SharedConfigDefaults(
       stateManagement: StateManagement.parse(
@@ -157,6 +174,12 @@ class SharedConfigDefaults {
       ciProvider: CIProvider.parse(
         yaml['ci_provider'] as String? ?? 'none',
       ),
+      includeAiGovernance: aiEnabled ?? true,
+      aiGovernanceLevel: AIGovernanceLevel.parse(
+        aiLevel ?? 'full',
+      ),
+      aiCiMode: AICiMode.parse(aiCiMode ?? 'advisory'),
+      aiOwner: aiOwner ?? '@your-github-handle',
     );
   }
 
@@ -170,6 +193,10 @@ class SharedConfigDefaults {
       'include_localization': includeLocalization,
       'include_env': includeEnv,
       'ci_provider': ciProvider.label,
+      'ai_governance': includeAiGovernance,
+      'ai_governance_level': aiGovernanceLevel.label,
+      'ai_ci_mode': aiCiMode.label,
+      'ai_owner': aiOwner,
     };
   }
 
@@ -183,6 +210,10 @@ class SharedConfigDefaults {
       includeLocalization: false,
       includeEnv: true,
       ciProvider: CIProvider.none,
+      includeAiGovernance: true,
+      aiGovernanceLevel: AIGovernanceLevel.full,
+      aiCiMode: AICiMode.advisory,
+      aiOwner: '@your-github-handle',
     );
   }
 }

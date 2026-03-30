@@ -18,6 +18,7 @@ import 'commands/refactor_command.dart';
 import 'commands/share_command_v2.dart';
 import 'commands/update_command_v2.dart';
 import 'commands/add_feature_command_v2.dart';
+import 'commands/doctor_command.dart';
 import '../prompts/interactive_prompter.dart';
 import '../utils/logger.dart';
 import '../utils/update_checker.dart';
@@ -281,6 +282,7 @@ class CliRunnerV2 {
     registry.registerAll([
       InitCommand(),
       AnalyzeCommandV2(),
+      DoctorCommand(),
       OptimizeCommandV2(),
       RefactorCommand(),
       ShareCommandV2(),

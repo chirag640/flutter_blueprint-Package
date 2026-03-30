@@ -55,6 +55,10 @@ void main() {
         expect(parser.options.containsKey('platforms'), isTrue);
         expect(parser.options.containsKey('ci'), isTrue);
         expect(parser.options.containsKey('graphql-client'), isTrue);
+        expect(parser.options.containsKey('with-ai-governance'), isTrue);
+        expect(parser.options.containsKey('ai-governance-level'), isTrue);
+        expect(parser.options.containsKey('ai-ci-mode'), isTrue);
+        expect(parser.options.containsKey('ai-owner'), isTrue);
       });
 
       test('state option has valid values', () {

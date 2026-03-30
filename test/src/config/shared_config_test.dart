@@ -90,6 +90,10 @@ void main() {
           includeEnv: true,
           includeApi: false,
           includeTests: true,
+          includeAiGovernance: true,
+          aiGovernanceLevel: AIGovernanceLevel.full,
+          aiCiMode: AICiMode.mixed,
+          aiOwner: '@test-owner',
         ),
         requiredPackages: ['dio'],
         codeStyle: CodeStyleConfig(
@@ -117,6 +121,10 @@ void main() {
       expect(defaults['include_localization'], false);
       expect(defaults['include_api'], false);
       expect(defaults['include_tests'], true);
+      expect(defaults['ai_governance'], true);
+      expect(defaults['ai_governance_level'], 'full');
+      expect(defaults['ai_ci_mode'], 'mixed');
+      expect(defaults['ai_owner'], '@test-owner');
 
       final codeStyle = yaml['code_style'] as Map<String, dynamic>;
       expect(codeStyle['line_length'], 80);
@@ -141,6 +149,10 @@ void main() {
           'include_env': false,
           'include_api': true,
           'include_tests': false,
+          'ai_governance': true,
+          'ai_governance_level': 'standard',
+          'ai_ci_mode': 'blocking',
+          'ai_owner': '@yaml-owner',
         },
         'required_packages': ['http', 'provider'],
         'code_style': {
@@ -170,6 +182,10 @@ void main() {
       expect(config.defaults.includeEnv, false);
       expect(config.defaults.includeApi, true);
       expect(config.defaults.includeTests, false);
+      expect(config.defaults.includeAiGovernance, true);
+      expect(config.defaults.aiGovernanceLevel, AIGovernanceLevel.standard);
+      expect(config.defaults.aiCiMode, AICiMode.blocking);
+      expect(config.defaults.aiOwner, '@yaml-owner');
       expect(config.requiredPackages, ['http', 'provider']);
       expect(config.codeStyle.lineLength, 120);
       expect(config.codeStyle.preferConst, false);
@@ -216,6 +232,10 @@ void main() {
           includeEnv: false,
           includeApi: true,
           includeTests: false,
+          includeAiGovernance: true,
+          aiGovernanceLevel: AIGovernanceLevel.standard,
+          aiCiMode: AICiMode.mixed,
+          aiOwner: '@shared-owner',
         ),
         codeStyle: CodeStyleConfig(
           lineLength: 80,
@@ -238,6 +258,10 @@ void main() {
       expect(blueprintConfig.includeEnv, false);
       expect(blueprintConfig.includeApi, true);
       expect(blueprintConfig.includeTests, false);
+      expect(blueprintConfig.includeAiGovernance, true);
+      expect(blueprintConfig.aiGovernanceLevel, AIGovernanceLevel.standard);
+      expect(blueprintConfig.aiCiMode, AICiMode.mixed);
+      expect(blueprintConfig.aiOwner, '@shared-owner');
     });
 
     test('creates default config', () {

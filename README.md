@@ -1,6 +1,6 @@
 # 🎯 flutter_blueprint
 
-**Enterprise-grade Flutter app scaffolding CLI** — generates production-ready Flutter projects with **43+ professional files**, complete architecture, and best practices.
+**Enterprise-grade Flutter app scaffolding CLI** - generates production-ready Flutter projects with clean architecture, advanced state management options, and release-ready workflows.
 
 [![Pub Version](https://img.shields.io/pub/v/flutter_blueprint)](https://pub.dev/packages/flutter_blueprint)
 [![Pub Points](https://img.shields.io/pub/points/flutter_blueprint)](https://pub.dev/packages/flutter_blueprint/score)
@@ -11,22 +11,18 @@
 
 > **📱 Note:** CLI runs on desktop (Windows/Linux/macOS) to **generate** Flutter projects that support **all platforms** (Android, iOS, Web, Desktop).
 
-## 🎉 What's New in v2.0
+## 🎉 What's New in v3.0
 
-**Major architectural improvements and production-ready features:**
+**Latest release highlights:**
 
-| Enhancement                  | Description                                                   |
-| ---------------------------- | ------------------------------------------------------------- |
-| 🔥 **Complete Features**     | Auth, Profile, Settings with full UI - zero placeholders      |
-| 🏠 **Smart Home Screen**     | API-connected with pagination, caching, pull-to-refresh       |
-| 🔐 **Full Authentication**   | Login, Register, Token management, Auto-login, Secure storage |
-| 👤 **Profile Management**    | View, Edit profile, Avatar upload, Offline-first caching      |
-| ⚙️ **Settings System**       | Theme switcher, Notifications, Biometrics, Account management |
-| 🔒 **Enterprise Security**   | OWASP-compliant headers, certificate pinning, SSRF prevention |
-| 🚦 **Rate Limiting**         | Client-side protection (60 req/min per endpoint)              |
-| 💾 **Smart Caching**         | SharedPreferences + JSON serialization with error recovery    |
-| 🏗️ **Architecture Refactor** | Result types, command pattern, DI container                   |
-| ✅ **Testing**               | 334 tests passing, 62.88% coverage                            |
+| Enhancement                      | Description                                                        |
+| -------------------------------- | ------------------------------------------------------------------ |
+| 🩺 **Doctor Command**            | `analyze`, `pub outdated`, and `fix --dry-run` with an action plan |
+| 🛡️ **Release Security Preset**   | Obfuscation, split debug symbols, and symbolication workflow docs  |
+| 🔐 **Compliance Modernization**  | MASVS control-group checklist with MASWE-oriented mappings         |
+| 📈 **Observability Baseline**    | Sentry release/environment tagging scaffolding when selected       |
+| 🔄 **Dependency Guardrails**     | Dependabot + dependency drift workflow for GitHub CI               |
+| ✅ **Expanded Regression Tests** | Matrix-style generation tests covering high-risk combinations      |
 
 See [CHANGELOG.md](./CHANGELOG.md) for complete details.
 
@@ -101,7 +97,7 @@ When you generate a project with `--api` flag, you get **complete working featur
 - **About**: Version, Terms, Privacy Policy
 - **Data Management**: Clear all cached data
 
-## 🔒 Security Features (v2.0+)
+## 🔒 Security Features
 
 flutter_blueprint generates enterprise-grade security out of the box:
 
@@ -171,7 +167,24 @@ flutter_blueprint init <app_name> [options]
 | `--hive`                 | Include Hive offline caching                                 |
 | `--pagination`           | Include pagination support                                   |
 | `--analytics <provider>` | Analytics: `firebase`, `sentry`                              |
-| `--security <level>`     | Security: `basic`, `standard`, `enterprise`                  |
+| `--with-ai-governance`   | Scaffold AI governance guardrails                            |
+| `--ai-governance-level`  | Governance depth: `minimal`, `standard`, `full`              |
+| `--ai-ci-mode`           | AI policy CI mode: `advisory`, `mixed`, `blocking`           |
+| `--ai-owner`             | Owner handle for generated `CODEOWNERS` entries              |
+
+### `doctor` - Health Report and Action Plan
+
+```bash
+flutter_blueprint doctor [path] [--strict] [--verbose]
+```
+
+Runs:
+
+- `dart analyze`
+- `dart pub outdated`
+- `dart fix --dry-run`
+
+Then prints an actionable report with recommended next steps for dependency drift, analyzer failures, and safe autofix opportunities.
 
 ### 🔌 API Backend Presets
 
@@ -210,7 +223,7 @@ my_app/
 └── pubspec.yaml
 ```
 
-## 💾 Data Layer Features (v2.0+)
+## 💾 Data Layer Features
 
 ### Smart Caching
 
@@ -265,7 +278,7 @@ flutter_blueprint init my_app --from-config company_standard
 
 ## 📚 Documentation
 
-- [Architecture Guide](./ARCHITECTURE.md) - Deep dive into v2.0 architecture
+- [Architecture Guide](./ARCHITECTURE.md) - Deep dive into architecture decisions
 - [Example Usage](./example/example.dart) - Programmatic API examples
 - [Contributing Guide](./CONTRIBUTING.md) - How to contribute
 - [Changelog](./CHANGELOG.md) - Version history
